@@ -1,0 +1,39 @@
+{
+  "name": "pitfall-js",
+  "version": "1.0.0",
+  "description": "A browser port of a platformer originally released in 1982 for the Atari 2600.",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/meatfighter/pitfall-js"
+  },
+  "author": "Mike Birken (https://meatfighter.com/pitfall-js)",
+  "license": "GPL-3.0-only",
+  "type": "module",
+  "scripts": {
+    "clean:index": "rimraf --glob public_html/scripts/*.bundle.js public_html/scripts/*.bundle.js.LICENSE.txt",
+    "clean:sw": "rimraf --glob public_html/app/*.bundle.js public_html/app/*.bundle.js.LICENSE.txt",
+    "clean:app": "rimraf --glob public_html/app/resources.zip public_html/app/scripts/*.bundle.js public_html/app/scripts/*.bundle.js.LICENSE.txt",
+    "clean": "npm run clean:index && npm run clean:sw && npm run clean:app",
+    "pack:index": "npx webpack --mode production --config webpack.config.index.mjs",
+    "pack:sw": "npx webpack --mode production --config webpack.config.sw.mjs",
+    "pack:bootstrap": "npx webpack --mode production --config webpack.config.bootstrap.mjs",
+    "pack": "npm run pack:index && npm run pack:sw && npm run pack:bootstrap",
+    "zip": "bestzip public_html/app/resources.zip sfx/*",
+    "build": "npm run clean && npm run zip && npm run pack",
+    "start": "http-server public_html -p 8080",
+    "refresh": "npm run build && npm run start"
+  },
+  "devDependencies": {
+    "bestzip": "^2.2.1",
+    "http-server": "^14.1.1",
+    "rimraf": "^5.0.10",
+    "ts-loader": "^9.5.1",
+    "typescript": "^5.6.3",
+    "webpack": "^5.96.1",
+    "webpack-cli": "^5.1.4",
+    "worker-loader": "^3.0.8"
+  },
+  "dependencies": {
+    "jszip": "^3.10.1"
+  }
+}

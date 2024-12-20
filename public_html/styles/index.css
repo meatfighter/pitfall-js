@@ -1,0 +1,291 @@
+@media only screen and (max-device-width: 400px) {
+    html {
+        -webkit-text-size-adjust: none;
+        text-size-adjust: none;
+    }
+}
+
+html {
+    scrollbar-color: #686868 #424242;
+}
+
+body {
+    background-color: #0C0C0C;
+    color: #E6EDF3;
+    padding: 0;
+    font-family: 'Open Sans', sans-serif;
+    max-width: 978px;
+    margin: 0 auto;
+}
+
+body, button, input, select, textarea {
+    font-family: 'Open Sans', sans-serif;
+}
+
+::-webkit-scrollbar-thumb {
+    background-color: #686868;
+    border: 3px solid #424242;
+}
+
+::-webkit-scrollbar-track {
+    background-color: #424242;
+}
+
+p {
+    font-size: 16px;
+    line-height: 27px;
+    font-weight: 300;
+}
+
+button {
+    background-color: #0075FF;
+    color: #F0F0F0;
+    border: none;
+    padding: 10px 20px;
+    margin: 0 5px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 18px;
+    border-radius: 16px;
+    text-shadow: 1px 1px 2px black;
+}
+
+button:active {
+    transform: translateY(2px);
+}
+
+button:disabled {
+    background-color: #005CC8;
+}
+
+button:disabled:active {
+    transform: none;
+}
+
+button:focus {
+    outline: none;
+}
+
+button.centered {
+    margin-top: 30px;
+    margin-left: auto;
+    margin-right: auto;
+    display: block;
+}
+
+p.centered {
+    text-align: center;
+    margin-left: auto;
+    margin-right: auto;
+    padding-top: 10px;
+}
+
+p.copyright {
+    font-size: 12px;
+    line-height: 16px;
+}
+
+p.home {
+    font-family: 'Open Sans', sans-serif;
+    font-size: 16px;
+    line-height: 27px;
+    font-weight: 300;
+    text-align: right;
+}
+
+a,a:visited {
+    color: #58A6FF;
+    text-decoration: none;
+}
+
+a:hover,a:active {
+    color: #58A6FF;
+    text-decoration: underline;
+}
+
+a.header,a.header:visited {
+    color: #E6EDF3;
+    text-decoration: none;
+}
+
+a.header:hover {
+    color: #C1C7CC;
+    text-decoration: none;
+}
+
+hr {
+    margin-top: 60px;
+}
+
+dl {
+    display: grid;
+    grid-template-columns: max-content auto;
+    margin-left: 20px;
+}
+
+dt {
+    grid-column-start: 1;
+}
+
+dd {
+    grid-column-start: 2;
+    margin-left: 15px;
+    margin-bottom: 5px;
+}
+
+img.centered {
+    display: block;
+    width: 100%;
+    max-width: 500px;
+    height: auto;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+img.cga {
+    display: block;
+    width: 100%;
+    max-width: 640px;
+    height: auto;
+    margin-left: auto;
+    margin-right: auto;
+    image-rendering: pixelated;
+    image-rendering: -moz-crisp-edges;
+    image-rendering: crisp-edges;
+}
+
+img.svg {
+    display: block;
+    max-width: 100%;
+    height: auto;
+    margin-left: auto;
+    margin-right: auto;
+    image-rendering: pixelated;
+    image-rendering: -moz-crisp-edges;
+    image-rendering: crisp-edges;
+}
+
+
+i {
+    font-style: italic;
+    font-weight: normal;
+    color: inherit;
+    font-size: inherit;
+}
+
+strong {
+    font-style: normal;
+    font-weight: bold;
+    color: inherit;
+    font-size: inherit;
+}
+
+h1 {
+    font-size: 2em;
+    font-weight: bold;
+    margin-top: 1.1em;
+    margin-bottom: 0.67em;
+    font-family: inherit;
+    line-height: normal;
+    display: block;
+    color: inherit;
+}
+
+span {
+    white-space: nowrap;
+}
+
+pre.code {
+    font-family: 'Source Code Pro', monospace;
+    font-size: 16px;
+    line-height: normal;
+    background-color: #161B22;
+    color: #E6EDF3;
+    padding: 15px 15px 15px 15px;
+    max-width: 978px;
+    overflow-x: auto;
+    white-space: pre;
+}
+
+pre::-webkit-scrollbar {
+    background-color: #424242;
+}
+
+pre::-webkit-scrollbar-thumb {
+    background-color: #686868;
+    border: 3px solid #424242;
+}
+
+.func {
+    color: #D2A8FF;
+}
+
+.keyword {
+    color: #FF7B72;
+}
+
+.str {
+    color: #A5D6FF;
+}
+
+.num {
+    color: #79C0FF;
+}
+
+.comment {
+    color: #8B949E;
+}
+
+code {
+    font-family: 'Source Code Pro', monospace;
+    font-size: 16px;
+    overflow-x: auto;
+}
+
+dd {
+    margin-left: 30px;
+}
+
+ul {
+    list-style-type: disc;
+    margin: 0;
+    margin-bottom: 14px;
+    padding-left: 32px;    
+}
+  
+ul li {
+    margin-bottom: 14px;      
+}
+
+.indented {
+    padding-left: 6px;
+}
+  
+strong.item {
+    margin-bottom: 14px;
+    display: inline-block;
+}
+
+footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+}
+
+footer .left {
+    text-align: left;
+    font-size: 12px;
+    line-height: 16px;
+}
+
+footer .right {
+    text-align: right;
+}
+
+footer img {
+    height: 22px !important;
+    margin-left: 3px;
+    vertical-align: text-bottom;
+}

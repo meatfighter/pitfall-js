@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#0C0C0C">
+    <meta name="date" content="2024-12-17">
+
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" href="app/icons/favicon.svg" type="image/svg+xml">
+    <link rel="icon" href="app/icons/favicon.ico" sizes="any" type="image/x-icon">
+    <link rel="shortcut icon" href="app/icons/favicon.ico" sizes="any" type="image/x-icon">
+    <link rel="apple-touch-icon" href="app/icons/apple-touch-icon.png">
+    <link rel="mask-icon" href="app/icons/mask-icon.svg" color="#000000">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Code+Pro&family=Open+Sans&display=swap">
+    <link rel="stylesheet" href="styles/index.css?v=2024-12-17" type="text/css">
+
+    <!-- Preload app resources -->    
+    <link rel="preload" href="https://fonts.gstatic.com/s/opensans/v40/memSYaGs126MiZpBA-UvWbX2vVnXBbObj2OVZyOOSr4dVJWUgsjZ0B4gaVIUx6EQ.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+    <link rel="preload" href="https://fonts.gstatic.com/s/materialicons/v142/flUhRq6tzZclQEJ-Vdg-IuiaDsNcIhQ8tQ.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+    <link rel="preload" href="app/styles/app.css?v=2024-12-17" as="style">
+    <link rel="preload" href="app/scripts/app.bundle.js?v=2024-12-17" as="script">
+
+    <title>Pitfall!</title>
+
+    <base target="_blank">
+</head>
+    
+<body>
+<main id="main-content">
+
+<p style="margin-top: 100px;"><img class="centered" src="images/title.svg" id="title" alt="Demon Attack" style="max-width: 500px;"></p>
+
+<p style="margin-top: 40px; margin-bottom: 50px;"><img class="centered" src="images/demon.png" id="logo" alt="demon" style="max-width: 175px;"></p>
+
+<p id="index" class="centered">[ <a href="#about" target="_self">About</a> | <a href="#controls" target="_self">Controls</a> | <a href="#setup" target="_self">Setup</a> | <a href="#acknowledgements" target="_self">Acknowledgements</a> | <a href="#source" target="_self">Source</a> ]</p>
+
+
+<h1 id="about"><a class="header" href="#about" target="_self">About</a></h1>
+
+<p><i>Demon Attack</i> is a space shooter originally released in 1982 for the Atari 2600. It challenges the player to fend off waves of hovering creatures by blasting them with a laser cannon. The attacks grow more complex with each round, culminating in foes that split into dive-bombing monsters.</p> 
+
+<p>Press the <strong>Play</strong> button below to launch a browser port of <i>Demon Attack</i>.</p> 
+
+<button class="button centered" id="play-button">Play</button>
+ 
+
+<h1 id="controls"><a class="header" href="#controls" target="_self">Controls</a></h1>
+
+<p>The browser port supports input from these devices: </p>
+
+<ul>
+    <li>
+        <div class="indented">
+            <strong class="item">Keyboard</strong>
+            <ul>
+                <li><div class="indented">Move: <strong>Left</strong> and <strong>Right arrow keys</strong> or the <strong>A</strong> and <strong>D keys</strong></div></li>
+                <li><div class="indented">Fire: <strong>Any other key</strong></div></li>
+            </ul>    
+        </div>
+    </li>
+    <li>
+        <div class="indented">
+            <strong class="item">Gamepad</strong>
+            <ul>
+                <li><div class="indented">Move: <strong>D-pad</strong> or <strong>analog stick</strong></div></li>
+                <li><div class="indented">Fire: <strong>Any other button</strong></div></li>
+            </ul>
+        </div>
+    </li>
+    <li>
+        <div class="indented">
+            <strong class="item">Touchscreen</strong>
+            <ul>
+                <li><div class="indented">Setup: Enable <strong>autofire</strong>. This is the default on touchscreen-only devices.</div></li>
+                <li><div class="indented">Move: Hold down the <strong>left</strong> or <strong>right side of the screen</strong> to move in those directions.</div></li>
+                <li><div class="indented">Fire: Autofire takes care of the shooting.</div></li>
+            </ul>
+        </div>
+    </li>
+</ul>
+
+
+<h1 id="setup"><a class="header" href="#setup" target="_self">Setup</a></h1>
+
+<p>The setup page provides options that replicate the original game variations, except for 2-player and co-op modes.</p>
+
+<ul>
+    <li><div class="indented"><strong>Autofire</strong>: Shoots continuously without player input. This feature was introduced in the browser port to make the game accessible to mobile players. It is the default for touchscreen-only devices.</div></li> 
+    <li><div class="indented"><strong>Tracer</strong>: Allows the player to steer shots after firing.</div></li> 
+    <li><div class="indented"><strong>Fast</strong>: Doubles the player’s cannon speed.</div></li> 
+</ul>
+
+<p>The original&rsquo;s &ldquo;advanced&rdquo; mode starts the game from wave 13, at double cannon speed. In the browser port, the player must work up to that level.</p>
+
+
+<h1 id="acknowledgements"><a class="header" href="#acknowledgements" target="_self">Acknowledgements</a></h1> 
+
+<p>The original <i>Demon Attack</i> was designed and programmed by Rob Fulop, with graphics created by Michael Becker.</p>
+
+
+<h1 id="source"><a class="header" href="#source" target="_self">Source</a></h1> 
+
+<p>The browser port is not an emulation of the Atari 2600 version. Rather, it was developed in TypeScript through careful observation of gameplay and in-depth analysis of the original&rsquo;s 6507 assembly language source code. It faithfully preserves the sound effects and graphics of the original, excluding only the Imagic logo.</p> 
+
+<p>The source is available <a href="https://github.com/meatfighter/demon-attack-js">here</a>.</p>
+
+<hr>
+<footer>
+    <div class="left">
+        &copy; 2024 meatfighter.com<br>This content is licensed under <a href="http://creativecommons.org/licenses/by-sa/4.0/?ref=chooser-v1" rel="license noopener noreferrer" style="display:inline-block;">CC BY-SA 4.0<img src="https://mirrors.creativecommons.org/presskit/icons/cc.svg?ref=chooser-v1" alt="CC"><img src="https://mirrors.creativecommons.org/presskit/icons/by.svg?ref=chooser-v1" alt="BY"><img src="https://mirrors.creativecommons.org/presskit/icons/sa.svg?ref=chooser-v1" alt="SA"></a>
+    </div>
+    <div class="right">
+        <a href="https://meatfighter.com" target="_self">Home</a>
+    </div>
+</footer>
+
+</main>
+
+<script type="module" src="scripts/index.bundle.js?v=2024-12-17"></script>
+</body>
+</html>

@@ -1,0 +1,1 @@
+(()=>{"use strict";var e={};function t(){window.location.href="app/app.html"}e.d=(t,n)=>{for(var o in n)e.o(n,o)&&!e.o(t,o)&&Object.defineProperty(t,o,{enumerable:!0,get:n[o]})},e.o=(e,t)=>Object.prototype.hasOwnProperty.call(e,t),document.addEventListener("DOMContentLoaded",(function(){document.getElementById("play-button").addEventListener("click",t)}))})();

@@ -1,0 +1,29 @@
+{
+  "short_name": "Demon",
+  "name": "Demon Attack",
+  "description": "A game that challenges the player to maneuver a spacecraft through a cave bristling with sharp rocks by tapping just one button.",
+  "icons": [
+    {
+      "src": "icons/google-touch-icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icons/google-touch-icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "icons/favicon.svg",
+      "type": "image/svg+xml",
+      "sizes": "any"
+    }
+  ],
+  "scope": ".",
+  "start_url": "app.html",
+  "background_color": "#0D1117",
+  "theme_color": "#0D1117",
+  "display": "fullscreen",
+  "orientation": "portrait-primary",
+  "lang": "en-US"
+}
