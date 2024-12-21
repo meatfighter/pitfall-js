@@ -213,23 +213,29 @@ export async function init() {
                     sprite => harrySprites[dir][j] = sprite, mask => harryMasks[dir][j] = mask, promises);
         }
     }
-    
+
     for (let dir = 0; dir < 2; ++dir) {
         const flipped = dir === 1;
 
         // cobra
+        cobraSprites[dir] = new Array<Sprite>(2);
+        cobraMasks[dir] = new Array<Mask>(2);
         createSpriteAndMask(binStr, palette, Offsets.COBRA1, Offsets.COBRACOLOR, 16, flipped,
                 sprite => cobraSprites[dir][0] = sprite, mask => cobraMasks[dir][0] = mask, promises);
         createSpriteAndMask(binStr, palette, Offsets.COBRA0, Offsets.COBRACOLOR, 16, flipped,
                 sprite => cobraSprites[dir][1] = sprite, mask => cobraMasks[dir][1] = mask, promises);
 
         // croc
+        crocSprites[dir] = new Array<Sprite>(2);
+        crocMasks[dir] = new Array<Mask>(2);
         createSpriteAndMask(binStr, palette, Offsets.CROCO1, Offsets.CROCOCOLOR, 16, flipped,
                 sprite => crocSprites[dir][0] = sprite, mask => crocMasks[dir][0] = mask, promises);
         createSpriteAndMask(binStr, palette, Offsets.CROCO0, Offsets.CROCOCOLOR, 16, flipped,
                 sprite => crocSprites[dir][1] = sprite, mask => crocMasks[dir][1] = mask, promises);
 
         // sorpion
+        sorpionSprites[dir] = new Array<Sprite>(2);
+        sorpionMasks[dir] = new Array<Mask>(2);
         createSpriteAndMask(binStr, palette, Offsets.SCORPION1, Offsets.SCORPIONCOLOR, 16, flipped,
                 sprite => sorpionSprites[dir][0] = sprite, mask => sorpionMasks[dir][0] = mask, promises);
         createSpriteAndMask(binStr, palette, Offsets.SCORPION0, Offsets.SCORPIONCOLOR, 16, flipped,
@@ -290,6 +296,6 @@ export async function init() {
             }).then(({ imageBitmap }) => charSprites[color][char] = imageBitmap));        
         }
     }    
-    
+
     await Promise.all(promises);
 }
