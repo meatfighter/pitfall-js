@@ -11,9 +11,33 @@ export enum Resolution {
     HEIGHT = 180,
 }
 
+// TODO UNCOMMENT
 export enum PhysicalDimensions {
     WIDTH = 4 * 152 / 160,
     HEIGHT = 3 * 180 / 228,
+}
+
+// export enum PhysicalDimensions { // TODO REMOVE
+//     WIDTH = 304,
+//     HEIGHT = 180,
+// }
+
+export enum Colors {
+    BROWN = 0x12,
+    YELLOW = 0x1e,
+    ORANGE = 0x3e,
+    RED = 0x48,
+    GREEN = 0xd6,
+    BLUE = 0xa4,
+    YELLOW_GREEN = 0xc8,
+    PINK = 0x4a,
+    BLACK = 0x00,
+    GREY = 0x06,
+    WHITE = 0x0e,
+    DARK_GREEN = 0xd2,
+    DARK_RED = 0x42,
+    DARK_YELLOW = 0x14,
+    LIGHT_YELLOW = 0x18,    
 }
 
 export const colors: string[] = new Array<string>(256);
