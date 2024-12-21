@@ -13,6 +13,7 @@
     "clean:index": "rimraf --glob public_html/scripts/*.bundle.js public_html/scripts/*.bundle.js.map public_html/scripts/*.bundle.js.LICENSE.txt",
     "clean:sw": "rimraf --glob public_html/app/*.bundle.js public_html/app/*.bundle.js.map public_html/app/*.bundle.js.LICENSE.txt",
     "clean:app": "rimraf --glob public_html/app/resources.zip public_html/app/scripts/*.bundle.js public_html/app/scripts/*.bundle.js.map public_html/app/scripts/*.bundle.js.LICENSE.txt",
+    "clean:quick:app": "rimraf --glob public_html/app/scripts/*.bundle.js public_html/app/scripts/*.bundle.js.map public_html/app/scripts/*.bundle.js.LICENSE.txt",
     "clean": "npm run clean:index && npm run clean:sw && npm run clean:app",
     "pack:prod:index": "npx webpack --mode production --config webpack.config.index.mjs",
     "pack:prod:sw": "npx webpack --mode production --config webpack.config.sw.mjs",
@@ -26,8 +27,9 @@
     "build:prod": "npm run clean && npm run zip && npm run pack:prod",
     "start": "http-server public_html -p 8080",
     "refresh:prod": "npm run build:prod && npm run start",
-    "build:dev": "npm run pack:dev",
-    "refresh:dev": "npm run pack:dev:bootstrap && npm run start"
+    "build:dev": "npm run clean && npm run zip && npm run pack:dev",
+    "refresh:dev": "npm run build:dev && npm run start",
+    "refresh:quick:dev": "npm run pack:dev:bootstrap && npm run start"
   },
   "devDependencies": {
     "bestzip": "^2.2.1",

@@ -14,7 +14,7 @@ export function saveGame() {
 export function update() {
 }
 
-export function renderScreen(ctx: CanvasRenderingContext2D) {
+export function renderScreen(ctx: OffscreenCanvasRenderingContext2D) {
 
     // ctx.drawImage(goldSprites[0], 8, 8);
     // ctx.drawImage(goldSprites[1], 24, 8);

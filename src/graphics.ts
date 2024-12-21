@@ -7,13 +7,13 @@ export type Sprite = ImageBitmap;
 export type Mask = boolean[][];
 
 export enum Resolution {
-    WIDTH = 160,
-    HEIGHT = 228,
+    WIDTH = 152,
+    HEIGHT = 180,
 }
 
 export enum PhysicalDimensions {
-    WIDTH = 4,
-    HEIGHT = 3,
+    WIDTH = 4 * 152 / 160,
+    HEIGHT = 3 * 180 / 228,
 }
 
 export const colors: string[] = new Array<string>(256);

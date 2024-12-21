@@ -25,16 +25,9 @@ export default (env, argv) => {
                     exclude: /node_modules/,
                     use: [
                         {
-                            loader: 'thread-loader',
-                            options: {
-                                workers: 2,
-                            },
-                        },
-                        {
                             loader: 'ts-loader',
                             options: {
-                                transpileOnly: true,
-                                happyPackMode: true,
+                                transpileOnly: false,
                             },
                         },
                     ],
@@ -67,5 +60,6 @@ export default (env, argv) => {
             },
             minimize: !isDevelopment,
         },
+        bail: true,
     };
 };

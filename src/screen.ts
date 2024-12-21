@@ -13,8 +13,8 @@ let mainCtx: CanvasRenderingContext2D | null;
 let mainCanvasWidth: number;
 let mainCanvasHeight: number;
 
-let screenCanvas: HTMLCanvasElement;
-let ctx: CanvasRenderingContext2D | null;
+let screenCanvas: OffscreenCanvas;
+let ctx: OffscreenCanvasRenderingContext2D | null;
 
 let removeMediaEventListener: NoParamVoidFunc | null = null;
 let exiting = false;
@@ -48,9 +48,7 @@ export function enter() {
 
     document.body.style.backgroundColor = '#C2BCB1';
 
-    screenCanvas = document.createElement('canvas');
-    screenCanvas.width = Resolution.WIDTH;
-    screenCanvas.height = Resolution.HEIGHT;  
+    screenCanvas = new OffscreenCanvas(Resolution.WIDTH, Resolution.HEIGHT);
     ctx = screenCanvas.getContext('2d');
 
     const mainElement = document.getElementById("main-content") as HTMLElement;
