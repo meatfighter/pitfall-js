@@ -1,24 +1,102 @@
 export const map = new Array<Scene>(255);
 
-class Scene {
-    constructor(public trees: number) {
+export enum Pit {    
+    TAR,
+    QUICKSAND,
+    CROCS,
+    SHIFTING_TAR,
+    SHIFTING_QUICKSAND,
+    NONE,
+}
 
+export enum Treasure {
+    MONEY_BAG = 0,
+    SILVER_BRICK = 1,
+    GOLD_BRICK = 2,
+    DIAMOND_RING = 3,
+    NONE = 4,
+}
+
+export enum Obsticles {
+    ONE_ROLLING_LOG = 0,
+    TWO_ROLLING_LOGS_CLOSE = 1,
+    TWO_ROLLING_LOGS_FAR = 2,
+    THREE_ROLLING_LOGS = 3,
+    ONE_STATIONARY_LOG = 4,
+    THREE_STATIONARY_LOGS = 5,
+    FIRE = 6,
+    RATTLESNAKE = 7,
+    NONE = 8,
+}
+
+export enum Wall {
+    LEFT = 0,
+    RIGHT = 1,
+    NONE = 2,
+}
+
+export class Scene {
+    constructor(public trees: number,
+                public ladder: boolean,
+                public holes: boolean,
+                public vine: boolean,
+                public pit: Pit,
+                public treasure: Treasure,
+                public obsticles: Obsticles,
+                public wall: Wall,
+                public scorpion: boolean) {
     }
 }
 
 let seed = 0xC4;
 for (let i = 0; i < map.length; ++i) {  
-    // const b7 = (seed >> 7) & 1;
-    // const b6 = (seed >> 7) & 1;
-    // const b5 = (seed >> 7) & 1;
-    // const b4 = (seed >> 7) & 1;
-    // const b3 = (seed >> 7) & 1;
-    // const b2 = (seed >> 7) & 1;
-    // const b1 = (seed >> 7) & 1;
-    // const b0 = (seed >> 7) & 1;
-    const trees = seed >> 6; // four tree patterns determined by bits 7 and 6
-    console.log(`${i} ${trees}`); // TODO REMOVE
-    map[i] = new Scene(trees);
+    const trees = seed >> 6;
+    let ladder = false;
+    let holes = false;
+    let vine = false;
+    let pit = Pit.NONE;
+    let treasure = Treasure.NONE;
+    let obsticles = Obsticles.NONE;
+    let wall = Wall.NONE;
+    switch ((seed >> 3) & 7) {
+        case 0:
+            ladder = true;
+            break;
+        case 1:
+            ladder = true;
+            holes = true;
+            break;
+        case 2:
+            vine = true;
+            pit = Pit.TAR;            
+            break;
+        case 3:
+            vine = true;
+            pit = Pit.QUICKSAND;
+            break;
+        case 4:
+            vine = ((seed >> 1) & 1) === 1;
+            pit = Pit.CROCS;
+            break;
+        case 5:
+            pit = Pit.SHIFTING_TAR;
+            treasure = seed & 3;
+            break;
+        case 6:
+            pit = Pit.SHIFTING_TAR;
+            vine = true;
+            break;
+        case 7:
+            pit = Pit.SHIFTING_QUICKSAND;
+            break;                            
+    }
+    if (treasure === Treasure.NONE && pit !== Pit.CROCS) {
+        obsticles = seed & 7;
+    }
+    if (ladder) {
+        wall = (seed >> 7) & 1;
+    }
+    map[i] = new Scene(trees, ladder, holes, vine, pit, treasure, obsticles, wall, !ladder);
 
     seed = 0xFF & ((seed << 1) | (((seed >> 7) & 1) ^ ((seed >> 5) & 1) ^ ((seed >> 4) & 1) ^ ((seed >> 3) & 1)));
 }

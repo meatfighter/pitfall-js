@@ -25,12 +25,23 @@ export function update() {
     gs.harry.update(gs);
 }
 
-function renderTrunks(ctx: OffscreenCanvasRenderingContext2D, camSceneIndex: number, camSceneOffset: number) {
-    const { trees } = map[camSceneIndex];
-    const trunks = TRUNKS[trees];    
+function renderBackground(ctx: OffscreenCanvasRenderingContext2D, camSceneIndex: number, camSceneOffset: number) {
+    const { trees, ladder } = map[camSceneIndex];
+    const trunks = TRUNKS[trees];
+    ctx.fillStyle = colors[Colors.DARK_BROWN];
     for (let i = 3; i >= 0; --i) {
         ctx.drawImage(branchesSprite, trunks[i] - 2 - camSceneOffset, 51);
         ctx.fillRect(trunks[i] - camSceneOffset, 59, 4, 52);
+    }
+
+    if (ladder) {
+        ctx.fillStyle = colors[Colors.BLACK];
+        ctx.fillRect(68 - camSceneOffset, 116, 8, 6);
+        ctx.fillRect(68 - camSceneOffset, 127, 8, 15);
+        ctx.fillStyle = colors[Colors.DARK_YELLOW];
+        for (let i = 10, y = 130; i >= 0; --i, y += 4) {
+            ctx.fillRect(70 - camSceneOffset, y, 4, 2);
+        }
     }
 }
 
@@ -53,20 +64,20 @@ export function renderScreen(ctx: OffscreenCanvasRenderingContext2D) {
     ctx.fillStyle = colors[Colors.DARK_YELLOW];
     ctx.fillRect(0, 127, Resolution.WIDTH, 15);
     ctx.fillRect(0, 174, Resolution.WIDTH, 6);
+    ctx.fillStyle = colors[Colors.BLACK];
+    ctx.fillRect(0, 142, Resolution.WIDTH, 32);
 
     const camSceneInd = Math.floor(gs.camX / Resolution.WIDTH);
     const camSceneIndex = mod(camSceneInd, 255);
     const camSceneOffset = gs.camX - Resolution.WIDTH * camSceneInd;
     const camNextSceneIndex = (camSceneIndex + 1) % 255;
     const camNextSceneOffset = camSceneOffset - Resolution.WIDTH;
-
-    ctx.fillStyle = colors[Colors.DARK_BROWN];
-    
-    renderTrunks(ctx, camSceneIndex, camSceneOffset);
-    renderTrunks(ctx, camNextSceneIndex, camNextSceneOffset);
+            
+    renderBackground(ctx, camSceneIndex, camSceneOffset);
+    renderBackground(ctx, camNextSceneIndex, camNextSceneOffset);
 
     gs.harry.render(gs, ctx);
-
+    
     renderLeaves(ctx, camSceneIndex, camSceneOffset);
     renderLeaves(ctx, camNextSceneIndex, camNextSceneOffset);
 }

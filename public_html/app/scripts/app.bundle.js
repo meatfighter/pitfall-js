@@ -272,12 +272,22 @@ function saveGame() {
 function update() {
     gs.harry.update(gs);
 }
-function renderTrunks(ctx, camSceneIndex, camSceneOffset) {
-    const { trees } = _map__WEBPACK_IMPORTED_MODULE_2__.map[camSceneIndex];
+function renderBackground(ctx, camSceneIndex, camSceneOffset) {
+    const { trees, ladder } = _map__WEBPACK_IMPORTED_MODULE_2__.map[camSceneIndex];
     const trunks = TRUNKS[trees];
+    ctx.fillStyle = _graphics__WEBPACK_IMPORTED_MODULE_1__.colors[_graphics__WEBPACK_IMPORTED_MODULE_1__.Colors.DARK_BROWN];
     for (let i = 3; i >= 0; --i) {
         ctx.drawImage(_graphics__WEBPACK_IMPORTED_MODULE_1__.branchesSprite, trunks[i] - 2 - camSceneOffset, 51);
         ctx.fillRect(trunks[i] - camSceneOffset, 59, 4, 52);
+    }
+    if (ladder) {
+        ctx.fillStyle = _graphics__WEBPACK_IMPORTED_MODULE_1__.colors[_graphics__WEBPACK_IMPORTED_MODULE_1__.Colors.BLACK];
+        ctx.fillRect(68 - camSceneOffset, 116, 8, 6);
+        ctx.fillRect(68 - camSceneOffset, 127, 8, 15);
+        ctx.fillStyle = _graphics__WEBPACK_IMPORTED_MODULE_1__.colors[_graphics__WEBPACK_IMPORTED_MODULE_1__.Colors.DARK_YELLOW];
+        for (let i = 10, y = 130; i >= 0; --i, y += 4) {
+            ctx.fillRect(70 - camSceneOffset, y, 4, 2);
+        }
     }
 }
 function renderLeaves(ctx, camSceneIndex, camSceneOffset) {
@@ -298,14 +308,15 @@ function renderScreen(ctx) {
     ctx.fillStyle = _graphics__WEBPACK_IMPORTED_MODULE_1__.colors[_graphics__WEBPACK_IMPORTED_MODULE_1__.Colors.DARK_YELLOW];
     ctx.fillRect(0, 127, _graphics__WEBPACK_IMPORTED_MODULE_1__.Resolution.WIDTH, 15);
     ctx.fillRect(0, 174, _graphics__WEBPACK_IMPORTED_MODULE_1__.Resolution.WIDTH, 6);
+    ctx.fillStyle = _graphics__WEBPACK_IMPORTED_MODULE_1__.colors[_graphics__WEBPACK_IMPORTED_MODULE_1__.Colors.BLACK];
+    ctx.fillRect(0, 142, _graphics__WEBPACK_IMPORTED_MODULE_1__.Resolution.WIDTH, 32);
     const camSceneInd = Math.floor(gs.camX / _graphics__WEBPACK_IMPORTED_MODULE_1__.Resolution.WIDTH);
     const camSceneIndex = (0,_math__WEBPACK_IMPORTED_MODULE_3__.mod)(camSceneInd, 255);
     const camSceneOffset = gs.camX - _graphics__WEBPACK_IMPORTED_MODULE_1__.Resolution.WIDTH * camSceneInd;
     const camNextSceneIndex = (camSceneIndex + 1) % 255;
     const camNextSceneOffset = camSceneOffset - _graphics__WEBPACK_IMPORTED_MODULE_1__.Resolution.WIDTH;
-    ctx.fillStyle = _graphics__WEBPACK_IMPORTED_MODULE_1__.colors[_graphics__WEBPACK_IMPORTED_MODULE_1__.Colors.DARK_BROWN];
-    renderTrunks(ctx, camSceneIndex, camSceneOffset);
-    renderTrunks(ctx, camNextSceneIndex, camNextSceneOffset);
+    renderBackground(ctx, camSceneIndex, camSceneOffset);
+    renderBackground(ctx, camNextSceneIndex, camNextSceneOffset);
     gs.harry.render(gs, ctx);
     renderLeaves(ctx, camSceneIndex, camSceneOffset);
     renderLeaves(ctx, camNextSceneIndex, camNextSceneOffset);
@@ -381,28 +392,120 @@ class Harry {
 
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   Obsticles: () => (/* binding */ Obsticles),
+/* harmony export */   Pit: () => (/* binding */ Pit),
+/* harmony export */   Scene: () => (/* binding */ Scene),
+/* harmony export */   Treasure: () => (/* binding */ Treasure),
+/* harmony export */   Wall: () => (/* binding */ Wall),
 /* harmony export */   map: () => (/* binding */ map)
 /* harmony export */ });
 const map = new Array(255);
+var Pit;
+(function (Pit) {
+    Pit[Pit["TAR"] = 0] = "TAR";
+    Pit[Pit["QUICKSAND"] = 1] = "QUICKSAND";
+    Pit[Pit["CROCS"] = 2] = "CROCS";
+    Pit[Pit["SHIFTING_TAR"] = 3] = "SHIFTING_TAR";
+    Pit[Pit["SHIFTING_QUICKSAND"] = 4] = "SHIFTING_QUICKSAND";
+    Pit[Pit["NONE"] = 5] = "NONE";
+})(Pit || (Pit = {}));
+var Treasure;
+(function (Treasure) {
+    Treasure[Treasure["MONEY_BAG"] = 0] = "MONEY_BAG";
+    Treasure[Treasure["SILVER_BRICK"] = 1] = "SILVER_BRICK";
+    Treasure[Treasure["GOLD_BRICK"] = 2] = "GOLD_BRICK";
+    Treasure[Treasure["DIAMOND_RING"] = 3] = "DIAMOND_RING";
+    Treasure[Treasure["NONE"] = 4] = "NONE";
+})(Treasure || (Treasure = {}));
+var Obsticles;
+(function (Obsticles) {
+    Obsticles[Obsticles["ONE_ROLLING_LOG"] = 0] = "ONE_ROLLING_LOG";
+    Obsticles[Obsticles["TWO_ROLLING_LOGS_CLOSE"] = 1] = "TWO_ROLLING_LOGS_CLOSE";
+    Obsticles[Obsticles["TWO_ROLLING_LOGS_FAR"] = 2] = "TWO_ROLLING_LOGS_FAR";
+    Obsticles[Obsticles["THREE_ROLLING_LOGS"] = 3] = "THREE_ROLLING_LOGS";
+    Obsticles[Obsticles["ONE_STATIONARY_LOG"] = 4] = "ONE_STATIONARY_LOG";
+    Obsticles[Obsticles["THREE_STATIONARY_LOGS"] = 5] = "THREE_STATIONARY_LOGS";
+    Obsticles[Obsticles["FIRE"] = 6] = "FIRE";
+    Obsticles[Obsticles["RATTLESNAKE"] = 7] = "RATTLESNAKE";
+    Obsticles[Obsticles["NONE"] = 8] = "NONE";
+})(Obsticles || (Obsticles = {}));
+var Wall;
+(function (Wall) {
+    Wall[Wall["LEFT"] = 0] = "LEFT";
+    Wall[Wall["RIGHT"] = 1] = "RIGHT";
+    Wall[Wall["NONE"] = 2] = "NONE";
+})(Wall || (Wall = {}));
 class Scene {
     trees;
-    constructor(trees) {
+    ladder;
+    holes;
+    vine;
+    pit;
+    treasure;
+    obsticles;
+    wall;
+    scorpion;
+    constructor(trees, ladder, holes, vine, pit, treasure, obsticles, wall, scorpion) {
         this.trees = trees;
+        this.ladder = ladder;
+        this.holes = holes;
+        this.vine = vine;
+        this.pit = pit;
+        this.treasure = treasure;
+        this.obsticles = obsticles;
+        this.wall = wall;
+        this.scorpion = scorpion;
     }
 }
 let seed = 0xC4;
 for (let i = 0; i < map.length; ++i) {
-    // const b7 = (seed >> 7) & 1;
-    // const b6 = (seed >> 7) & 1;
-    // const b5 = (seed >> 7) & 1;
-    // const b4 = (seed >> 7) & 1;
-    // const b3 = (seed >> 7) & 1;
-    // const b2 = (seed >> 7) & 1;
-    // const b1 = (seed >> 7) & 1;
-    // const b0 = (seed >> 7) & 1;
-    const trees = seed >> 6; // four tree patterns determined by bits 7 and 6
-    console.log(`${i} ${trees}`); // TODO REMOVE
-    map[i] = new Scene(trees);
+    const trees = seed >> 6;
+    let ladder = false;
+    let holes = false;
+    let vine = false;
+    let pit = Pit.NONE;
+    let treasure = Treasure.NONE;
+    let obsticles = Obsticles.NONE;
+    let wall = Wall.NONE;
+    switch ((seed >> 3) & 7) {
+        case 0:
+            ladder = true;
+            break;
+        case 1:
+            ladder = true;
+            holes = true;
+            break;
+        case 2:
+            vine = true;
+            pit = Pit.TAR;
+            break;
+        case 3:
+            vine = true;
+            pit = Pit.QUICKSAND;
+            break;
+        case 4:
+            vine = ((seed >> 1) & 1) === 1;
+            pit = Pit.CROCS;
+            break;
+        case 5:
+            pit = Pit.SHIFTING_TAR;
+            treasure = seed & 3;
+            break;
+        case 6:
+            pit = Pit.SHIFTING_TAR;
+            vine = true;
+            break;
+        case 7:
+            pit = Pit.SHIFTING_QUICKSAND;
+            break;
+    }
+    if (treasure === Treasure.NONE && pit !== Pit.CROCS) {
+        obsticles = seed & 7;
+    }
+    if (ladder) {
+        wall = (seed >> 7) & 1;
+    }
+    map[i] = new Scene(trees, ladder, holes, vine, pit, treasure, obsticles, wall, !ladder);
     seed = 0xFF & ((seed << 1) | (((seed >> 7) & 1) ^ ((seed >> 5) & 1) ^ ((seed >> 4) & 1) ^ ((seed >> 3) & 1)));
 }
 
