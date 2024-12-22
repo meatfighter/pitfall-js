@@ -2,6 +2,7 @@ import { Mask } from './graphics';
 
 export const TAU = 2 * Math.PI;
 
+// TODO REMOVE
 export function gaussianRandom(mean: number, stdDev: number): number {
     let u: number;
     let v: number;
@@ -18,6 +19,11 @@ export function clamp(value: number, min: number, max: number) {
     return (value < min) ? min : (value > max) ? max : value;
 }
 
+export function mod(n: number, m: number): number {
+    return ((n % m) + m) % m;
+}
+
+// TODO REMOVE
 export function bulletIntersects(
         bulletX: number, bulletY: number, bulletHeight: number,
         mask: Mask, maskX: number, maskY: number): boolean {

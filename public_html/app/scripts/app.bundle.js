@@ -226,6 +226,7 @@ __webpack_require__.r(__webpack_exports__);
 
 class GameState {
     harry = new _harry__WEBPACK_IMPORTED_MODULE_1__.Harry();
+    camX = -64;
     save() {
         (0,_store__WEBPACK_IMPORTED_MODULE_0__.saveStore)();
     }
@@ -249,8 +250,18 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ });
 /* harmony import */ var _game_state__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./game-state */ "./src/game/game-state.ts");
 /* harmony import */ var _graphics__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @/graphics */ "./src/graphics.ts");
+/* harmony import */ var _map__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./map */ "./src/game/map.ts");
+/* harmony import */ var _math__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! @/math */ "./src/math.ts");
 
 
+
+
+const TRUNKS = [
+    [8, 40, 100, 132],
+    [16, 48, 92, 124],
+    [24, 56, 84, 116],
+    [28, 60, 80, 112],
+];
 let gs;
 function resetGame() {
     gs = new _game_state__WEBPACK_IMPORTED_MODULE_0__.GameState();
@@ -261,9 +272,25 @@ function saveGame() {
 function update() {
     gs.harry.update(gs);
 }
-function renderScreen(ctx) {
+function renderTrunks(ctx, camSceneIndex, camSceneOffset) {
+    const { trees } = _map__WEBPACK_IMPORTED_MODULE_2__.map[camSceneIndex];
+    const trunks = TRUNKS[trees];
+    for (let i = 3; i >= 0; --i) {
+        ctx.drawImage(_graphics__WEBPACK_IMPORTED_MODULE_1__.branchesSprite, trunks[i] - 2 - camSceneOffset, 51);
+        ctx.fillRect(trunks[i] - camSceneOffset, 59, 4, 52);
+    }
+}
+function renderLeaves(ctx, camSceneIndex, camSceneOffset) {
+    const { trees } = _map__WEBPACK_IMPORTED_MODULE_2__.map[camSceneIndex];
     ctx.fillStyle = _graphics__WEBPACK_IMPORTED_MODULE_1__.colors[_graphics__WEBPACK_IMPORTED_MODULE_1__.Colors.DARK_GREEN];
     ctx.fillRect(0, 0, _graphics__WEBPACK_IMPORTED_MODULE_1__.Resolution.WIDTH, 51);
+    ctx.drawImage(_graphics__WEBPACK_IMPORTED_MODULE_1__.leavesSprites[1][trees], 6, 0, 2, 4, -camSceneOffset, 51, 8, 8);
+    for (let i = 1; i < 5; ++i) {
+        ctx.drawImage(_graphics__WEBPACK_IMPORTED_MODULE_1__.leavesSprites[(i & 1) ^ 1][trees], (i << 5) - camSceneOffset - 24, 51, 32, 8);
+    }
+    ctx.drawImage(_graphics__WEBPACK_IMPORTED_MODULE_1__.leavesSprites[0][trees], 0, 0, 4, 4, 136 - camSceneOffset, 51, 16, 8);
+}
+function renderScreen(ctx) {
     ctx.fillStyle = _graphics__WEBPACK_IMPORTED_MODULE_1__.colors[_graphics__WEBPACK_IMPORTED_MODULE_1__.Colors.GREEN];
     ctx.fillRect(0, 51, _graphics__WEBPACK_IMPORTED_MODULE_1__.Resolution.WIDTH, 60);
     ctx.fillStyle = _graphics__WEBPACK_IMPORTED_MODULE_1__.colors[_graphics__WEBPACK_IMPORTED_MODULE_1__.Colors.LIGHT_YELLOW];
@@ -271,7 +298,17 @@ function renderScreen(ctx) {
     ctx.fillStyle = _graphics__WEBPACK_IMPORTED_MODULE_1__.colors[_graphics__WEBPACK_IMPORTED_MODULE_1__.Colors.DARK_YELLOW];
     ctx.fillRect(0, 127, _graphics__WEBPACK_IMPORTED_MODULE_1__.Resolution.WIDTH, 15);
     ctx.fillRect(0, 174, _graphics__WEBPACK_IMPORTED_MODULE_1__.Resolution.WIDTH, 6);
-    gs.harry.render(ctx);
+    const camSceneInd = Math.floor(gs.camX / _graphics__WEBPACK_IMPORTED_MODULE_1__.Resolution.WIDTH);
+    const camSceneIndex = (0,_math__WEBPACK_IMPORTED_MODULE_3__.mod)(camSceneInd, 255);
+    const camSceneOffset = gs.camX - _graphics__WEBPACK_IMPORTED_MODULE_1__.Resolution.WIDTH * camSceneInd;
+    const camNextSceneIndex = (camSceneIndex + 1) % 255;
+    const camNextSceneOffset = camSceneOffset - _graphics__WEBPACK_IMPORTED_MODULE_1__.Resolution.WIDTH;
+    ctx.fillStyle = _graphics__WEBPACK_IMPORTED_MODULE_1__.colors[_graphics__WEBPACK_IMPORTED_MODULE_1__.Colors.DARK_BROWN];
+    renderTrunks(ctx, camSceneIndex, camSceneOffset);
+    renderTrunks(ctx, camNextSceneIndex, camNextSceneOffset);
+    gs.harry.render(gs, ctx);
+    renderLeaves(ctx, camSceneIndex, camSceneOffset);
+    renderLeaves(ctx, camNextSceneIndex, camNextSceneOffset);
 }
 
 
@@ -288,15 +325,85 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   Harry: () => (/* binding */ Harry)
 /* harmony export */ });
 /* harmony import */ var _graphics__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @/graphics */ "./src/graphics.ts");
+/* harmony import */ var _input__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @/input */ "./src/input.ts");
+
 
 class Harry {
     x = 12;
     y = 119;
+    dir = 0;
+    sprite = 0;
+    runCounter = 0;
     update(gs) {
+        let running = false;
+        if ((0,_input__WEBPACK_IMPORTED_MODULE_1__.isRightPressed)()) {
+            this.x += .5;
+            this.dir = 0;
+            running = true;
+        }
+        else if ((0,_input__WEBPACK_IMPORTED_MODULE_1__.isLeftPressed)()) {
+            this.x -= .5;
+            this.dir = 1;
+            running = true;
+        }
+        if (running) {
+            if (this.runCounter === 0 && ++this.sprite === 6) {
+                this.sprite = 1;
+            }
+            this.runCounter = (this.runCounter + 1) & 3;
+        }
+        else {
+            this.runCounter = 0;
+            this.sprite = 0;
+        }
+        const X = Math.floor(this.x);
+        const camDelta = X - gs.camX;
+        if (camDelta < 72) {
+            gs.camX = X - 72;
+        }
+        else if (camDelta > 80) {
+            gs.camX = X - 80;
+        }
     }
-    render(ctx) {
-        ctx.drawImage(_graphics__WEBPACK_IMPORTED_MODULE_0__.harrySprites[0][0], this.x - 4, this.y - 22);
+    render(gs, ctx) {
+        ctx.drawImage(_graphics__WEBPACK_IMPORTED_MODULE_0__.harrySprites[this.dir][this.sprite], Math.floor(this.x - 4 - gs.camX), Math.floor(this.y - 22));
     }
+}
+
+
+/***/ }),
+
+/***/ "./src/game/map.ts":
+/*!*************************!*\
+  !*** ./src/game/map.ts ***!
+  \*************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   map: () => (/* binding */ map)
+/* harmony export */ });
+const map = new Array(255);
+class Scene {
+    trees;
+    constructor(trees) {
+        this.trees = trees;
+    }
+}
+let seed = 0xC4;
+for (let i = 0; i < map.length; ++i) {
+    // const b7 = (seed >> 7) & 1;
+    // const b6 = (seed >> 7) & 1;
+    // const b5 = (seed >> 7) & 1;
+    // const b4 = (seed >> 7) & 1;
+    // const b3 = (seed >> 7) & 1;
+    // const b2 = (seed >> 7) & 1;
+    // const b1 = (seed >> 7) & 1;
+    // const b0 = (seed >> 7) & 1;
+    const trees = seed >> 6; // four tree patterns determined by bits 7 and 6
+    console.log(`${i} ${trees}`); // TODO REMOVE
+    map[i] = new Scene(trees);
+    seed = 0xFF & ((seed << 1) | (((seed >> 7) & 1) ^ ((seed >> 5) & 1) ^ ((seed >> 4) & 1) ^ ((seed >> 3) & 1)));
 }
 
 
@@ -313,6 +420,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   Colors: () => (/* binding */ Colors),
 /* harmony export */   PhysicalDimensions: () => (/* binding */ PhysicalDimensions),
 /* harmony export */   Resolution: () => (/* binding */ Resolution),
+/* harmony export */   branchesSprite: () => (/* binding */ branchesSprite),
 /* harmony export */   charSprites: () => (/* binding */ charSprites),
 /* harmony export */   cobraMasks: () => (/* binding */ cobraMasks),
 /* harmony export */   cobraSprites: () => (/* binding */ cobraSprites),
@@ -326,6 +434,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   harryMasks: () => (/* binding */ harryMasks),
 /* harmony export */   harrySprites: () => (/* binding */ harrySprites),
 /* harmony export */   init: () => (/* binding */ init),
+/* harmony export */   leavesSprites: () => (/* binding */ leavesSprites),
 /* harmony export */   logMasks: () => (/* binding */ logMasks),
 /* harmony export */   logSprites: () => (/* binding */ logSprites),
 /* harmony export */   moneyMask: () => (/* binding */ moneyMask),
@@ -380,6 +489,7 @@ var Colors;
     Colors[Colors["DARK_RED"] = 66] = "DARK_RED";
     Colors[Colors["DARK_YELLOW"] = 20] = "DARK_YELLOW";
     Colors[Colors["LIGHT_YELLOW"] = 24] = "LIGHT_YELLOW";
+    Colors[Colors["DARK_BROWN"] = 16] = "DARK_BROWN";
 })(Colors || (Colors = {}));
 const colors = new Array(256);
 const harrySprites = new Array(2); // direction, sprite
@@ -390,6 +500,7 @@ const crocSprites = new Array(2); // direction, sprite
 const crocMasks = new Array(2); // direction, mask
 const sorpionSprites = new Array(2); // direction, sprite
 const sorpionMasks = new Array(2); // direction, mask
+const leavesSprites = new Array(2); // direction, sprite
 const logSprites = new Array(2);
 const logMasks = new Array(2);
 const fireSprites = new Array(2);
@@ -403,6 +514,7 @@ let moneyMask;
 let ringSprite;
 let ringMask;
 let wallSprite;
+let branchesSprite;
 const charSprites = new Array(256); // color, character
 async function createSprite(width, height, callback) {
     return new Promise(resolve => {
@@ -493,66 +605,74 @@ async function init() {
         Offsets[Offsets["RINGCOLOR"] = 155] = "RINGCOLOR";
         Offsets[Offsets["GOLDBARCOLOR"] = 171] = "GOLDBARCOLOR";
         Offsets[Offsets["SILVERBARCOLOR"] = 187] = "SILVERBARCOLOR";
-        Offsets[Offsets["PFLEAVESTAB"] = 203] = "PFLEAVESTAB";
-        Offsets[Offsets["HARRY0"] = 219] = "HARRY0";
-        Offsets[Offsets["HARRY1"] = 241] = "HARRY1";
-        Offsets[Offsets["HARRY2"] = 263] = "HARRY2";
-        Offsets[Offsets["HARRY3"] = 285] = "HARRY3";
-        Offsets[Offsets["HARRY4"] = 307] = "HARRY4";
-        Offsets[Offsets["HARRY5"] = 329] = "HARRY5";
-        Offsets[Offsets["HARRY6"] = 351] = "HARRY6";
-        Offsets[Offsets["HARRY7"] = 373] = "HARRY7";
-        Offsets[Offsets["BRANCHTAB"] = 395] = "BRANCHTAB";
-        Offsets[Offsets["ONEHOLE"] = 404] = "ONEHOLE";
-        Offsets[Offsets["THREEHOLES"] = 412] = "THREEHOLES";
-        Offsets[Offsets["PIT"] = 420] = "PIT";
-        Offsets[Offsets["LOG0"] = 428] = "LOG0";
-        Offsets[Offsets["FIRE0"] = 444] = "FIRE0";
-        Offsets[Offsets["COBRA0"] = 460] = "COBRA0";
-        Offsets[Offsets["COBRA1"] = 476] = "COBRA1";
-        Offsets[Offsets["CROCO0"] = 492] = "CROCO0";
-        Offsets[Offsets["CROCO1"] = 508] = "CROCO1";
-        Offsets[Offsets["MONEYBAG"] = 524] = "MONEYBAG";
-        Offsets[Offsets["SCORPION0"] = 540] = "SCORPION0";
-        Offsets[Offsets["SCORPION1"] = 556] = "SCORPION1";
-        Offsets[Offsets["WALL"] = 572] = "WALL";
-        Offsets[Offsets["BAR0"] = 588] = "BAR0";
-        Offsets[Offsets["BAR1"] = 604] = "BAR1";
-        Offsets[Offsets["RING"] = 620] = "RING";
-        Offsets[Offsets["ZERO"] = 636] = "ZERO";
-        Offsets[Offsets["ONE"] = 644] = "ONE";
-        Offsets[Offsets["TWO"] = 652] = "TWO";
-        Offsets[Offsets["THREE"] = 660] = "THREE";
-        Offsets[Offsets["FOUR"] = 668] = "FOUR";
-        Offsets[Offsets["SIX"] = 684] = "SIX";
-        Offsets[Offsets["SEVEN"] = 692] = "SEVEN";
-        Offsets[Offsets["EIGHT"] = 700] = "EIGHT";
-        Offsets[Offsets["NINE"] = 708] = "NINE";
-        Offsets[Offsets["COLON"] = 716] = "COLON";
+        Offsets[Offsets["LEAVESCOLOR"] = 203] = "LEAVESCOLOR";
+        Offsets[Offsets["BRANCHESCOLOR"] = 207] = "BRANCHESCOLOR";
+        Offsets[Offsets["LEAVES0"] = 215] = "LEAVES0";
+        Offsets[Offsets["LEAVES1"] = 219] = "LEAVES1";
+        Offsets[Offsets["LEAVES2"] = 223] = "LEAVES2";
+        Offsets[Offsets["LEAVES3"] = 227] = "LEAVES3";
+        Offsets[Offsets["HARRY0"] = 231] = "HARRY0";
+        Offsets[Offsets["HARRY1"] = 253] = "HARRY1";
+        Offsets[Offsets["HARRY2"] = 275] = "HARRY2";
+        Offsets[Offsets["HARRY3"] = 297] = "HARRY3";
+        Offsets[Offsets["HARRY4"] = 319] = "HARRY4";
+        Offsets[Offsets["HARRY5"] = 341] = "HARRY5";
+        Offsets[Offsets["HARRY6"] = 363] = "HARRY6";
+        Offsets[Offsets["HARRY7"] = 385] = "HARRY7";
+        Offsets[Offsets["BRANCHES"] = 407] = "BRANCHES";
+        Offsets[Offsets["ONEHOLE"] = 415] = "ONEHOLE";
+        Offsets[Offsets["THREEHOLES"] = 423] = "THREEHOLES";
+        Offsets[Offsets["PIT"] = 431] = "PIT";
+        Offsets[Offsets["LOG0"] = 439] = "LOG0";
+        Offsets[Offsets["FIRE0"] = 455] = "FIRE0";
+        Offsets[Offsets["COBRA0"] = 471] = "COBRA0";
+        Offsets[Offsets["COBRA1"] = 487] = "COBRA1";
+        Offsets[Offsets["CROCO0"] = 503] = "CROCO0";
+        Offsets[Offsets["CROCO1"] = 519] = "CROCO1";
+        Offsets[Offsets["MONEYBAG"] = 535] = "MONEYBAG";
+        Offsets[Offsets["SCORPION0"] = 551] = "SCORPION0";
+        Offsets[Offsets["SCORPION1"] = 567] = "SCORPION1";
+        Offsets[Offsets["WALL"] = 583] = "WALL";
+        Offsets[Offsets["BAR0"] = 599] = "BAR0";
+        Offsets[Offsets["BAR1"] = 615] = "BAR1";
+        Offsets[Offsets["RING"] = 631] = "RING";
+        Offsets[Offsets["ZERO"] = 647] = "ZERO";
+        Offsets[Offsets["ONE"] = 655] = "ONE";
+        Offsets[Offsets["TWO"] = 663] = "TWO";
+        Offsets[Offsets["THREE"] = 671] = "THREE";
+        Offsets[Offsets["FOUR"] = 679] = "FOUR";
+        Offsets[Offsets["SIX"] = 695] = "SIX";
+        Offsets[Offsets["SEVEN"] = 703] = "SEVEN";
+        Offsets[Offsets["EIGHT"] = 711] = "EIGHT";
+        Offsets[Offsets["NINE"] = 719] = "NINE";
+        Offsets[Offsets["COLON"] = 727] = "COLON";
     })(Offsets || (Offsets = {}));
     const palette = extractPalette();
     const binStr = atob('0tLS0tLS0tLS0tLSyMjIyMjISkpKEtLS0tLS0tLS0tLIyMjIyMjISkpKEhISEhISEhISEhISEhISEhISEhISEj4+Pi4uLi'
         + '4uLi4uAAAGAAYAAAAAAAAAAABCQtLS0tLS0tLS0tLS0tLS0tIGBgYGBgYGBgYGBgYSBgYGDg4ODg4ODg4ODg4ODg4ODgZCQkIGQkJCBkJCQg'
-        + 'ZCQkJCQh4eHh4eHh4eDg4ODg4OHh4eHh4eHh4ODg4ODg4ODgYGBgYGBgYODg4ODg4ODg7/z4MBfz0YAP/+vBj+/HgwAAAAAAAzctoeHBhYWH'
-        + 'w+GhgQGBgYAACAgMNiYjY+HBgYPD46OBgYEBgYGAAQICIkNDIWHhwYGBwcGBgYGBAYGBgADAgoKD4KDhwYGBwcGBgYGBgQGBgYAAACQ0R0FB'
-        + 'wcGBgYPD46OBgYEBgYGAAYEBwYGBgYGBgYGBgcHhoYGBAYGBgAAAAAAAAAY/L23MDAwMDA8NCQ0NDAADAQEBAWFBQWEhYeHBg4ODweGgIYGB'
-        + 'gYftuZmZmZmZl/f3///////3h4eP//////AAEDD3////8AGCRaWlpmfl52fl52PBgAAMPnfjwYPHx8eDg4MDAQEAD++fn5+WAQCAwMCDgwQA'
-        + 'AA/vn5+vpgEAgMDAg4MIAAAAAAAAD/qwMDCy664IAAAAAAAAAA/6tV/wYEAAAAAAAAPnd3Y3tjb2M2NhwIHDYAhTI9ePjGgpCI2HAAAAAAAE'
-        + 'kzPHj6xJKI2HAAAAAAAAD+urq6/u7u7v66urr+7u7uAPj8/v5+PgAQAFQAkgAQAAD4/P7+fj4AACgAVAAQAAAAADhsREREbDgQOHw4AAAAPG'
-        + 'ZmZmZmZjw8GBgYGBg4GH5gYDwGBkY8PEYGDAwGRjwMDAx+TCwcDHxGBgZ8YGB+PGZmZnxgYjwYGBgYDAZCfjxmZjw8ZmY8PEYGPmZmZjwAGB'
-        + 'gAABgYAA==');
+        + 'ZCQkJCQh4eHh4eHh4eDg4ODg4OHh4eHh4eHh4ODg4ODg4ODgYGBgYGBgYODg4ODg4ODg7S0tLSEBAQEBAQEBABg8//ABg9fxi8/v8wePz+AA'
+        + 'AAAAAzctoeHBhYWHw+GhgQGBgYAACAgMNiYjY+HBgYPD46OBgYEBgYGAAQICIkNDIWHhwYGBwcGBgYGBAYGBgADAgoKD4KDhwYGBwcGBgYGB'
+        + 'gQGBgYAAACQ0R0FBwcGBgYPD46OBgYEBgYGAAYEBwYGBgYGBgYGBgcHhoYGBAYGBgAAAAAAAAAY/L23MDAwMDA8NCQ0NDAADAQEBAWFBQWEh'
+        + 'YeHBg4ODweGgIYGBh+25mZmZmZmX9/f///////eHh4//////8AAQMPf////wAYJFpaWmZ+XnZ+XnY8GAAAw+d+PBg8fHx4ODgwMBAQAP75+f'
+        + 'n5YBAIDAwIODBAAAD++fn6+mAQCAwMCDgwgAAAAAAAAP+rAwMLLrrggAAAAAAAAAD/q1X/BgQAAAAAAAA+d3dje2NvYzY2HAgcNgCFMj14+M'
+        + 'aCkIjYcAAAAAAASTM8ePrEkojYcAAAAAAAAP66urr+7u7u/rq6uv7u7u4A+Pz+/n4+ABAAVACSABAAAPj8/v5+PgAAKABUABAAAAAAOGxERE'
+        + 'RsOBA4fDgAAAA8ZmZmZmZmPDwYGBgYGDgYfmBgPAYGRjw8RgYMDAZGPAwMDH5MLBwMfEYGBnxgYH48ZmZmfGBiPBgYGBgMBkJ+PGZmPDxmZj'
+        + 'w8RgY+ZmZmPAAYGAAAGBgA');
     const promises = [];
-    // harry
     for (let dir = 0; dir < 2; ++dir) {
+        const flipped = dir === 1;
+        // leaves
+        leavesSprites[dir] = new Array(4);
+        for (let i = 0; i < 4; ++i) {
+            createSpriteAndMask(binStr, palette, Offsets.LEAVES0 + 4 * i, Offsets.LEAVESCOLOR, 4, flipped, sprite => leavesSprites[dir][i] = sprite, null, promises);
+        }
+        // harry
         harrySprites[dir] = new Array(8);
         harryMasks[dir] = new Array(8);
         for (let i = 0; i < 8; ++i) {
-            let j = (i <= 5) ? 5 - i : i;
-            createSpriteAndMask(binStr, palette, Offsets.HARRY0 + 22 * i, (i === 7) ? Offsets.CLIMBCOLTAB : Offsets.RUNCOLTAB, 22, dir === 1, sprite => harrySprites[dir][j] = sprite, mask => harryMasks[dir][j] = mask, promises);
+            const j = (i <= 5) ? 5 - i : i;
+            createSpriteAndMask(binStr, palette, Offsets.HARRY0 + 22 * i, (i === 7) ? Offsets.CLIMBCOLTAB : Offsets.RUNCOLTAB, 22, flipped, sprite => harrySprites[dir][j] = sprite, mask => harryMasks[dir][j] = mask, promises);
         }
-    }
-    for (let dir = 0; dir < 2; ++dir) {
-        const flipped = dir === 1;
         // cobra
         cobraSprites[dir] = new Array(2);
         cobraMasks[dir] = new Array(2);
@@ -587,6 +707,8 @@ async function init() {
     createSpriteAndMask(binStr, palette, Offsets.RING, Offsets.RINGCOLOR, 16, false, sprite => ringSprite = sprite, mask => ringMask = mask, promises);
     // wall
     createSpriteAndMask(binStr, palette, Offsets.WALL, Offsets.WALLCOLOR, 16, false, sprite => wallSprite = sprite, null, promises);
+    // branches
+    createSpriteAndMask(binStr, palette, Offsets.BRANCHES, Offsets.BRANCHESCOLOR, 8, false, sprite => branchesSprite = sprite, null, promises);
     // characters        
     for (let color = 0; color < 256; ++color) {
         const charCol = palette[color];
@@ -619,10 +741,12 @@ async function init() {
 
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   isFirePressed: () => (/* binding */ isFirePressed),
+/* harmony export */   isDownPressed: () => (/* binding */ isDownPressed),
+/* harmony export */   isJumpPressed: () => (/* binding */ isJumpPressed),
 /* harmony export */   isLeftPressed: () => (/* binding */ isLeftPressed),
 /* harmony export */   isRightPressed: () => (/* binding */ isRightPressed),
 /* harmony export */   isTouchOnlyDevice: () => (/* binding */ isTouchOnlyDevice),
+/* harmony export */   isUpPressed: () => (/* binding */ isUpPressed),
 /* harmony export */   startInput: () => (/* binding */ startInput),
 /* harmony export */   stopInput: () => (/* binding */ stopInput),
 /* harmony export */   updateInput: () => (/* binding */ updateInput)
@@ -631,14 +755,16 @@ __webpack_require__.r(__webpack_exports__);
 
 let leftKeyPressed = 0;
 let rightKeyPressed = 0;
-let fireKeyPressed = false;
-let leftScreenTouched = false;
-let rightScreenTouched = false;
+let upKeyPressed = 0;
+let downKeyPressed = 0;
+let jumpKeyPressed = false;
+// let leftScreenTouched = false;
+// let rightScreenTouched = false;
 let hideCursorTimeoutId = null;
 let cursorHidden = false;
-let lastLeftGamepadDown = false;
-let lastRightGamepadDown = false;
-let lastFireGamepadDown = false;
+// let lastLeftGamepadDown = false;
+// let lastRightGamepadDown = false;
+// let lastFireGamepadDown = false;
 class TouchData {
     timestampDown = 0;
     xDown = 0;
@@ -667,9 +793,11 @@ function startInput() {
     window.addEventListener('keyup', onKeyUp);
     leftKeyPressed = 0;
     rightKeyPressed = 0;
-    fireKeyPressed = false;
-    leftScreenTouched = false;
-    rightScreenTouched = false;
+    upKeyPressed = 0;
+    downKeyPressed = 0;
+    jumpKeyPressed = false;
+    // leftScreenTouched = false;
+    // rightScreenTouched = false;
     touchDatas.clear();
 }
 function stopInput() {
@@ -686,83 +814,87 @@ function stopInput() {
     window.removeEventListener('touchcancel', onTouch);
     leftKeyPressed = 0;
     rightKeyPressed = 0;
-    fireKeyPressed = false;
-    leftScreenTouched = false;
-    rightScreenTouched = false;
+    upKeyPressed = 0;
+    downKeyPressed = 0;
+    jumpKeyPressed = false;
+    // leftScreenTouched = false;
+    // rightScreenTouched = false;
     touchDatas.clear();
 }
 function updateInput() {
-    const gamepads = navigator.getGamepads();
-    if (!gamepads) {
-        return;
-    }
-    let leftDown = false;
-    let rightDown = false;
-    let fireDown = false;
-    for (let i = gamepads.length - 1; i >= 0; --i) {
-        const gamepad = gamepads[i];
-        if (!gamepad) {
-            continue;
-        }
-        // D-pad left or left shoulder or left stick
-        if (gamepad.buttons[14]?.pressed || gamepad.buttons[4]?.pressed || gamepad.buttons[10]?.pressed) {
-            leftDown = true;
-        }
-        // D-pad right or right shoulder or right stick
-        if (gamepad.buttons[15]?.pressed || gamepad.buttons[5]?.pressed || gamepad.buttons[11]?.pressed) {
-            rightDown = true;
-        }
-        // Analog stick left or right
-        const horizontalAxis = gamepad.axes[0];
-        if (horizontalAxis < -0.5) {
-            leftDown = true;
-        }
-        else if (horizontalAxis > 0.5) {
-            rightDown = true;
-        }
-        // Non-directional buttons
-        if (gamepad.buttons[0]?.pressed || gamepad.buttons[1]?.pressed || gamepad.buttons[2]?.pressed
-            || gamepad.buttons[3]?.pressed || gamepad.buttons[6]?.pressed || gamepad.buttons[7]?.pressed
-            || gamepad.buttons[8]?.pressed || gamepad.buttons[9]?.pressed) {
-            fireDown = true;
-        }
-    }
-    if (leftDown) {
-        if (!lastLeftGamepadDown) {
-            leftKeyPressed = rightKeyPressed + 1;
-        }
-    }
-    else if (lastLeftGamepadDown) {
-        leftKeyPressed = 0;
-    }
-    lastLeftGamepadDown = leftDown;
-    if (rightDown) {
-        if (!lastRightGamepadDown) {
-            rightKeyPressed = leftKeyPressed + 1;
-        }
-    }
-    else if (lastRightGamepadDown) {
-        rightKeyPressed = 0;
-    }
-    lastRightGamepadDown = rightDown;
-    if (fireDown) {
-        if (!lastFireGamepadDown) {
-            fireKeyPressed = true;
-        }
-    }
-    else if (lastFireGamepadDown) {
-        fireKeyPressed = false;
-    }
-    lastFireGamepadDown = fireDown;
+    // const gamepads = navigator.getGamepads();
+    // if (!gamepads) {
+    //     return;
+    // }
+    // let leftDown = false;
+    // let rightDown = false;
+    // let fireDown = false;
+    // for (let i = gamepads.length - 1; i >= 0; --i) {
+    //     const gamepad = gamepads[i];
+    //     if (!gamepad) {
+    //         continue;            
+    //     } 
+    //     // D-pad left or left shoulder or left stick
+    //     if (gamepad.buttons[14]?.pressed || gamepad.buttons[4]?.pressed || gamepad.buttons[10]?.pressed) {
+    //         leftDown = true;
+    //     }
+    //     // D-pad right or right shoulder or right stick
+    //     if (gamepad.buttons[15]?.pressed || gamepad.buttons[5]?.pressed || gamepad.buttons[11]?.pressed) {
+    //         rightDown = true;
+    //     }
+    //     // Analog stick left or right
+    //     const horizontalAxis = gamepad.axes[0];
+    //     if (horizontalAxis < -0.5) {
+    //         leftDown = true;
+    //     } else if (horizontalAxis > 0.5) {
+    //         rightDown = true;
+    //     }
+    //     // Non-directional buttons
+    //     if (gamepad.buttons[0]?.pressed || gamepad.buttons[1]?.pressed || gamepad.buttons[2]?.pressed 
+    //             || gamepad.buttons[3]?.pressed || gamepad.buttons[6]?.pressed || gamepad.buttons[7]?.pressed 
+    //             || gamepad.buttons[8]?.pressed || gamepad.buttons[9]?.pressed) {
+    //         fireDown = true;
+    //     }
+    // }
+    // if (leftDown) {
+    //     if (!lastLeftGamepadDown) {            
+    //         leftKeyPressed = rightKeyPressed + 1;
+    //     }
+    // } else if (lastLeftGamepadDown) {
+    //     leftKeyPressed = 0;
+    // }
+    // lastLeftGamepadDown = leftDown;
+    // if (rightDown) {
+    //     if (!lastRightGamepadDown) {            
+    //         rightKeyPressed = leftKeyPressed + 1;
+    //     }
+    // } else if (lastRightGamepadDown) {
+    //     rightKeyPressed = 0;
+    // }
+    // lastRightGamepadDown = rightDown;
+    // if (fireDown) {
+    //     if (!lastFireGamepadDown) {
+    //         fireKeyPressed = true;
+    //     }
+    // } else if (lastFireGamepadDown) {
+    //     fireKeyPressed = false;
+    // }
+    // lastFireGamepadDown = fireDown;
 }
 function isLeftPressed() {
-    return leftScreenTouched || leftKeyPressed > rightKeyPressed;
+    return leftKeyPressed > rightKeyPressed;
 }
 function isRightPressed() {
-    return rightScreenTouched || rightKeyPressed > leftKeyPressed;
+    return rightKeyPressed > leftKeyPressed;
 }
-function isFirePressed() {
-    return fireKeyPressed;
+function isUpPressed() {
+    return upKeyPressed > downKeyPressed;
+}
+function isDownPressed() {
+    return downKeyPressed > upKeyPressed;
+}
+function isJumpPressed() {
+    return jumpKeyPressed;
 }
 function cancelHideCursorTimer() {
     if (hideCursorTimeoutId !== null) {
@@ -844,19 +976,17 @@ function onTouch(e) {
             touchDatas.delete(identifier);
         }
     }
-    if (td) {
-        if (td.x < innerWidth / 2) {
-            leftScreenTouched = true;
-            rightScreenTouched = false;
-        }
-        else {
-            leftScreenTouched = false;
-            rightScreenTouched = true;
-        }
-    }
-    else {
-        leftScreenTouched = rightScreenTouched = false;
-    }
+    // if (td) {
+    //     if (td.x < innerWidth / 2) {
+    //         leftScreenTouched = true;
+    //         rightScreenTouched = false;
+    //     } else {
+    //         leftScreenTouched = false;
+    //         rightScreenTouched = true;
+    //     }
+    // } else {
+    //     leftScreenTouched = rightScreenTouched = false;
+    // }
 }
 function onClick(e) {
     if (!(e.clientX && e.clientY)) {
@@ -888,11 +1018,19 @@ function onKeyDown(e) {
         case 'ArrowRight':
             rightKeyPressed = leftKeyPressed + 1;
             break;
+        case 'KeyW':
+        case 'ArrowUp':
+            upKeyPressed = downKeyPressed + 1;
+            break;
+        case 'KeyS':
+        case 'ArrowDown':
+            downKeyPressed = upKeyPressed + 1;
+            break;
         case 'Escape':
             (0,_screen__WEBPACK_IMPORTED_MODULE_0__.exit)();
             break;
         default:
-            fireKeyPressed = true;
+            jumpKeyPressed = true;
             break;
     }
 }
@@ -906,12 +1044,107 @@ function onKeyUp(e) {
         case 'ArrowRight':
             rightKeyPressed = 0;
             break;
+        case 'KeyW':
+        case 'ArrowUp':
+            upKeyPressed = 0;
+            break;
+        case 'KeyS':
+        case 'ArrowDown':
+            downKeyPressed = 0;
+            break;
         case 'Escape':
             break;
         default:
-            fireKeyPressed = false;
+            jumpKeyPressed = false;
             break;
     }
+}
+
+
+/***/ }),
+
+/***/ "./src/math.ts":
+/*!*********************!*\
+  !*** ./src/math.ts ***!
+  \*********************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   TAU: () => (/* binding */ TAU),
+/* harmony export */   bulletIntersects: () => (/* binding */ bulletIntersects),
+/* harmony export */   clamp: () => (/* binding */ clamp),
+/* harmony export */   gaussianRandom: () => (/* binding */ gaussianRandom),
+/* harmony export */   mod: () => (/* binding */ mod),
+/* harmony export */   spritesIntersect: () => (/* binding */ spritesIntersect)
+/* harmony export */ });
+const TAU = 2 * Math.PI;
+// TODO REMOVE
+function gaussianRandom(mean, stdDev) {
+    let u;
+    let v;
+    do {
+        u = Math.random();
+    } while (u === 0);
+    do {
+        v = Math.random();
+    } while (v === 0);
+    return (Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v)) * stdDev + mean;
+}
+function clamp(value, min, max) {
+    return (value < min) ? min : (value > max) ? max : value;
+}
+function mod(n, m) {
+    return ((n % m) + m) % m;
+}
+// TODO REMOVE
+function bulletIntersects(bulletX, bulletY, bulletHeight, mask, maskX, maskY) {
+    maskX = Math.floor(maskX);
+    maskY = Math.floor(maskY);
+    bulletX = Math.floor(bulletX) - maskX;
+    bulletY = Math.floor(bulletY) - maskY;
+    const maskMaxX = mask[0].length - 1;
+    const maskMaxY = mask.length - 1;
+    const bulletMaxY = bulletY + bulletHeight - 1;
+    if (bulletMaxY < 0 || bulletX < 0 || bulletY > maskMaxY || bulletX > maskMaxX) {
+        return false;
+    }
+    const yMax = Math.min(bulletMaxY, maskMaxY);
+    for (let y = Math.max(bulletY, 0); y <= yMax; ++y) {
+        if (mask[y][bulletX]) {
+            return true;
+        }
+    }
+    return false;
+}
+function spritesIntersect(mask0, x0, y0, mask1, x1, y1) {
+    x0 = Math.floor(x0);
+    y0 = Math.floor(y0);
+    const width0 = mask0[0].length;
+    const height0 = mask0.length;
+    const xMax0 = width0 - 1;
+    const yMax0 = height0 - 1;
+    x1 = Math.floor(x1) - x0;
+    y1 = Math.floor(y1) - y0;
+    const width1 = mask1[0].length;
+    const height1 = mask1.length;
+    const xMax1 = x1 + width1 - 1;
+    const yMax1 = y1 + height1 - 1;
+    if (yMax1 < 0 || yMax0 < y1 || xMax1 < 0 || xMax0 < x1) {
+        return false;
+    }
+    const xMin = Math.max(0, x1);
+    const xMax = Math.min(xMax0, xMax1);
+    const yMin = Math.max(0, y1);
+    const yMax = Math.min(yMax0, yMax1);
+    for (let y = yMin; y <= yMax; ++y) {
+        for (let x = xMin; x <= xMax; ++x) {
+            if (mask0[y][x]) {
+                return true;
+            }
+        }
+    }
+    return false;
 }
 
 
