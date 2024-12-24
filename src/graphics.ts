@@ -11,16 +11,10 @@ export enum Resolution {
     HEIGHT = 180,
 }
 
-// TODO UNCOMMENT
 export enum PhysicalDimensions {
     WIDTH = 4 * 152 / 160,
     HEIGHT = 3 * 180 / 228,
 }
-
-// export enum PhysicalDimensions { // TODO REMOVE
-//     WIDTH = 304,
-//     HEIGHT = 180,
-// }
 
 export enum Colors {
     BROWN = 0x12,
@@ -81,7 +75,9 @@ export let branchesSprite: Sprite;
 
 export const charSprites: Sprite[][] = new Array<Sprite[]>(256); // color, character
 
-async function createSprite(width: number, height: number, callback: (imageData: ImageData) => void): 
+export const pitSprites: Sprite[][] = new Array<Sprite[]>(2); // color (0=black, 1=blue), sprite (0=bottom, 1=top)
+
+async function createSprite(width: number, height: number, callback: (imageData: ImageData) => void):
         Promise<{ imageBitmap: Sprite, imageData: ImageData }> {
     return new Promise(resolve => {
         const imageData = new ImageData(width, height);
@@ -193,32 +189,30 @@ export async function init() {
         HARRY6 = 363,
         HARRY7 = 385,
         BRANCHES = 407,
-        ONEHOLE = 415,
-        THREEHOLES = 423,
-        PIT = 431,
-        LOG0 = 439,
-        FIRE0 = 455,
-        COBRA0 = 471,
-        COBRA1 = 487,
-        CROCO0 = 503,
-        CROCO1 = 519,
-        MONEYBAG = 535,
-        SCORPION0 = 551,
-        SCORPION1 = 567,
-        WALL = 583,
-        BAR0 = 599,
-        BAR1 = 615,
-        RING = 631,
-        ZERO = 647,
-        ONE = 655,
-        TWO = 663,
-        THREE = 671,
-        FOUR = 679,
-        SIX = 695,
-        SEVEN = 703,
-        EIGHT = 711,
-        NINE = 719,
-        COLON = 727,
+        PIT = 415,
+        LOG0 = 420,
+        FIRE0 = 436,
+        COBRA0 = 452,
+        COBRA1 = 468,
+        CROCO0 = 484,
+        CROCO1 = 500,
+        MONEYBAG = 516,
+        SCORPION0 = 532,
+        SCORPION1 = 548,
+        WALL = 564,
+        BAR0 = 580,
+        BAR1 = 596,
+        RING = 612,
+        ZERO = 628,
+        ONE = 636,
+        TWO = 644,
+        THREE = 652,
+        FOUR = 660,
+        SIX = 676,
+        SEVEN = 684,
+        EIGHT = 692,
+        NINE = 700,
+        COLON = 708,
     }
 
     const palette = extractPalette();
@@ -228,11 +222,10 @@ export async function init() {
         + 'ZCQkJCQh4eHh4eHh4eDg4ODg4OHh4eHh4eHh4ODg4ODg4ODgYGBgYGBgYODg4ODg4ODg7S0tLSEBAQEBAQEBABg8//ABg9fxi8/v8wePz+AA'
         + 'AAAAAzctoeHBhYWHw+GhgQGBgYAACAgMNiYjY+HBgYPD46OBgYEBgYGAAQICIkNDIWHhwYGBwcGBgYGBAYGBgADAgoKD4KDhwYGBwcGBgYGB'
         + 'gQGBgYAAACQ0R0FBwcGBgYPD46OBgYEBgYGAAYEBwYGBgYGBgYGBgcHhoYGBAYGBgAAAAAAAAAY/L23MDAwMDA8NCQ0NDAADAQEBAWFBQWEh'
-        + 'YeHBg4ODweGgIYGBh+25mZmZmZmX9/f///////eHh4//////8AAQMPf////wAYJFpaWmZ+XnZ+XnY8GAAAw+d+PBg8fHx4ODgwMBAQAP75+f'
-        + 'n5YBAIDAwIODBAAAD++fn6+mAQCAwMCDgwgAAAAAAAAP+rAwMLLrrggAAAAAAAAAD/q1X/BgQAAAAAAAA+d3dje2NvYzY2HAgcNgCFMj14+M'
-        + 'aCkIjYcAAAAAAASTM8ePrEkojYcAAAAAAAAP66urr+7u7u/rq6uv7u7u4A+Pz+/n4+ABAAVACSABAAAPj8/v5+PgAAKABUABAAAAAAOGxERE'
-        + 'RsOBA4fDgAAAA8ZmZmZmZmPDwYGBgYGDgYfmBgPAYGRjw8RgYMDAZGPAwMDH5MLBwMfEYGBnxgYH48ZmZmfGBiPBgYGBgMBkJ+PGZmPDxmZj'
-        + 'w8RgY+ZmZmPAAYGAAAGBgA');
+        + 'YeHBg4ODweGgIYGBh+25mZmZmZmQABAw9/ABgkWlpaZn5edn5edjwYAADD5348GDx8fHg4ODAwEBAA/vn5+flgEAgMDAg4MEAAAP75+fr6YB'
+        + 'AIDAwIODCAAAAAAAAA/6sDAwsuuuCAAAAAAAAAAP+rVf8GBAAAAAAAAD53d2N7Y29jNjYcCBw2AIUyPXj4xoKQiNhwAAAAAABJMzx4+sSSiN'
+        + 'hwAAAAAAAA/rq6uv7u7u7+urq6/u7u7gD4/P7+fj4AEABUAJIAEAAA+Pz+/n4+AAAoAFQAEAAAAAA4bERERGw4EDh8OAAAADxmZmZmZmY8PB'
+        + 'gYGBgYOBh+YGA8BgZGPDxGBgwMBkY8DAwMfkwsHAx8RgYGfGBgfjxmZmZ8YGI8GBgYGAwGQn48ZmY8PGZmPDxGBj5mZmY8ABgYAAAYGAA=');
 
     const promises: Promise<any>[] = [];
 
@@ -337,6 +330,29 @@ export async function init() {
                     }
                 }
             }).then(({ imageBitmap }) => charSprites[color][char] = imageBitmap));        
+        }
+    }
+
+    // pits
+    for (let color = 0; color < 2; ++color) {
+        const pitCol = palette[color === 0 ? Colors.BLACK : Colors.BLUE];
+        pitSprites[color] = new Array<Sprite>(2);
+        for (let sprite = 0; sprite < 2; ++sprite) {
+            promises.push(createSprite(64, 5, imageData => {
+                for (let y = 0; y < 5; ++y) {
+                    const Y = (sprite === 0) ? y : 4 - y;
+                    const byte = binStr.charCodeAt(Offsets.PIT);
+                    for (let x = 0, mask = 0x80, x4 = 0; x < 8; ++x, mask >>= 1, x4 += 4) {
+                        if ((byte & mask) === 0) {
+                            for (let i = 0; i < 4; ++i) {
+                                const X = x4 + i;
+                                setColor(imageData, X, Y, pitCol);
+                                setColor(imageData, 63 - X, Y, pitCol);
+                            }
+                        }
+                    }
+                }
+            }).then(({ imageBitmap }) => pitSprites[color][sprite] = imageBitmap));
         }
     }
     

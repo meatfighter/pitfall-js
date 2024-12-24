@@ -1,7 +1,7 @@
 import { GameState } from './game-state';
-import { charSprites, harrySprites, goldSprites, colors, Colors, Resolution, leavesSprites, branchesSprite } 
+import { charSprites, harrySprites, goldSprites, colors, Colors, Resolution, leavesSprites, branchesSprite, wallSprite } 
     from '@/graphics';
-import { map } from './map';
+import { map, Wall } from './map';
 import { mod } from '@/math';
 
 const TRUNKS = [
@@ -26,7 +26,7 @@ export function update() {
 }
 
 function renderBackground(ctx: OffscreenCanvasRenderingContext2D, camSceneIndex: number, camSceneOffset: number) {
-    const { trees, ladder } = map[camSceneIndex];
+    const { trees, ladder, holes, wall } = map[camSceneIndex];
     const trunks = TRUNKS[trees];
     ctx.fillStyle = colors[Colors.DARK_BROWN];
     for (let i = 3; i >= 0; --i) {
@@ -42,6 +42,25 @@ function renderBackground(ctx: OffscreenCanvasRenderingContext2D, camSceneIndex:
         for (let i = 10, y = 130; i >= 0; --i, y += 4) {
             ctx.fillRect(70 - camSceneOffset, y, 4, 2);
         }
+    }
+
+    if (holes) {
+        ctx.fillStyle = colors[Colors.BLACK];
+        ctx.fillRect(40 - camSceneOffset, 116, 12, 6);
+        ctx.fillRect(40 - camSceneOffset, 127, 12, 15);
+        ctx.fillRect(92 - camSceneOffset, 116, 12, 6);
+        ctx.fillRect(92 - camSceneOffset, 127, 12, 15);
+    }
+
+    switch(wall) {
+        case Wall.LEFT:
+            ctx.drawImage(wallSprite, 10 - camSceneOffset, 142);
+            ctx.drawImage(wallSprite, 10 - camSceneOffset, 158);
+            break;
+        case Wall.RIGHT:
+            ctx.drawImage(wallSprite, 128 - camSceneOffset, 142);
+            ctx.drawImage(wallSprite, 128 - camSceneOffset, 158);
+            break;
     }
 }
 
