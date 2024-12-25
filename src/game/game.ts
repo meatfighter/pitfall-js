@@ -1,8 +1,7 @@
 import { GameState } from './game-state';
-import { charSprites, harrySprites, goldSprites, colors, Colors, Resolution, leavesSprites, branchesSprite, wallSprite } 
-    from '@/graphics';
+import { colors, Colors, Resolution, leavesSprites, branchesSprite, wallSprite } from '@/graphics';
 import { map, Wall } from './map';
-import { mod } from '@/math';
+import { clamp } from '@/math';
 
 const SCENE_ALPHA_DELTA = 1 / 30;
 
@@ -37,10 +36,10 @@ export function update() {
     if (gs.lastHarryUnderground !== underground) {
         gs.lastHarryUnderground = underground;
         gs.lastNextScene = gs.nextScene;
-        gs.sceneAlpha = 0;
+        gs.sceneAlpha = clamp(1 - gs.sceneAlpha, 0, 1);
     }
 
-    gs.ox = Math.floor(gs.harry.x + gs.harry.laggyX - gs.harry.absoluteX) - 76;
+    gs.ox = Math.floor(gs.harry.x - gs.harry.absoluteX + gs.harry.laggyX) - 76;
     if (gs.ox < 0) {
         gs.nextOx = gs.ox + Resolution.WIDTH;        
         gs.nextScene = gs.harry.scene - (underground ? 3 : 1);        

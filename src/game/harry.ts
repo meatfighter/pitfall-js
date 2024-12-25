@@ -1,7 +1,6 @@
 import { harrySprites, Resolution } from '@/graphics';
 import { GameState } from './game-state';
-import { isJumpPressed, isLeftPressed, isRightPressed } from '@/input';
-import { mod } from '@/math';
+import { isDownPressed, isJumpPressed, isLeftPressed, isRightPressed, isUpPressed } from '@/input';
 import { map, Wall } from './map';
 
 const Y_UPPER_LEVEL = 119;
@@ -15,11 +14,12 @@ const T = JUMP_ARC_BASE;
 const G = 2 * JUMP_ARC_HEIGHT / (T * T);
 const VY0 = -G * T;
 
-enum FreeFallState {
+enum State {    
     GROUNDED,
-    STARTING,
+    STARTING_FALL,
     FALLING,
-    ENDING,
+    ENDING_FALL,
+    CLIMBING,
 }
 
 export class Harry {   
@@ -32,49 +32,56 @@ export class Harry {
     dir = 0;
     sprite = 0;
     runCounter = 0;
-    lastJump = false;
-    freeFallState = FreeFallState.GROUNDED;
+    state = State.GROUNDED;
+    climbCounter = 0;
+    lastLeftPressed = false;
+    lastRightPressed = false;
+    lastJumpPressed = false;
 
     isUnderground() {
-        return this.y > Y_UPPER_LEVEL;
+        return this.y > 146;
     }
 
-    update(gs: GameState) {        
-        const { holes, wall } = map[this.scene];
+    update(gs: GameState) {  
+        const upPressed = isUpPressed();
+        const downPressed = isDownPressed();
+        const rightPressed = isRightPressed();
+        const leftPressed = isLeftPressed(); 
+        const jumpPressed = isJumpPressed();       
 
-        if (this.freeFallState === FreeFallState.GROUNDED && this.y === Y_UPPER_LEVEL && holes
+        const { ladder, holes, wall } = map[this.scene];
+
+        if (this.state === State.GROUNDED && this.y === Y_UPPER_LEVEL && holes
                 && ((this.x >= 40 && this.x <= 51) || (this.x >= 92 && this.x <= 103))) {
             this.vy = G;
-            this.freeFallState = FreeFallState.STARTING;
+            this.state = State.STARTING_FALL;
         }
 
-        const jump = isJumpPressed();
-        if (this.freeFallState === FreeFallState.GROUNDED) {
-            if (!this.lastJump && jump) {
+        if (this.state === State.GROUNDED) {
+            if (!this.lastJumpPressed && jumpPressed) {
                 this.vy = VY0;                
-                this.freeFallState = FreeFallState.STARTING;
+                this.state = State.STARTING_FALL;
             } 
         } 
-        this.lastJump = jump;
        
-        if (this.freeFallState === FreeFallState.STARTING) {
+        if (this.state === State.STARTING_FALL) {
             this.y += this.vy;
             this.vy += G;
             this.sprite = 2;
-            this.freeFallState = FreeFallState.FALLING;
-        } else if (this.freeFallState === FreeFallState.FALLING) {
+            this.state = State.FALLING;
+        } else if (this.state === State.FALLING) {
             const nextY = this.y + this.vy;
             if (this.y <= Y_UPPER_LEVEL && nextY >= Y_UPPER_LEVEL 
                     && (!holes || this.x < 40 || this.x > 103 || (this.x > 51 && this.x < 92))) {
                 this.y = Y_UPPER_LEVEL;
                 this.vy = 0;
                 this.sprite = 2;
-                this.freeFallState = FreeFallState.ENDING;
+                this.state = State.ENDING_FALL;
             } else if (this.y <= Y_LOWER_LEVEL && nextY >= Y_LOWER_LEVEL) {
                 this.y = Y_LOWER_LEVEL;
                 this.vy = 0;
                 this.sprite = 2;
-                this.freeFallState = FreeFallState.ENDING;
+                this.state = State.ENDING_FALL;
             } else {
                 this.y += this.vy;
                 this.vy += G;
@@ -83,7 +90,49 @@ export class Harry {
         }
 
         let shifting = false;
-        if (isRightPressed()) {
+        if (this.state === State.CLIMBING) {
+            if (upPressed) {
+                if (this.y === 134) {
+                    this.climbCounter = 0;                    
+                } else if (++this.climbCounter >= 8) {
+                    this.climbCounter = 0;
+                    this.y -= 4;
+                    this.dir ^= 1;
+                }
+            } else if (downPressed) {
+                if (this.y === Y_LOWER_LEVEL) {
+                    this.state = State.GROUNDED;
+                } else if (++this.climbCounter >= 8) {
+                    this.climbCounter = 0;
+                    this.y += 4;
+                    this.dir ^= 1;
+                }
+            } else if (this.y <= 142) {
+                if (!this.lastRightPressed && rightPressed) {
+                    this.state = State.GROUNDED;
+                    const deltaX = 76 - this.x;
+                    this.absoluteX += deltaX;
+                    this.x += deltaX;
+                    this.y = Y_UPPER_LEVEL;
+                    shifting = true;
+                    this.runCounter = 0;
+                    this.sprite = 0;
+                    this.dir = 0;
+                    this.laggyX += .5;
+                } else if (!this.lastLeftPressed && leftPressed) {
+                    this.state = State.GROUNDED;
+                    const deltaX = 67 - this.x;
+                    this.absoluteX += deltaX;
+                    this.x += deltaX;
+                    this.y = Y_UPPER_LEVEL;
+                    shifting = true;
+                    this.runCounter = 0;
+                    this.sprite = 0;
+                    this.dir = 1;
+                    this.laggyX -= .5;
+                }
+            }
+        } else if (rightPressed) {
             let moveRight = true;
             if (this.y >= 120 && ((wall === Wall.RIGHT && this.x === 127) || (wall === Wall.LEFT && this.x === 9))) {
                 moveRight = false;
@@ -111,11 +160,11 @@ export class Harry {
                     if (this.scene >= map.length) {
                         this.scene -= map.length;
                     }
-                }                
+                }  
                 this.dir = 0;
                 shifting = true;
             }
-        } else if (isLeftPressed()) {
+        } else if (leftPressed) {
             let moveLeft = true;
             if (this.y >= 120 && ((wall === Wall.LEFT && this.x === 18) || (wall === Wall.RIGHT && this.x === 136))) {
                 moveLeft = false;
@@ -147,9 +196,23 @@ export class Harry {
                 this.dir = 1;
                 shifting = true;
             }
-        }   
+        }
+        
+        if (ladder) {
+            if ((this.y <= Y_UPPER_LEVEL && this.y + G >= Y_UPPER_LEVEL && this.x >= 68 && this.x <= 75)
+                    || (this.state === State.GROUNDED && this.y === Y_UPPER_LEVEL && downPressed && this.x >= 64 
+                            && this.x <= 80)) {
+                this.state = State.CLIMBING;
+                const deltaX = 72 - this.x;
+                this.absoluteX += deltaX;
+                this.x += deltaX;
+                this.y = 134;
+                this.sprite = 7
+                this.climbCounter = 0;
+            }
+        }
 
-        if (this.freeFallState === FreeFallState.GROUNDED) {
+        if (this.state === State.GROUNDED) {
             if (shifting) {
                 if (this.runCounter === 0 && ++this.sprite === 6) {
                     this.sprite = 1;
@@ -159,21 +222,25 @@ export class Harry {
                 this.runCounter = 0;
                 this.sprite = 0;
             }
-        } else if (this.freeFallState === FreeFallState.ENDING) {
+        } else if (this.state === State.ENDING_FALL) {
             this.runCounter = 0;
-            this.freeFallState = FreeFallState.GROUNDED;
+            this.state = State.GROUNDED;
         }
 
         if (this.laggyX < this.absoluteX - 4) {
-            this.laggyX = this.absoluteX - 4;
+            this.laggyX += .5;
         } else if (this.laggyX > this.absoluteX + 4) {
-            this.laggyX = this.absoluteX + 4;
+            this.laggyX -= .5;
         }
+
+        this.lastLeftPressed = leftPressed;
+        this.lastRightPressed = rightPressed;
+        this.lastJumpPressed = jumpPressed;
     }
 
     render(gs: GameState, ctx: OffscreenCanvasRenderingContext2D, ox: number) {
         const sprite = harrySprites[this.dir][this.sprite];
-        const X = Math.floor(this.x - 4 - ox);
+        const X = Math.floor(this.x) - 4 - ox;
         const Y = Math.floor(this.y - 22);
         if (Y < 101 || Y >= 127) {
             ctx.drawImage(sprite, X, Y);
