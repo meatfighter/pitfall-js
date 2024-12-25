@@ -4,7 +4,12 @@ import { Harry } from './harry';
 export class GameState {
 
     harry = new Harry();
-    camX = -64;
+    ox = 0;
+    nextOx = 0;
+    nextScene = 0;
+    lastNextScene = 0;
+    lastHarryUnderground = false;
+    sceneAlpha = 1;
 
     save() {
         saveStore();

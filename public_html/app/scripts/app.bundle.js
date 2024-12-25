@@ -226,7 +226,12 @@ __webpack_require__.r(__webpack_exports__);
 
 class GameState {
     harry = new _harry__WEBPACK_IMPORTED_MODULE_1__.Harry();
-    camX = -64;
+    ox = 0;
+    nextOx = 0;
+    nextScene = 0;
+    lastNextScene = 0;
+    lastHarryUnderground = false;
+    sceneAlpha = 1;
     save() {
         (0,_store__WEBPACK_IMPORTED_MODULE_0__.saveStore)();
     }
@@ -251,11 +256,10 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _game_state__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./game-state */ "./src/game/game-state.ts");
 /* harmony import */ var _graphics__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @/graphics */ "./src/graphics.ts");
 /* harmony import */ var _map__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./map */ "./src/game/map.ts");
-/* harmony import */ var _math__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! @/math */ "./src/math.ts");
 
 
 
-
+const SCENE_ALPHA_DELTA = 1 / 30;
 const TRUNKS = [
     [8, 40, 100, 132],
     [16, 48, 92, 124],
@@ -270,54 +274,36 @@ function saveGame() {
     gs.save();
 }
 function update() {
-    gs.harry.update(gs);
-}
-function renderBackground(ctx, camSceneIndex, camSceneOffset) {
-    const { trees, ladder, holes, wall } = _map__WEBPACK_IMPORTED_MODULE_2__.map[camSceneIndex];
-    const trunks = TRUNKS[trees];
-    ctx.fillStyle = _graphics__WEBPACK_IMPORTED_MODULE_1__.colors[_graphics__WEBPACK_IMPORTED_MODULE_1__.Colors.DARK_BROWN];
-    for (let i = 3; i >= 0; --i) {
-        ctx.drawImage(_graphics__WEBPACK_IMPORTED_MODULE_1__.branchesSprite, trunks[i] - 2 - camSceneOffset, 51);
-        ctx.fillRect(trunks[i] - camSceneOffset, 59, 4, 52);
-    }
-    if (ladder) {
-        ctx.fillStyle = _graphics__WEBPACK_IMPORTED_MODULE_1__.colors[_graphics__WEBPACK_IMPORTED_MODULE_1__.Colors.BLACK];
-        ctx.fillRect(68 - camSceneOffset, 116, 8, 6);
-        ctx.fillRect(68 - camSceneOffset, 127, 8, 15);
-        ctx.fillStyle = _graphics__WEBPACK_IMPORTED_MODULE_1__.colors[_graphics__WEBPACK_IMPORTED_MODULE_1__.Colors.DARK_YELLOW];
-        for (let i = 10, y = 130; i >= 0; --i, y += 4) {
-            ctx.fillRect(70 - camSceneOffset, y, 4, 2);
+    if (gs.sceneAlpha < 1) {
+        gs.sceneAlpha += SCENE_ALPHA_DELTA;
+        if (gs.sceneAlpha > 1) {
+            gs.sceneAlpha = 1;
         }
     }
-    if (holes) {
-        ctx.fillStyle = _graphics__WEBPACK_IMPORTED_MODULE_1__.colors[_graphics__WEBPACK_IMPORTED_MODULE_1__.Colors.BLACK];
-        ctx.fillRect(40 - camSceneOffset, 116, 12, 6);
-        ctx.fillRect(40 - camSceneOffset, 127, 12, 15);
-        ctx.fillRect(92 - camSceneOffset, 116, 12, 6);
-        ctx.fillRect(92 - camSceneOffset, 127, 12, 15);
+    gs.harry.update(gs);
+    const underground = gs.harry.isUnderground();
+    if (gs.lastHarryUnderground !== underground) {
+        gs.lastHarryUnderground = underground;
+        gs.lastNextScene = gs.nextScene;
+        gs.sceneAlpha = 0;
     }
-    switch (wall) {
-        case _map__WEBPACK_IMPORTED_MODULE_2__.Wall.LEFT:
-            ctx.drawImage(_graphics__WEBPACK_IMPORTED_MODULE_1__.wallSprite, 10 - camSceneOffset, 142);
-            ctx.drawImage(_graphics__WEBPACK_IMPORTED_MODULE_1__.wallSprite, 10 - camSceneOffset, 158);
-            break;
-        case _map__WEBPACK_IMPORTED_MODULE_2__.Wall.RIGHT:
-            ctx.drawImage(_graphics__WEBPACK_IMPORTED_MODULE_1__.wallSprite, 128 - camSceneOffset, 142);
-            ctx.drawImage(_graphics__WEBPACK_IMPORTED_MODULE_1__.wallSprite, 128 - camSceneOffset, 158);
-            break;
+    gs.ox = Math.floor(gs.harry.x + gs.harry.laggyX - gs.harry.absoluteX) - 76;
+    if (gs.ox < 0) {
+        gs.nextOx = gs.ox + _graphics__WEBPACK_IMPORTED_MODULE_1__.Resolution.WIDTH;
+        gs.nextScene = gs.harry.scene - (underground ? 3 : 1);
+        if (gs.nextScene < 0) {
+            gs.nextScene += _map__WEBPACK_IMPORTED_MODULE_2__.map.length;
+        }
+    }
+    else {
+        gs.nextOx = gs.ox - _graphics__WEBPACK_IMPORTED_MODULE_1__.Resolution.WIDTH;
+        gs.nextScene = gs.harry.scene + (underground ? 3 : 1);
+        if (gs.nextScene >= _map__WEBPACK_IMPORTED_MODULE_2__.map.length) {
+            gs.nextScene -= _map__WEBPACK_IMPORTED_MODULE_2__.map.length;
+        }
     }
 }
-function renderLeaves(ctx, camSceneIndex, camSceneOffset) {
-    const { trees } = _map__WEBPACK_IMPORTED_MODULE_2__.map[camSceneIndex];
-    ctx.fillStyle = _graphics__WEBPACK_IMPORTED_MODULE_1__.colors[_graphics__WEBPACK_IMPORTED_MODULE_1__.Colors.DARK_GREEN];
-    ctx.fillRect(0, 0, _graphics__WEBPACK_IMPORTED_MODULE_1__.Resolution.WIDTH, 51);
-    ctx.drawImage(_graphics__WEBPACK_IMPORTED_MODULE_1__.leavesSprites[1][trees], 6, 0, 2, 4, -camSceneOffset, 51, 8, 8);
-    for (let i = 1; i < 5; ++i) {
-        ctx.drawImage(_graphics__WEBPACK_IMPORTED_MODULE_1__.leavesSprites[(i & 1) ^ 1][trees], (i << 5) - camSceneOffset - 24, 51, 32, 8);
-    }
-    ctx.drawImage(_graphics__WEBPACK_IMPORTED_MODULE_1__.leavesSprites[0][trees], 0, 0, 4, 4, 136 - camSceneOffset, 51, 16, 8);
-}
-function renderScreen(ctx) {
+function renderStrips(ctx) {
     ctx.fillStyle = _graphics__WEBPACK_IMPORTED_MODULE_1__.colors[_graphics__WEBPACK_IMPORTED_MODULE_1__.Colors.GREEN];
     ctx.fillRect(0, 51, _graphics__WEBPACK_IMPORTED_MODULE_1__.Resolution.WIDTH, 60);
     ctx.fillStyle = _graphics__WEBPACK_IMPORTED_MODULE_1__.colors[_graphics__WEBPACK_IMPORTED_MODULE_1__.Colors.LIGHT_YELLOW];
@@ -327,16 +313,77 @@ function renderScreen(ctx) {
     ctx.fillRect(0, 174, _graphics__WEBPACK_IMPORTED_MODULE_1__.Resolution.WIDTH, 6);
     ctx.fillStyle = _graphics__WEBPACK_IMPORTED_MODULE_1__.colors[_graphics__WEBPACK_IMPORTED_MODULE_1__.Colors.BLACK];
     ctx.fillRect(0, 142, _graphics__WEBPACK_IMPORTED_MODULE_1__.Resolution.WIDTH, 32);
-    const camSceneInd = Math.floor(gs.camX / _graphics__WEBPACK_IMPORTED_MODULE_1__.Resolution.WIDTH);
-    const camSceneIndex = (0,_math__WEBPACK_IMPORTED_MODULE_3__.mod)(camSceneInd, 255);
-    const camSceneOffset = gs.camX - _graphics__WEBPACK_IMPORTED_MODULE_1__.Resolution.WIDTH * camSceneInd;
-    const camNextSceneIndex = (camSceneIndex + 1) % 255;
-    const camNextSceneOffset = camSceneOffset - _graphics__WEBPACK_IMPORTED_MODULE_1__.Resolution.WIDTH;
-    renderBackground(ctx, camSceneIndex, camSceneOffset);
-    renderBackground(ctx, camNextSceneIndex, camNextSceneOffset);
-    gs.harry.render(gs, ctx);
-    renderLeaves(ctx, camSceneIndex, camSceneOffset);
-    renderLeaves(ctx, camNextSceneIndex, camNextSceneOffset);
+}
+function renderBackground(ctx, scene, ox) {
+    const { trees, ladder, holes, wall } = _map__WEBPACK_IMPORTED_MODULE_2__.map[scene];
+    const trunks = TRUNKS[trees];
+    ctx.fillStyle = _graphics__WEBPACK_IMPORTED_MODULE_1__.colors[_graphics__WEBPACK_IMPORTED_MODULE_1__.Colors.DARK_BROWN];
+    for (let i = 3; i >= 0; --i) {
+        ctx.drawImage(_graphics__WEBPACK_IMPORTED_MODULE_1__.branchesSprite, trunks[i] - 2 - ox, 51);
+        ctx.fillRect(trunks[i] - ox, 59, 4, 52);
+    }
+    if (ladder) {
+        ctx.fillStyle = _graphics__WEBPACK_IMPORTED_MODULE_1__.colors[_graphics__WEBPACK_IMPORTED_MODULE_1__.Colors.BLACK];
+        ctx.fillRect(68 - ox, 116, 8, 6);
+        ctx.fillRect(68 - ox, 127, 8, 15);
+        ctx.fillStyle = _graphics__WEBPACK_IMPORTED_MODULE_1__.colors[_graphics__WEBPACK_IMPORTED_MODULE_1__.Colors.DARK_YELLOW];
+        for (let i = 10, y = 130; i >= 0; --i, y += 4) {
+            ctx.fillRect(70 - ox, y, 4, 2);
+        }
+    }
+    if (holes) {
+        ctx.fillStyle = _graphics__WEBPACK_IMPORTED_MODULE_1__.colors[_graphics__WEBPACK_IMPORTED_MODULE_1__.Colors.BLACK];
+        ctx.fillRect(40 - ox, 116, 12, 6);
+        ctx.fillRect(40 - ox, 127, 12, 15);
+        ctx.fillRect(92 - ox, 116, 12, 6);
+        ctx.fillRect(92 - ox, 127, 12, 15);
+    }
+    switch (wall) {
+        case _map__WEBPACK_IMPORTED_MODULE_2__.Wall.LEFT:
+            ctx.drawImage(_graphics__WEBPACK_IMPORTED_MODULE_1__.wallSprite, 10 - ox, 142);
+            ctx.drawImage(_graphics__WEBPACK_IMPORTED_MODULE_1__.wallSprite, 10 - ox, 158);
+            break;
+        case _map__WEBPACK_IMPORTED_MODULE_2__.Wall.RIGHT:
+            ctx.drawImage(_graphics__WEBPACK_IMPORTED_MODULE_1__.wallSprite, 128 - ox, 142);
+            ctx.drawImage(_graphics__WEBPACK_IMPORTED_MODULE_1__.wallSprite, 128 - ox, 158);
+            break;
+    }
+}
+function renderLeaves(ctx, scene, ox) {
+    const { trees } = _map__WEBPACK_IMPORTED_MODULE_2__.map[scene];
+    ctx.fillStyle = _graphics__WEBPACK_IMPORTED_MODULE_1__.colors[_graphics__WEBPACK_IMPORTED_MODULE_1__.Colors.DARK_GREEN];
+    ctx.fillRect(0, 0, _graphics__WEBPACK_IMPORTED_MODULE_1__.Resolution.WIDTH, 51);
+    ctx.drawImage(_graphics__WEBPACK_IMPORTED_MODULE_1__.leavesSprites[1][trees], 6, 0, 2, 4, -ox, 51, 8, 8);
+    for (let i = 1; i < 5; ++i) {
+        ctx.drawImage(_graphics__WEBPACK_IMPORTED_MODULE_1__.leavesSprites[(i & 1) ^ 1][trees], (i << 5) - ox - 24, 51, 32, 8);
+    }
+    ctx.drawImage(_graphics__WEBPACK_IMPORTED_MODULE_1__.leavesSprites[0][trees], 0, 0, 4, 4, 136 - ox, 51, 16, 8);
+}
+function renderScreen(ctx) {
+    renderStrips(ctx);
+    renderBackground(ctx, gs.harry.scene, gs.ox);
+    if (gs.sceneAlpha === 1) {
+        renderBackground(ctx, gs.nextScene, gs.nextOx);
+    }
+    else {
+        ctx.globalAlpha = 1 - gs.sceneAlpha;
+        renderBackground(ctx, gs.lastNextScene, gs.nextOx);
+        ctx.globalAlpha = gs.sceneAlpha;
+        renderBackground(ctx, gs.nextScene, gs.nextOx);
+        ctx.globalAlpha = 1;
+    }
+    gs.harry.render(gs, ctx, gs.ox);
+    renderLeaves(ctx, gs.harry.scene, gs.ox);
+    if (gs.sceneAlpha === 1) {
+        renderLeaves(ctx, gs.nextScene, gs.nextOx);
+    }
+    else {
+        ctx.globalAlpha = 1 - gs.sceneAlpha;
+        renderLeaves(ctx, gs.lastNextScene, gs.nextOx);
+        ctx.globalAlpha = gs.sceneAlpha;
+        renderLeaves(ctx, gs.nextScene, gs.nextOx);
+        ctx.globalAlpha = 1;
+    }
 }
 
 
@@ -354,9 +401,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ });
 /* harmony import */ var _graphics__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @/graphics */ "./src/graphics.ts");
 /* harmony import */ var _input__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @/input */ "./src/input.ts");
-/* harmony import */ var _math__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! @/math */ "./src/math.ts");
-/* harmony import */ var _map__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./map */ "./src/game/map.ts");
-
+/* harmony import */ var _map__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./map */ "./src/game/map.ts");
 
 
 
@@ -376,7 +421,10 @@ var FreeFallState;
     FreeFallState[FreeFallState["ENDING"] = 3] = "ENDING";
 })(FreeFallState || (FreeFallState = {}));
 class Harry {
-    x = 12 + _graphics__WEBPACK_IMPORTED_MODULE_0__.Resolution.WIDTH + 20; // TODO
+    scene = 0;
+    absoluteX = 12;
+    laggyX = this.absoluteX;
+    x = this.absoluteX;
     y = Y_UPPER_LEVEL;
     vy = 0;
     dir = 0;
@@ -384,13 +432,13 @@ class Harry {
     runCounter = 0;
     lastJump = false;
     freeFallState = FreeFallState.GROUNDED;
+    isUnderground() {
+        return this.y > Y_UPPER_LEVEL;
+    }
     update(gs) {
-        const sceneInd = Math.floor(this.x / _graphics__WEBPACK_IMPORTED_MODULE_0__.Resolution.WIDTH);
-        const sceneIndex = (0,_math__WEBPACK_IMPORTED_MODULE_2__.mod)(sceneInd, 255);
-        const sceneX = this.x - _graphics__WEBPACK_IMPORTED_MODULE_0__.Resolution.WIDTH * sceneInd;
-        const { holes, wall } = _map__WEBPACK_IMPORTED_MODULE_3__.map[sceneIndex];
+        const { holes, wall } = _map__WEBPACK_IMPORTED_MODULE_2__.map[this.scene];
         if (this.freeFallState === FreeFallState.GROUNDED && this.y === Y_UPPER_LEVEL && holes
-            && ((sceneX >= 40 && sceneX <= 51) || (sceneX >= 92 && sceneX <= 103))) {
+            && ((this.x >= 40 && this.x <= 51) || (this.x >= 92 && this.x <= 103))) {
             this.vy = G;
             this.freeFallState = FreeFallState.STARTING;
         }
@@ -411,7 +459,7 @@ class Harry {
         else if (this.freeFallState === FreeFallState.FALLING) {
             const nextY = this.y + this.vy;
             if (this.y <= Y_UPPER_LEVEL && nextY >= Y_UPPER_LEVEL
-                && (!holes || sceneX < 40 || sceneX > 103 || (sceneX > 51 && sceneX < 92))) {
+                && (!holes || this.x < 40 || this.x > 103 || (this.x > 51 && this.x < 92))) {
                 this.y = Y_UPPER_LEVEL;
                 this.vy = 0;
                 this.sprite = 2;
@@ -432,46 +480,72 @@ class Harry {
         let shifting = false;
         if ((0,_input__WEBPACK_IMPORTED_MODULE_1__.isRightPressed)()) {
             let moveRight = true;
-            if (this.y >= 120 && ((wall === _map__WEBPACK_IMPORTED_MODULE_3__.Wall.RIGHT && sceneX === 127) || (wall === _map__WEBPACK_IMPORTED_MODULE_3__.Wall.LEFT && sceneX === 9))) {
+            if (this.y >= 120 && ((wall === _map__WEBPACK_IMPORTED_MODULE_2__.Wall.RIGHT && this.x === 127) || (wall === _map__WEBPACK_IMPORTED_MODULE_2__.Wall.LEFT && this.x === 9))) {
                 moveRight = false;
             }
             else if (this.y > Y_UPPER_LEVEL && this.y <= Y_HOLE_BOTTOM) {
-                if (sceneX >= 40 && sceneX <= 51) {
-                    if (sceneX > 50.5) {
+                if (this.x >= 40 && this.x <= 51) {
+                    if (this.x > 50.5) {
                         moveRight = false;
                     }
                 }
-                else if (sceneX >= 92 && sceneX <= 103) {
-                    if (sceneX > 102.5) {
+                else if (this.x >= 92 && this.x <= 103) {
+                    if (this.x > 102.5) {
                         moveRight = false;
                     }
                 }
             }
             if (moveRight) {
+                this.absoluteX += .5;
                 this.x += .5;
+                if (this.x >= _graphics__WEBPACK_IMPORTED_MODULE_0__.Resolution.WIDTH) {
+                    this.x -= _graphics__WEBPACK_IMPORTED_MODULE_0__.Resolution.WIDTH;
+                    if (this.y > Y_UPPER_LEVEL) {
+                        this.scene += 3;
+                    }
+                    else {
+                        ++this.scene;
+                    }
+                    if (this.scene >= _map__WEBPACK_IMPORTED_MODULE_2__.map.length) {
+                        this.scene -= _map__WEBPACK_IMPORTED_MODULE_2__.map.length;
+                    }
+                }
                 this.dir = 0;
                 shifting = true;
             }
         }
         else if ((0,_input__WEBPACK_IMPORTED_MODULE_1__.isLeftPressed)()) {
             let moveLeft = true;
-            if (this.y >= 120 && ((wall === _map__WEBPACK_IMPORTED_MODULE_3__.Wall.LEFT && sceneX === 18) || (wall === _map__WEBPACK_IMPORTED_MODULE_3__.Wall.RIGHT && sceneX === 136))) {
+            if (this.y >= 120 && ((wall === _map__WEBPACK_IMPORTED_MODULE_2__.Wall.LEFT && this.x === 18) || (wall === _map__WEBPACK_IMPORTED_MODULE_2__.Wall.RIGHT && this.x === 136))) {
                 moveLeft = false;
             }
             else if (this.y > Y_UPPER_LEVEL && this.y <= Y_HOLE_BOTTOM) {
-                if (sceneX >= 40 && sceneX <= 51) {
-                    if (sceneX < 40.5) {
+                if (this.x >= 40 && this.x <= 51) {
+                    if (this.x < 40.5) {
                         moveLeft = false;
                     }
                 }
-                else if (sceneX >= 92 && sceneX <= 103) {
-                    if (sceneX < 92.5) {
+                else if (this.x >= 92 && this.x <= 103) {
+                    if (this.x < 92.5) {
                         moveLeft = false;
                     }
                 }
             }
             if (moveLeft) {
+                this.absoluteX -= .5;
                 this.x -= .5;
+                if (this.x < 0) {
+                    this.x += _graphics__WEBPACK_IMPORTED_MODULE_0__.Resolution.WIDTH;
+                    if (this.y > Y_UPPER_LEVEL) {
+                        this.scene -= 3;
+                    }
+                    else {
+                        --this.scene;
+                    }
+                    if (this.scene < 0) {
+                        this.scene += _map__WEBPACK_IMPORTED_MODULE_2__.map.length;
+                    }
+                }
                 this.dir = 1;
                 shifting = true;
             }
@@ -492,18 +566,16 @@ class Harry {
             this.runCounter = 0;
             this.freeFallState = FreeFallState.GROUNDED;
         }
-        const X = Math.floor(this.x);
-        const camDelta = X - gs.camX;
-        if (camDelta < 72) {
-            gs.camX = X - 72;
+        if (this.laggyX < this.absoluteX - 4) {
+            this.laggyX = this.absoluteX - 4;
         }
-        else if (camDelta > 80) {
-            gs.camX = X - 80;
+        else if (this.laggyX > this.absoluteX + 4) {
+            this.laggyX = this.absoluteX + 4;
         }
     }
-    render(gs, ctx) {
+    render(gs, ctx, ox) {
         const sprite = _graphics__WEBPACK_IMPORTED_MODULE_0__.harrySprites[this.dir][this.sprite];
-        const X = Math.floor(this.x - 4 - gs.camX);
+        const X = Math.floor(this.x - 4 - ox);
         const Y = Math.floor(this.y - 22);
         if (Y < 101 || Y >= 127) {
             ctx.drawImage(sprite, X, Y);
@@ -1315,93 +1387,6 @@ function onKeyUp(e) {
             jumpKeyPressed = false;
             break;
     }
-}
-
-
-/***/ }),
-
-/***/ "./src/math.ts":
-/*!*********************!*\
-  !*** ./src/math.ts ***!
-  \*********************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
-
-__webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   TAU: () => (/* binding */ TAU),
-/* harmony export */   bulletIntersects: () => (/* binding */ bulletIntersects),
-/* harmony export */   clamp: () => (/* binding */ clamp),
-/* harmony export */   gaussianRandom: () => (/* binding */ gaussianRandom),
-/* harmony export */   mod: () => (/* binding */ mod),
-/* harmony export */   spritesIntersect: () => (/* binding */ spritesIntersect)
-/* harmony export */ });
-const TAU = 2 * Math.PI;
-// TODO REMOVE
-function gaussianRandom(mean, stdDev) {
-    let u;
-    let v;
-    do {
-        u = Math.random();
-    } while (u === 0);
-    do {
-        v = Math.random();
-    } while (v === 0);
-    return (Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v)) * stdDev + mean;
-}
-function clamp(value, min, max) {
-    return (value < min) ? min : (value > max) ? max : value;
-}
-function mod(n, m) {
-    return ((n % m) + m) % m;
-}
-// TODO REMOVE
-function bulletIntersects(bulletX, bulletY, bulletHeight, mask, maskX, maskY) {
-    maskX = Math.floor(maskX);
-    maskY = Math.floor(maskY);
-    bulletX = Math.floor(bulletX) - maskX;
-    bulletY = Math.floor(bulletY) - maskY;
-    const maskMaxX = mask[0].length - 1;
-    const maskMaxY = mask.length - 1;
-    const bulletMaxY = bulletY + bulletHeight - 1;
-    if (bulletMaxY < 0 || bulletX < 0 || bulletY > maskMaxY || bulletX > maskMaxX) {
-        return false;
-    }
-    const yMax = Math.min(bulletMaxY, maskMaxY);
-    for (let y = Math.max(bulletY, 0); y <= yMax; ++y) {
-        if (mask[y][bulletX]) {
-            return true;
-        }
-    }
-    return false;
-}
-function spritesIntersect(mask0, x0, y0, mask1, x1, y1) {
-    x0 = Math.floor(x0);
-    y0 = Math.floor(y0);
-    const width0 = mask0[0].length;
-    const height0 = mask0.length;
-    const xMax0 = width0 - 1;
-    const yMax0 = height0 - 1;
-    x1 = Math.floor(x1) - x0;
-    y1 = Math.floor(y1) - y0;
-    const width1 = mask1[0].length;
-    const height1 = mask1.length;
-    const xMax1 = x1 + width1 - 1;
-    const yMax1 = y1 + height1 - 1;
-    if (yMax1 < 0 || yMax0 < y1 || xMax1 < 0 || xMax0 < x1) {
-        return false;
-    }
-    const xMin = Math.max(0, x1);
-    const xMax = Math.min(xMax0, xMax1);
-    const yMin = Math.max(0, y1);
-    const yMax = Math.min(yMax0, yMax1);
-    for (let y = yMin; y <= yMax; ++y) {
-        for (let x = xMin; x <= xMax; ++x) {
-            if (mask0[y][x]) {
-                return true;
-            }
-        }
-    }
-    return false;
 }
 
 
