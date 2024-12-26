@@ -97,7 +97,7 @@ export class Harry {
         }
 
         let shifting = false;
-        if (this.state === State.CLIMBING) {
+        outer: if (this.state === State.CLIMBING) {
             if (this.y <= 142) {
                 if ((!this.lastRightPressed && rightPressed) 
                         || (this.y === 134 && upPressed && (rightPressed || (!leftPressed && this.dir === 0)))) {
@@ -110,6 +110,7 @@ export class Harry {
                     this.runCounter = 0;
                     this.sprite = 0;
                     this.dir = 0;
+                    break outer;
                 } else if ((!this.lastLeftPressed && leftPressed) 
                         || (this.y === 134 && upPressed && (leftPressed || (!rightPressed && this.dir === 1)))) {
                     this.state = State.GROUNDED;
@@ -121,8 +122,15 @@ export class Harry {
                     this.runCounter = 0;
                     this.sprite = 0;
                     this.dir = 1;
+                    break outer;
                 }
-            }
+            }            
+            if (this.y >= 170 && (leftPressed || rightPressed)) {
+                this.state = State.GROUNDED;
+                this.y = Y_LOWER_LEVEL;
+                this.sprite = 0;
+                break outer;
+            }    
             if (upPressed) {
                 if (this.y === 134) {
                     this.climbCounter = 0;                    
@@ -134,6 +142,8 @@ export class Harry {
             } else if (downPressed) {
                 if (this.y === Y_LOWER_LEVEL) {
                     this.state = State.GROUNDED;
+                    this.sprite = 0;
+                    break outer;
                 } else if (++this.climbCounter >= 8) {
                     this.climbCounter = 0;
                     this.y += 4;
