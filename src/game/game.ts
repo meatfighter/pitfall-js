@@ -39,7 +39,7 @@ export function update() {
         gs.sceneAlpha = clamp(1 - gs.sceneAlpha, 0, 1);
     }
 
-    gs.ox = Math.floor(gs.harry.x + gs.harry.laggyX - gs.harry.absoluteX) - 76;
+    gs.ox = Math.round(gs.harry.x + gs.harry.laggyX - gs.harry.absoluteX) - 76;
     if (gs.ox < 0) {
         gs.nextOx = gs.ox + Resolution.WIDTH;        
         gs.nextScene = gs.harry.scene - (underground ? 3 : 1);
@@ -48,7 +48,7 @@ export function update() {
         }
     } else {
         gs.nextOx = gs.ox - Resolution.WIDTH;
-        gs.nextScene = gs.harry.scene + (underground ? 3 : 1);  
+        gs.nextScene = gs.harry.scene + (underground ? 3 : 1);
         if (gs.nextScene >= map.length) {
             gs.nextScene -= map.length;
         }
@@ -132,7 +132,7 @@ export function renderScreen(ctx: OffscreenCanvasRenderingContext2D) {
         ctx.globalAlpha = 1;
     }
 
-    gs.harry.render(gs, ctx, gs.ox);
+    gs.harry.render(gs, ctx);
 
     renderLeaves(ctx, gs.harry.scene, gs.ox);
     if (gs.sceneAlpha === 1) {

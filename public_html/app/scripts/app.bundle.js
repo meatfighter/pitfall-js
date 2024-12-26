@@ -290,7 +290,7 @@ function update() {
         gs.lastNextScene = gs.nextScene;
         gs.sceneAlpha = (0,_math__WEBPACK_IMPORTED_MODULE_3__.clamp)(1 - gs.sceneAlpha, 0, 1);
     }
-    gs.ox = Math.floor(gs.harry.x + gs.harry.laggyX - gs.harry.absoluteX) - 76;
+    gs.ox = Math.round(gs.harry.x + gs.harry.laggyX - gs.harry.absoluteX) - 76;
     if (gs.ox < 0) {
         gs.nextOx = gs.ox + _graphics__WEBPACK_IMPORTED_MODULE_1__.Resolution.WIDTH;
         gs.nextScene = gs.harry.scene - (underground ? 3 : 1);
@@ -375,7 +375,7 @@ function renderScreen(ctx) {
         renderBackground(ctx, gs.nextScene, gs.nextOx);
         ctx.globalAlpha = 1;
     }
-    gs.harry.render(gs, ctx, gs.ox);
+    gs.harry.render(gs, ctx);
     renderLeaves(ctx, gs.harry.scene, gs.ox);
     if (gs.sceneAlpha === 1) {
         renderLeaves(ctx, gs.nextScene, gs.nextOx);
@@ -439,16 +439,6 @@ class Harry {
     lastLeftPressed = false;
     lastRightPressed = false;
     lastJumpPressed = false;
-    incrementAbsoluteX(delta) {
-        this.absoluteX += delta;
-        // if (Math.floor(this.absoluteX - this.laggyX) === this.absoluteX - this.laggyX) {
-        //     if (this.absoluteX > this.laggyX) {
-        //         this.laggyX += .5;
-        //     } else if (this.absoluteX < this.laggyX) {
-        //         this.laggyX -= .5;
-        //     }
-        // }
-    }
     isUnderground() {
         return this.y > 146;
     }
@@ -496,6 +486,13 @@ class Harry {
                 this.vy += G;
                 this.sprite = 5;
             }
+            if (ladder && this.y >= 134 && this.y < Y_LOWER_LEVEL && this.x === 72) {
+                console.log('--1');
+                this.state = State.CLIMBING;
+                this.y = 134 + 4 * Math.floor((this.y - 134) / 4);
+                this.sprite = 7;
+                this.climbCounter = 0;
+            }
         }
         let shifting = false;
         if (this.state === State.CLIMBING) {
@@ -504,7 +501,7 @@ class Harry {
                     || (this.y === 134 && upPressed && (rightPressed || (!leftPressed && this.dir === 0)))) {
                     this.state = State.GROUNDED;
                     const deltaX = 77 - this.x;
-                    this.incrementAbsoluteX(deltaX);
+                    this.absoluteX += deltaX;
                     this.x += deltaX;
                     this.y = Y_UPPER_LEVEL;
                     shifting = true;
@@ -516,7 +513,7 @@ class Harry {
                     || (this.y === 134 && upPressed && (leftPressed || (!rightPressed && this.dir === 1)))) {
                     this.state = State.GROUNDED;
                     const deltaX = 67 - this.x;
-                    this.incrementAbsoluteX(deltaX);
+                    this.absoluteX += deltaX;
                     this.x += deltaX;
                     this.y = Y_UPPER_LEVEL;
                     shifting = true;
@@ -624,7 +621,7 @@ class Harry {
                     && this.x <= 80)) {
                 this.state = State.CLIMBING;
                 const deltaX = 72 - this.x;
-                this.incrementAbsoluteX(deltaX);
+                this.absoluteX += deltaX;
                 this.x += deltaX;
                 this.y = 134;
                 this.sprite = 7;
@@ -634,7 +631,7 @@ class Harry {
                 && this.x <= 80)) {
                 this.state = State.CLIMBING;
                 const deltaX = 72 - this.x;
-                this.incrementAbsoluteX(deltaX);
+                this.absoluteX += deltaX;
                 this.x += deltaX;
                 this.sprite = 7;
                 this.climbCounter = 0;
@@ -666,7 +663,7 @@ class Harry {
         this.lastRightPressed = rightPressed;
         this.lastJumpPressed = jumpPressed;
     }
-    render(gs, ctx, ox) {
+    render(gs, ctx) {
         const sprite = _graphics__WEBPACK_IMPORTED_MODULE_0__.harrySprites[this.dir][this.sprite];
         const X = Math.floor(gs.harry.absoluteX - gs.harry.laggyX) + 72;
         const Y = Math.floor(this.y - 22);
