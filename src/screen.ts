@@ -3,7 +3,7 @@ import { acquireWakeLock, releaseWakeLock } from './wake-lock';
 import { NoParamVoidFunc } from './no-param-void-func';
 import { enter as enterStart } from './start';
 import { PhysicalDimensions, Resolution } from './graphics';
-import { startInput, stopInput } from './input';
+import { startInput, stopInput, resetInput } from './input';
 import { renderScreen, resetGame, saveGame } from './game/game';
 
 export let dpr: number;
@@ -188,7 +188,8 @@ function onWindowResized() {
 function onVisibilityChanged() {
     if (!exiting && document.visibilityState === 'visible' && document.hasFocus()) {
         acquireWakeLock();
-        startAnimation();
+        resetInput();
+        startAnimation();        
     } else {
         stopAnimation();
     }

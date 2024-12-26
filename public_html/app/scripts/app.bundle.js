@@ -232,6 +232,7 @@ class GameState {
     lastNextScene = 0;
     lastHarryUnderground = false;
     sceneAlpha = 1;
+    lastMinOx = 0;
     save() {
         (0,_store__WEBPACK_IMPORTED_MODULE_0__.saveStore)();
     }
@@ -289,7 +290,7 @@ function update() {
         gs.lastNextScene = gs.nextScene;
         gs.sceneAlpha = (0,_math__WEBPACK_IMPORTED_MODULE_3__.clamp)(1 - gs.sceneAlpha, 0, 1);
     }
-    gs.ox = Math.floor(gs.harry.x + gs.harry.laggyX - gs.harry.absoluteX - 76);
+    gs.ox = Math.floor(gs.harry.x + gs.harry.laggyX - gs.harry.absoluteX) - 76;
     if (gs.ox < 0) {
         gs.nextOx = gs.ox + _graphics__WEBPACK_IMPORTED_MODULE_1__.Resolution.WIDTH;
         gs.nextScene = gs.harry.scene - (underground ? 3 : 1);
@@ -438,6 +439,16 @@ class Harry {
     lastLeftPressed = false;
     lastRightPressed = false;
     lastJumpPressed = false;
+    incrementAbsoluteX(delta) {
+        this.absoluteX += delta;
+        // if (Math.floor(this.absoluteX - this.laggyX) === this.absoluteX - this.laggyX) {
+        //     if (this.absoluteX > this.laggyX) {
+        //         this.laggyX += .5;
+        //     } else if (this.absoluteX < this.laggyX) {
+        //         this.laggyX -= .5;
+        //     }
+        // }
+    }
     isUnderground() {
         return this.y > 146;
     }
@@ -489,29 +500,29 @@ class Harry {
         let shifting = false;
         if (this.state === State.CLIMBING) {
             if (this.y <= 142) {
-                if ((!this.lastRightPressed && rightPressed) || (this.y === 134 && upPressed && this.dir === 0)) {
+                if ((!this.lastRightPressed && rightPressed)
+                    || (this.y === 134 && upPressed && (rightPressed || (!leftPressed && this.dir === 0)))) {
                     this.state = State.GROUNDED;
                     const deltaX = 77 - this.x;
-                    this.absoluteX += deltaX;
+                    this.incrementAbsoluteX(deltaX);
                     this.x += deltaX;
                     this.y = Y_UPPER_LEVEL;
                     shifting = true;
                     this.runCounter = 0;
                     this.sprite = 0;
                     this.dir = 0;
-                    this.laggyX += .5;
                 }
-                else if ((!this.lastLeftPressed && leftPressed) || (this.y === 134 && upPressed && this.dir === 1)) {
+                else if ((!this.lastLeftPressed && leftPressed)
+                    || (this.y === 134 && upPressed && (leftPressed || (!rightPressed && this.dir === 1)))) {
                     this.state = State.GROUNDED;
                     const deltaX = 67 - this.x;
-                    this.absoluteX += deltaX;
+                    this.incrementAbsoluteX(deltaX);
                     this.x += deltaX;
                     this.y = Y_UPPER_LEVEL;
                     shifting = true;
                     this.runCounter = 0;
                     this.sprite = 0;
                     this.dir = 1;
-                    this.laggyX -= .5;
                 }
             }
             if (upPressed) {
@@ -613,7 +624,7 @@ class Harry {
                     && this.x <= 80)) {
                 this.state = State.CLIMBING;
                 const deltaX = 72 - this.x;
-                this.absoluteX += deltaX;
+                this.incrementAbsoluteX(deltaX);
                 this.x += deltaX;
                 this.y = 134;
                 this.sprite = 7;
@@ -623,7 +634,7 @@ class Harry {
                 && this.x <= 80)) {
                 this.state = State.CLIMBING;
                 const deltaX = 72 - this.x;
-                this.absoluteX += deltaX;
+                this.incrementAbsoluteX(deltaX);
                 this.x += deltaX;
                 this.sprite = 7;
                 this.climbCounter = 0;
@@ -657,7 +668,7 @@ class Harry {
     }
     render(gs, ctx, ox) {
         const sprite = _graphics__WEBPACK_IMPORTED_MODULE_0__.harrySprites[this.dir][this.sprite];
-        const X = Math.floor(this.x) - 4 - ox;
+        const X = Math.floor(gs.harry.absoluteX - gs.harry.laggyX) + 72;
         const Y = Math.floor(this.y - 22);
         if (Y < 101 || Y >= 127) {
             ctx.drawImage(sprite, X, Y);
@@ -1158,6 +1169,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   isRightPressed: () => (/* binding */ isRightPressed),
 /* harmony export */   isTouchOnlyDevice: () => (/* binding */ isTouchOnlyDevice),
 /* harmony export */   isUpPressed: () => (/* binding */ isUpPressed),
+/* harmony export */   resetInput: () => (/* binding */ resetInput),
 /* harmony export */   startInput: () => (/* binding */ startInput),
 /* harmony export */   stopInput: () => (/* binding */ stopInput),
 /* harmony export */   updateInput: () => (/* binding */ updateInput)
@@ -1184,6 +1196,16 @@ class TouchData {
     y = 0;
 }
 const touchDatas = new Map();
+function resetInput() {
+    leftKeyPressed = 0;
+    rightKeyPressed = 0;
+    upKeyPressed = 0;
+    downKeyPressed = 0;
+    jumpKeyPressed = false;
+    // leftScreenTouched = false;
+    // rightScreenTouched = false;
+    touchDatas.clear();
+}
 function isTouchOnlyDevice() {
     const supportsTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
     const supportsHover = window.matchMedia('(hover: hover)').matches;
@@ -1202,14 +1224,7 @@ function startInput() {
     window.addEventListener('touchcancel', onTouch, { passive: false });
     window.addEventListener('keydown', onKeyDown);
     window.addEventListener('keyup', onKeyUp);
-    leftKeyPressed = 0;
-    rightKeyPressed = 0;
-    upKeyPressed = 0;
-    downKeyPressed = 0;
-    jumpKeyPressed = false;
-    // leftScreenTouched = false;
-    // rightScreenTouched = false;
-    touchDatas.clear();
+    resetInput();
 }
 function stopInput() {
     window.removeEventListener('click', onClick);
@@ -1223,14 +1238,7 @@ function stopInput() {
     window.removeEventListener('touchmove', onTouch);
     window.removeEventListener('touchend', onTouch);
     window.removeEventListener('touchcancel', onTouch);
-    leftKeyPressed = 0;
-    rightKeyPressed = 0;
-    upKeyPressed = 0;
-    downKeyPressed = 0;
-    jumpKeyPressed = false;
-    // leftScreenTouched = false;
-    // rightScreenTouched = false;
-    touchDatas.clear();
+    resetInput();
 }
 function updateInput() {
     // const gamepads = navigator.getGamepads();
@@ -1872,6 +1880,7 @@ function onWindowResized() {
 function onVisibilityChanged() {
     if (!exiting && document.visibilityState === 'visible' && document.hasFocus()) {
         (0,_wake_lock__WEBPACK_IMPORTED_MODULE_1__.acquireWakeLock)();
+        (0,_input__WEBPACK_IMPORTED_MODULE_4__.resetInput)();
         (0,_animate__WEBPACK_IMPORTED_MODULE_0__.startAnimation)();
     }
     else {

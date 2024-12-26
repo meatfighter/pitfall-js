@@ -26,6 +26,19 @@ class TouchData {
 
 const touchDatas: Map<number, TouchData> = new Map();
 
+export function resetInput() {
+    leftKeyPressed = 0;
+    rightKeyPressed = 0;
+    upKeyPressed = 0;
+    downKeyPressed = 0;
+    jumpKeyPressed = false; 
+    
+    // leftScreenTouched = false;
+    // rightScreenTouched = false;
+
+    touchDatas.clear();
+}
+
 export function isTouchOnlyDevice(): boolean {
     const supportsTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
     const supportsHover = window.matchMedia('(hover: hover)').matches;
@@ -48,16 +61,7 @@ export function startInput() {
     window.addEventListener('keydown', onKeyDown);
     window.addEventListener('keyup', onKeyUp);
 
-    leftKeyPressed = 0;
-    rightKeyPressed = 0;
-    upKeyPressed = 0;
-    downKeyPressed = 0;    
-    jumpKeyPressed = false;
-
-    // leftScreenTouched = false;
-    // rightScreenTouched = false;
-
-    touchDatas.clear();
+    resetInput();   
 }
 
 export function stopInput() {
@@ -75,16 +79,7 @@ export function stopInput() {
     window.removeEventListener('touchend', onTouch);
     window.removeEventListener('touchcancel', onTouch);
 
-    leftKeyPressed = 0;
-    rightKeyPressed = 0;
-    upKeyPressed = 0;
-    downKeyPressed = 0;    
-    jumpKeyPressed = false;
-
-    // leftScreenTouched = false;
-    // rightScreenTouched = false;
-    
-    touchDatas.clear();
+    resetInput();
 }
 
 export function updateInput() {

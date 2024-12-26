@@ -38,6 +38,17 @@ export class Harry {
     lastRightPressed = false;
     lastJumpPressed = false;
 
+    incrementAbsoluteX(delta: number) {
+        this.absoluteX += delta;
+        // if (Math.floor(this.absoluteX - this.laggyX) === this.absoluteX - this.laggyX) {
+        //     if (this.absoluteX > this.laggyX) {
+        //         this.laggyX += .5;
+        //     } else if (this.absoluteX < this.laggyX) {
+        //         this.laggyX -= .5;
+        //     }
+        // }
+    }
+
     isUnderground() {
         return this.y > 146;
     }
@@ -92,28 +103,28 @@ export class Harry {
         let shifting = false;
         if (this.state === State.CLIMBING) {
             if (this.y <= 142) {
-                if ((!this.lastRightPressed && rightPressed) || (this.y === 134 && upPressed && this.dir === 0)) {
+                if ((!this.lastRightPressed && rightPressed) 
+                        || (this.y === 134 && upPressed && (rightPressed || (!leftPressed && this.dir === 0)))) {
                     this.state = State.GROUNDED;
-                    const deltaX = 77 - this.x;
-                    this.absoluteX += deltaX;
+                    const deltaX = 77 - this.x;                    
+                    this.incrementAbsoluteX(deltaX);
                     this.x += deltaX;
                     this.y = Y_UPPER_LEVEL;
                     shifting = true;
                     this.runCounter = 0;
                     this.sprite = 0;
                     this.dir = 0;
-                    this.laggyX += .5;
-                } else if ((!this.lastLeftPressed && leftPressed) || (this.y === 134 && upPressed && this.dir === 1)) {
+                } else if ((!this.lastLeftPressed && leftPressed) 
+                        || (this.y === 134 && upPressed && (leftPressed || (!rightPressed && this.dir === 1)))) {
                     this.state = State.GROUNDED;
                     const deltaX = 67 - this.x;
-                    this.absoluteX += deltaX;
+                    this.incrementAbsoluteX(deltaX);
                     this.x += deltaX;
                     this.y = Y_UPPER_LEVEL;
                     shifting = true;
                     this.runCounter = 0;
                     this.sprite = 0;
                     this.dir = 1;
-                    this.laggyX -= .5;
                 }
             }
             if (upPressed) {
@@ -205,7 +216,7 @@ export class Harry {
                             && this.x <= 80)) {
                 this.state = State.CLIMBING;
                 const deltaX = 72 - this.x;
-                this.absoluteX += deltaX;
+                this.incrementAbsoluteX(deltaX);
                 this.x += deltaX;
                 this.y = 134;
                 this.sprite = 7
@@ -214,7 +225,7 @@ export class Harry {
                     && this.x <= 80)) {
                 this.state = State.CLIMBING;
                 const deltaX = 72 - this.x;
-                this.absoluteX += deltaX;
+                this.incrementAbsoluteX(deltaX);
                 this.x += deltaX;
                 this.sprite = 7
                 this.climbCounter = 0;
@@ -249,7 +260,7 @@ export class Harry {
 
     render(gs: GameState, ctx: OffscreenCanvasRenderingContext2D, ox: number) {
         const sprite = harrySprites[this.dir][this.sprite];
-        const X = Math.floor(this.x) - 4 - ox;
+        const X = Math.floor(gs.harry.absoluteX - gs.harry.laggyX) + 72;
         const Y = Math.floor(this.y - 22);
         if (Y < 101 || Y >= 127) {
             ctx.drawImage(sprite, X, Y);

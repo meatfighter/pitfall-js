@@ -1,7 +1,7 @@
 import { GameState } from './game-state';
 import { colors, Colors, Resolution, leavesSprites, branchesSprite, wallSprite } from '@/graphics';
 import { map, Wall } from './map';
-import { clamp } from '@/math';
+import { clamp, mod } from '@/math';
 
 const SCENE_ALPHA_DELTA = 1 / 30;
 
@@ -39,7 +39,7 @@ export function update() {
         gs.sceneAlpha = clamp(1 - gs.sceneAlpha, 0, 1);
     }
 
-    gs.ox = Math.floor(gs.harry.x + gs.harry.laggyX - gs.harry.absoluteX - 76);
+    gs.ox = Math.floor(gs.harry.x + gs.harry.laggyX - gs.harry.absoluteX) - 76;
     if (gs.ox < 0) {
         gs.nextOx = gs.ox + Resolution.WIDTH;        
         gs.nextScene = gs.harry.scene - (underground ? 3 : 1);
@@ -52,7 +52,7 @@ export function update() {
         if (gs.nextScene >= map.length) {
             gs.nextScene -= map.length;
         }
-    }            
+    }
 }
 
 function renderStrips(ctx: OffscreenCanvasRenderingContext2D) {

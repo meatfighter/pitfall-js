@@ -11,6 +11,8 @@ export class GameState {
     lastHarryUnderground = false;
     sceneAlpha = 1;
 
+    lastMinOx = 0;
+
     save() {
         saveStore();
     }
