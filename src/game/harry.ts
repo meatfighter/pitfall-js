@@ -91,6 +91,31 @@ export class Harry {
 
         let shifting = false;
         if (this.state === State.CLIMBING) {
+            if (this.y <= 142) {
+                if ((!this.lastRightPressed && rightPressed) || (this.y === 134 && upPressed && this.dir === 0)) {
+                    this.state = State.GROUNDED;
+                    const deltaX = 77 - this.x;
+                    this.absoluteX += deltaX;
+                    this.x += deltaX;
+                    this.y = Y_UPPER_LEVEL;
+                    shifting = true;
+                    this.runCounter = 0;
+                    this.sprite = 0;
+                    this.dir = 0;
+                    this.laggyX += .5;
+                } else if ((!this.lastLeftPressed && leftPressed) || (this.y === 134 && upPressed && this.dir === 1)) {
+                    this.state = State.GROUNDED;
+                    const deltaX = 67 - this.x;
+                    this.absoluteX += deltaX;
+                    this.x += deltaX;
+                    this.y = Y_UPPER_LEVEL;
+                    shifting = true;
+                    this.runCounter = 0;
+                    this.sprite = 0;
+                    this.dir = 1;
+                    this.laggyX -= .5;
+                }
+            }
             if (upPressed) {
                 if (this.y === 134) {
                     this.climbCounter = 0;                    
@@ -107,31 +132,7 @@ export class Harry {
                     this.y += 4;
                     this.dir ^= 1;
                 }
-            } else if (this.y <= 142) {
-                if (!this.lastRightPressed && rightPressed) {
-                    this.state = State.GROUNDED;
-                    const deltaX = 76 - this.x;
-                    this.absoluteX += deltaX;
-                    this.x += deltaX;
-                    this.y = Y_UPPER_LEVEL;
-                    shifting = true;
-                    this.runCounter = 0;
-                    this.sprite = 0;
-                    this.dir = 0;
-                    this.laggyX += .5;
-                } else if (!this.lastLeftPressed && leftPressed) {
-                    this.state = State.GROUNDED;
-                    const deltaX = 67 - this.x;
-                    this.absoluteX += deltaX;
-                    this.x += deltaX;
-                    this.y = Y_UPPER_LEVEL;
-                    shifting = true;
-                    this.runCounter = 0;
-                    this.sprite = 0;
-                    this.dir = 1;
-                    this.laggyX -= .5;
-                }
-            }
+            }            
         } else if (rightPressed) {
             let moveRight = true;
             if (this.y >= 120 && ((wall === Wall.RIGHT && this.x === 127) || (wall === Wall.LEFT && this.x === 9))) {
@@ -209,6 +210,14 @@ export class Harry {
                 this.y = 134;
                 this.sprite = 7
                 this.climbCounter = 0;
+            } else if ((this.state === State.GROUNDED && this.y === Y_LOWER_LEVEL && upPressed && this.x >= 64 
+                    && this.x <= 80)) {
+                this.state = State.CLIMBING;
+                const deltaX = 72 - this.x;
+                this.absoluteX += deltaX;
+                this.x += deltaX;
+                this.sprite = 7
+                this.climbCounter = 0;
             }
         }
 
@@ -231,7 +240,7 @@ export class Harry {
             this.laggyX += .5;
         } else if (this.laggyX > this.absoluteX + 4) {
             this.laggyX -= .5;
-        }
+        }       
 
         this.lastLeftPressed = leftPressed;
         this.lastRightPressed = rightPressed;

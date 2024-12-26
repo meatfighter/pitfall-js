@@ -39,10 +39,10 @@ export function update() {
         gs.sceneAlpha = clamp(1 - gs.sceneAlpha, 0, 1);
     }
 
-    gs.ox = Math.floor(gs.harry.x - gs.harry.absoluteX + gs.harry.laggyX) - 76;
+    gs.ox = Math.floor(gs.harry.x + gs.harry.laggyX - gs.harry.absoluteX - 76);
     if (gs.ox < 0) {
         gs.nextOx = gs.ox + Resolution.WIDTH;        
-        gs.nextScene = gs.harry.scene - (underground ? 3 : 1);        
+        gs.nextScene = gs.harry.scene - (underground ? 3 : 1);
         if (gs.nextScene < 0) {
             gs.nextScene += map.length;
         }

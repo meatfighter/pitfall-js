@@ -289,7 +289,7 @@ function update() {
         gs.lastNextScene = gs.nextScene;
         gs.sceneAlpha = (0,_math__WEBPACK_IMPORTED_MODULE_3__.clamp)(1 - gs.sceneAlpha, 0, 1);
     }
-    gs.ox = Math.floor(gs.harry.x - gs.harry.absoluteX + gs.harry.laggyX) - 76;
+    gs.ox = Math.floor(gs.harry.x + gs.harry.laggyX - gs.harry.absoluteX - 76);
     if (gs.ox < 0) {
         gs.nextOx = gs.ox + _graphics__WEBPACK_IMPORTED_MODULE_1__.Resolution.WIDTH;
         gs.nextScene = gs.harry.scene - (underground ? 3 : 1);
@@ -488,6 +488,32 @@ class Harry {
         }
         let shifting = false;
         if (this.state === State.CLIMBING) {
+            if (this.y <= 142) {
+                if ((!this.lastRightPressed && rightPressed) || (this.y === 134 && upPressed && this.dir === 0)) {
+                    this.state = State.GROUNDED;
+                    const deltaX = 77 - this.x;
+                    this.absoluteX += deltaX;
+                    this.x += deltaX;
+                    this.y = Y_UPPER_LEVEL;
+                    shifting = true;
+                    this.runCounter = 0;
+                    this.sprite = 0;
+                    this.dir = 0;
+                    this.laggyX += .5;
+                }
+                else if ((!this.lastLeftPressed && leftPressed) || (this.y === 134 && upPressed && this.dir === 1)) {
+                    this.state = State.GROUNDED;
+                    const deltaX = 67 - this.x;
+                    this.absoluteX += deltaX;
+                    this.x += deltaX;
+                    this.y = Y_UPPER_LEVEL;
+                    shifting = true;
+                    this.runCounter = 0;
+                    this.sprite = 0;
+                    this.dir = 1;
+                    this.laggyX -= .5;
+                }
+            }
             if (upPressed) {
                 if (this.y === 134) {
                     this.climbCounter = 0;
@@ -506,32 +532,6 @@ class Harry {
                     this.climbCounter = 0;
                     this.y += 4;
                     this.dir ^= 1;
-                }
-            }
-            else if (this.y <= 142) {
-                if (!this.lastRightPressed && rightPressed) {
-                    this.state = State.GROUNDED;
-                    const deltaX = 76 - this.x;
-                    this.absoluteX += deltaX;
-                    this.x += deltaX;
-                    this.y = Y_UPPER_LEVEL;
-                    shifting = true;
-                    this.runCounter = 0;
-                    this.sprite = 0;
-                    this.dir = 0;
-                    this.laggyX += .5;
-                }
-                else if (!this.lastLeftPressed && leftPressed) {
-                    this.state = State.GROUNDED;
-                    const deltaX = 67 - this.x;
-                    this.absoluteX += deltaX;
-                    this.x += deltaX;
-                    this.y = Y_UPPER_LEVEL;
-                    shifting = true;
-                    this.runCounter = 0;
-                    this.sprite = 0;
-                    this.dir = 1;
-                    this.laggyX -= .5;
                 }
             }
         }
@@ -616,6 +616,15 @@ class Harry {
                 this.absoluteX += deltaX;
                 this.x += deltaX;
                 this.y = 134;
+                this.sprite = 7;
+                this.climbCounter = 0;
+            }
+            else if ((this.state === State.GROUNDED && this.y === Y_LOWER_LEVEL && upPressed && this.x >= 64
+                && this.x <= 80)) {
+                this.state = State.CLIMBING;
+                const deltaX = 72 - this.x;
+                this.absoluteX += deltaX;
+                this.x += deltaX;
                 this.sprite = 7;
                 this.climbCounter = 0;
             }
