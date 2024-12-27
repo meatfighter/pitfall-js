@@ -1,6 +1,6 @@
+import { map, Wall } from './map';
 import { GameState } from './game-state';
 import { colors, Colors, Resolution, leavesSprites, branchesSprite, wallSprite } from '@/graphics';
-import { map, Wall } from './map';
 import { clamp } from '@/math';
 import { updateInput } from '@/input';
 
@@ -25,16 +25,26 @@ export function saveGame() {
     gs.save();    
 }
 
+function updateScene(scene: number) {
+    const { scorpion } = gs.sceneStates[scene];
+    if (scorpion) {
+        scorpion.update(gs);
+    }
+}
+
 export function update() {
     updateInput();
 
+    updateScene(gs.harry.scene);
+    updateScene(gs.nextScene);
     if (gs.sceneAlpha < 1) {
         gs.sceneAlpha += SCENE_ALPHA_DELTA;
         if (gs.sceneAlpha > 1) {
             gs.sceneAlpha = 1;
         }
-    }
-
+        updateScene(gs.lastNextScene);        
+    } 
+   
     gs.harry.update(gs);
 
     const underground = gs.harry.isUnderground();
@@ -82,6 +92,7 @@ function renderStrips(ctx: OffscreenCanvasRenderingContext2D) {
 
 function renderBackground(ctx: OffscreenCanvasRenderingContext2D, scene: number, ox: number) {
     const { trees, ladder, holes, wall } = map[scene];
+    const { scorpion } = gs.sceneStates[scene];
     const trunks = TRUNKS[trees];
     ctx.fillStyle = colors[Colors.DARK_BROWN];
     for (let i = 3; i >= 0; --i) {
@@ -116,6 +127,10 @@ function renderBackground(ctx: OffscreenCanvasRenderingContext2D, scene: number,
             ctx.drawImage(wallSprite, 128 - ox, 142);
             ctx.drawImage(wallSprite, 128 - ox, 158);
             break;
+    }
+
+    if (scorpion) {
+        scorpion.render(gs, ctx, ox);
     }
 }
 

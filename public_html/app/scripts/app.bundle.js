@@ -218,13 +218,22 @@ async function download(url, progressListener) {
 
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   GameState: () => (/* binding */ GameState)
+/* harmony export */   GameState: () => (/* binding */ GameState),
+/* harmony export */   SceneState: () => (/* binding */ SceneState)
 /* harmony export */ });
 /* harmony import */ var _store__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @/store */ "./src/store.ts");
 /* harmony import */ var _harry__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./harry */ "./src/game/harry.ts");
+/* harmony import */ var _scorpion__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./scorpion */ "./src/game/scorpion.ts");
+/* harmony import */ var _map__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./map */ "./src/game/map.ts");
 
 
+
+
+class SceneState {
+    scorpion = null;
+}
 class GameState {
+    sceneStates = new Array(_map__WEBPACK_IMPORTED_MODULE_3__.map.length);
     harry = new _harry__WEBPACK_IMPORTED_MODULE_1__.Harry();
     scrollX = Math.floor(this.harry.absoluteX);
     lastScrollX = this.scrollX;
@@ -235,6 +244,14 @@ class GameState {
     lastHarryUnderground = false;
     sceneAlpha = 1;
     lastMinOx = 0;
+    constructor() {
+        for (let i = _map__WEBPACK_IMPORTED_MODULE_3__.map.length - 1; i >= 0; --i) {
+            this.sceneStates[i] = new SceneState();
+            if (_map__WEBPACK_IMPORTED_MODULE_3__.map[i].scorpion) {
+                this.sceneStates[i].scorpion = new _scorpion__WEBPACK_IMPORTED_MODULE_2__.Scorpion(i);
+            }
+        }
+    }
     save() {
         (0,_store__WEBPACK_IMPORTED_MODULE_0__.saveStore)();
     }
@@ -256,9 +273,9 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   saveGame: () => (/* binding */ saveGame),
 /* harmony export */   update: () => (/* binding */ update)
 /* harmony export */ });
-/* harmony import */ var _game_state__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./game-state */ "./src/game/game-state.ts");
-/* harmony import */ var _graphics__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @/graphics */ "./src/graphics.ts");
-/* harmony import */ var _map__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./map */ "./src/game/map.ts");
+/* harmony import */ var _map__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./map */ "./src/game/map.ts");
+/* harmony import */ var _game_state__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./game-state */ "./src/game/game-state.ts");
+/* harmony import */ var _graphics__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! @/graphics */ "./src/graphics.ts");
 /* harmony import */ var _math__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! @/math */ "./src/math.ts");
 /* harmony import */ var _input__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! @/input */ "./src/input.ts");
 
@@ -276,18 +293,27 @@ const TRUNKS = [
 ];
 let gs;
 function resetGame() {
-    gs = new _game_state__WEBPACK_IMPORTED_MODULE_0__.GameState();
+    gs = new _game_state__WEBPACK_IMPORTED_MODULE_1__.GameState();
 }
 function saveGame() {
     gs.save();
 }
+function updateScene(scene) {
+    const { scorpion } = gs.sceneStates[scene];
+    if (scorpion) {
+        scorpion.update(gs);
+    }
+}
 function update() {
     (0,_input__WEBPACK_IMPORTED_MODULE_4__.updateInput)();
+    updateScene(gs.harry.scene);
+    updateScene(gs.nextScene);
     if (gs.sceneAlpha < 1) {
         gs.sceneAlpha += SCENE_ALPHA_DELTA;
         if (gs.sceneAlpha > 1) {
             gs.sceneAlpha = 1;
         }
+        updateScene(gs.lastNextScene);
     }
     gs.harry.update(gs);
     const underground = gs.harry.isUnderground();
@@ -306,75 +332,79 @@ function update() {
     gs.lastScrollX = targetScrollX;
     gs.ox = Math.floor(gs.harry.x) - 76 + Math.floor(gs.scrollX - targetScrollX);
     if (gs.ox < 0) {
-        gs.nextOx = gs.ox + _graphics__WEBPACK_IMPORTED_MODULE_1__.Resolution.WIDTH;
+        gs.nextOx = gs.ox + _graphics__WEBPACK_IMPORTED_MODULE_2__.Resolution.WIDTH;
         gs.nextScene = gs.harry.scene - (underground ? 3 : 1);
         if (gs.nextScene < 0) {
-            gs.nextScene += _map__WEBPACK_IMPORTED_MODULE_2__.map.length;
+            gs.nextScene += _map__WEBPACK_IMPORTED_MODULE_0__.map.length;
         }
     }
     else {
-        gs.nextOx = gs.ox - _graphics__WEBPACK_IMPORTED_MODULE_1__.Resolution.WIDTH;
+        gs.nextOx = gs.ox - _graphics__WEBPACK_IMPORTED_MODULE_2__.Resolution.WIDTH;
         gs.nextScene = gs.harry.scene + (underground ? 3 : 1);
-        if (gs.nextScene >= _map__WEBPACK_IMPORTED_MODULE_2__.map.length) {
-            gs.nextScene -= _map__WEBPACK_IMPORTED_MODULE_2__.map.length;
+        if (gs.nextScene >= _map__WEBPACK_IMPORTED_MODULE_0__.map.length) {
+            gs.nextScene -= _map__WEBPACK_IMPORTED_MODULE_0__.map.length;
         }
     }
 }
 function renderStrips(ctx) {
-    ctx.fillStyle = _graphics__WEBPACK_IMPORTED_MODULE_1__.colors[_graphics__WEBPACK_IMPORTED_MODULE_1__.Colors.GREEN];
-    ctx.fillRect(0, 51, _graphics__WEBPACK_IMPORTED_MODULE_1__.Resolution.WIDTH, 60);
-    ctx.fillStyle = _graphics__WEBPACK_IMPORTED_MODULE_1__.colors[_graphics__WEBPACK_IMPORTED_MODULE_1__.Colors.LIGHT_YELLOW];
-    ctx.fillRect(0, 111, _graphics__WEBPACK_IMPORTED_MODULE_1__.Resolution.WIDTH, 16);
-    ctx.fillStyle = _graphics__WEBPACK_IMPORTED_MODULE_1__.colors[_graphics__WEBPACK_IMPORTED_MODULE_1__.Colors.DARK_YELLOW];
-    ctx.fillRect(0, 127, _graphics__WEBPACK_IMPORTED_MODULE_1__.Resolution.WIDTH, 15);
-    ctx.fillRect(0, 174, _graphics__WEBPACK_IMPORTED_MODULE_1__.Resolution.WIDTH, 6);
-    ctx.fillStyle = _graphics__WEBPACK_IMPORTED_MODULE_1__.colors[_graphics__WEBPACK_IMPORTED_MODULE_1__.Colors.BLACK];
-    ctx.fillRect(0, 142, _graphics__WEBPACK_IMPORTED_MODULE_1__.Resolution.WIDTH, 32);
+    ctx.fillStyle = _graphics__WEBPACK_IMPORTED_MODULE_2__.colors[_graphics__WEBPACK_IMPORTED_MODULE_2__.Colors.GREEN];
+    ctx.fillRect(0, 51, _graphics__WEBPACK_IMPORTED_MODULE_2__.Resolution.WIDTH, 60);
+    ctx.fillStyle = _graphics__WEBPACK_IMPORTED_MODULE_2__.colors[_graphics__WEBPACK_IMPORTED_MODULE_2__.Colors.LIGHT_YELLOW];
+    ctx.fillRect(0, 111, _graphics__WEBPACK_IMPORTED_MODULE_2__.Resolution.WIDTH, 16);
+    ctx.fillStyle = _graphics__WEBPACK_IMPORTED_MODULE_2__.colors[_graphics__WEBPACK_IMPORTED_MODULE_2__.Colors.DARK_YELLOW];
+    ctx.fillRect(0, 127, _graphics__WEBPACK_IMPORTED_MODULE_2__.Resolution.WIDTH, 15);
+    ctx.fillRect(0, 174, _graphics__WEBPACK_IMPORTED_MODULE_2__.Resolution.WIDTH, 6);
+    ctx.fillStyle = _graphics__WEBPACK_IMPORTED_MODULE_2__.colors[_graphics__WEBPACK_IMPORTED_MODULE_2__.Colors.BLACK];
+    ctx.fillRect(0, 142, _graphics__WEBPACK_IMPORTED_MODULE_2__.Resolution.WIDTH, 32);
 }
 function renderBackground(ctx, scene, ox) {
-    const { trees, ladder, holes, wall } = _map__WEBPACK_IMPORTED_MODULE_2__.map[scene];
+    const { trees, ladder, holes, wall } = _map__WEBPACK_IMPORTED_MODULE_0__.map[scene];
+    const { scorpion } = gs.sceneStates[scene];
     const trunks = TRUNKS[trees];
-    ctx.fillStyle = _graphics__WEBPACK_IMPORTED_MODULE_1__.colors[_graphics__WEBPACK_IMPORTED_MODULE_1__.Colors.DARK_BROWN];
+    ctx.fillStyle = _graphics__WEBPACK_IMPORTED_MODULE_2__.colors[_graphics__WEBPACK_IMPORTED_MODULE_2__.Colors.DARK_BROWN];
     for (let i = 3; i >= 0; --i) {
-        ctx.drawImage(_graphics__WEBPACK_IMPORTED_MODULE_1__.branchesSprite, trunks[i] - 2 - ox, 51);
+        ctx.drawImage(_graphics__WEBPACK_IMPORTED_MODULE_2__.branchesSprite, trunks[i] - 2 - ox, 51);
         ctx.fillRect(trunks[i] - ox, 59, 4, 52);
     }
     if (ladder) {
-        ctx.fillStyle = _graphics__WEBPACK_IMPORTED_MODULE_1__.colors[_graphics__WEBPACK_IMPORTED_MODULE_1__.Colors.BLACK];
+        ctx.fillStyle = _graphics__WEBPACK_IMPORTED_MODULE_2__.colors[_graphics__WEBPACK_IMPORTED_MODULE_2__.Colors.BLACK];
         ctx.fillRect(68 - ox, 116, 8, 6);
         ctx.fillRect(68 - ox, 127, 8, 15);
-        ctx.fillStyle = _graphics__WEBPACK_IMPORTED_MODULE_1__.colors[_graphics__WEBPACK_IMPORTED_MODULE_1__.Colors.DARK_YELLOW];
+        ctx.fillStyle = _graphics__WEBPACK_IMPORTED_MODULE_2__.colors[_graphics__WEBPACK_IMPORTED_MODULE_2__.Colors.DARK_YELLOW];
         for (let i = 10, y = 130; i >= 0; --i, y += 4) {
             ctx.fillRect(70 - ox, y, 4, 2);
         }
     }
     if (holes) {
-        ctx.fillStyle = _graphics__WEBPACK_IMPORTED_MODULE_1__.colors[_graphics__WEBPACK_IMPORTED_MODULE_1__.Colors.BLACK];
+        ctx.fillStyle = _graphics__WEBPACK_IMPORTED_MODULE_2__.colors[_graphics__WEBPACK_IMPORTED_MODULE_2__.Colors.BLACK];
         ctx.fillRect(40 - ox, 116, 12, 6);
         ctx.fillRect(40 - ox, 127, 12, 15);
         ctx.fillRect(92 - ox, 116, 12, 6);
         ctx.fillRect(92 - ox, 127, 12, 15);
     }
     switch (wall) {
-        case _map__WEBPACK_IMPORTED_MODULE_2__.Wall.LEFT:
-            ctx.drawImage(_graphics__WEBPACK_IMPORTED_MODULE_1__.wallSprite, 10 - ox, 142);
-            ctx.drawImage(_graphics__WEBPACK_IMPORTED_MODULE_1__.wallSprite, 10 - ox, 158);
+        case _map__WEBPACK_IMPORTED_MODULE_0__.Wall.LEFT:
+            ctx.drawImage(_graphics__WEBPACK_IMPORTED_MODULE_2__.wallSprite, 10 - ox, 142);
+            ctx.drawImage(_graphics__WEBPACK_IMPORTED_MODULE_2__.wallSprite, 10 - ox, 158);
             break;
-        case _map__WEBPACK_IMPORTED_MODULE_2__.Wall.RIGHT:
-            ctx.drawImage(_graphics__WEBPACK_IMPORTED_MODULE_1__.wallSprite, 128 - ox, 142);
-            ctx.drawImage(_graphics__WEBPACK_IMPORTED_MODULE_1__.wallSprite, 128 - ox, 158);
+        case _map__WEBPACK_IMPORTED_MODULE_0__.Wall.RIGHT:
+            ctx.drawImage(_graphics__WEBPACK_IMPORTED_MODULE_2__.wallSprite, 128 - ox, 142);
+            ctx.drawImage(_graphics__WEBPACK_IMPORTED_MODULE_2__.wallSprite, 128 - ox, 158);
             break;
+    }
+    if (scorpion) {
+        scorpion.render(gs, ctx, ox);
     }
 }
 function renderLeaves(ctx, scene, ox) {
-    const { trees } = _map__WEBPACK_IMPORTED_MODULE_2__.map[scene];
-    ctx.fillStyle = _graphics__WEBPACK_IMPORTED_MODULE_1__.colors[_graphics__WEBPACK_IMPORTED_MODULE_1__.Colors.DARK_GREEN];
-    ctx.fillRect(0, 0, _graphics__WEBPACK_IMPORTED_MODULE_1__.Resolution.WIDTH, 51);
-    ctx.drawImage(_graphics__WEBPACK_IMPORTED_MODULE_1__.leavesSprites[1][trees], 6, 0, 2, 4, -ox, 51, 8, 8);
+    const { trees } = _map__WEBPACK_IMPORTED_MODULE_0__.map[scene];
+    ctx.fillStyle = _graphics__WEBPACK_IMPORTED_MODULE_2__.colors[_graphics__WEBPACK_IMPORTED_MODULE_2__.Colors.DARK_GREEN];
+    ctx.fillRect(0, 0, _graphics__WEBPACK_IMPORTED_MODULE_2__.Resolution.WIDTH, 51);
+    ctx.drawImage(_graphics__WEBPACK_IMPORTED_MODULE_2__.leavesSprites[1][trees], 6, 0, 2, 4, -ox, 51, 8, 8);
     for (let i = 1; i < 5; ++i) {
-        ctx.drawImage(_graphics__WEBPACK_IMPORTED_MODULE_1__.leavesSprites[(i & 1) ^ 1][trees], (i << 5) - ox - 24, 51, 32, 8);
+        ctx.drawImage(_graphics__WEBPACK_IMPORTED_MODULE_2__.leavesSprites[(i & 1) ^ 1][trees], (i << 5) - ox - 24, 51, 32, 8);
     }
-    ctx.drawImage(_graphics__WEBPACK_IMPORTED_MODULE_1__.leavesSprites[0][trees], 0, 0, 4, 4, 136 - ox, 51, 16, 8);
+    ctx.drawImage(_graphics__WEBPACK_IMPORTED_MODULE_2__.leavesSprites[0][trees], 0, 0, 4, 4, 136 - ox, 51, 16, 8);
 }
 function renderScreen(ctx) {
     renderStrips(ctx);
@@ -819,6 +849,74 @@ for (let i = 0; i < map.length; ++i) {
     }
     map[i] = new Scene(trees, ladder, holes, vine, pit, treasure, obsticles, wall, !ladder);
     seed = 0xFF & ((seed << 1) | (((seed >> 7) & 1) ^ ((seed >> 5) & 1) ^ ((seed >> 4) & 1) ^ ((seed >> 3) & 1)));
+}
+
+
+/***/ }),
+
+/***/ "./src/game/scorpion.ts":
+/*!******************************!*\
+  !*** ./src/game/scorpion.ts ***!
+  \******************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   Scorpion: () => (/* binding */ Scorpion)
+/* harmony export */ });
+/* harmony import */ var _graphics__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @/graphics */ "./src/graphics.ts");
+
+const X_START = _graphics__WEBPACK_IMPORTED_MODULE_0__.Resolution.WIDTH / 2;
+const X_MAX = _graphics__WEBPACK_IMPORTED_MODULE_0__.Resolution.WIDTH - 8;
+const ADVANCE_DIST = _graphics__WEBPACK_IMPORTED_MODULE_0__.Resolution.WIDTH / 8;
+const FRAMES_PER_UPDATE = 8;
+class Scorpion {
+    scene;
+    x = X_START;
+    dir = 0;
+    sprite = 0;
+    updateCounter = FRAMES_PER_UPDATE;
+    advanceCounter = ADVANCE_DIST;
+    constructor(scene) {
+        this.scene = scene;
+    }
+    update(gs) {
+        if (--this.updateCounter > 0) {
+            return;
+        }
+        this.updateCounter = FRAMES_PER_UPDATE;
+        this.sprite ^= 1;
+        if (--this.advanceCounter === 0) {
+            this.advanceCounter = ADVANCE_DIST;
+            if (gs.harry.scene === this.scene) {
+                if (gs.harry.x > this.x) {
+                    this.dir = 0;
+                }
+                else {
+                    this.dir = 1;
+                }
+            }
+        }
+        if (this.dir === 0) {
+            if (this.x === X_MAX) {
+                this.dir = 0;
+            }
+            else {
+                ++this.x;
+            }
+        }
+        else {
+            if (this.x === 0) {
+                this.dir = 1;
+            }
+            else {
+                --this.x;
+            }
+        }
+    }
+    render(gs, ctx, ox) {
+        ctx.drawImage(_graphics__WEBPACK_IMPORTED_MODULE_0__.sorpionSprites[this.dir][this.sprite], Math.floor(this.x) - 4 - ox, 158);
+    }
 }
 
 
