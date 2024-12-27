@@ -17,7 +17,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _screen__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./screen */ "./src/screen.ts");
 
 
-const FRAMES_PER_SECOND = 5;
+const FRAMES_PER_SECOND = 60;
 const MILLIS_PER_FRAME = 1000 / FRAMES_PER_SECOND;
 const MAX_UPDATES_WITHOUT_RENDER = 5;
 let animationRunning = false;
@@ -576,7 +576,8 @@ class Harry {
                 this.startClimbing(134);
                 return;
             }
-            if (this.y === Y_LOWER_LEVEL && _input__WEBPACK_IMPORTED_MODULE_1__.upPressed && this.x >= 64 && this.x <= 80) {
+            if (this.y === Y_LOWER_LEVEL && _input__WEBPACK_IMPORTED_MODULE_1__.upPressed && !(_input__WEBPACK_IMPORTED_MODULE_1__.leftPressed || _input__WEBPACK_IMPORTED_MODULE_1__.rightPressed) && this.x >= 64
+                && this.x <= 80) {
                 this.startClimbing(this.y);
                 return;
             }
@@ -594,8 +595,10 @@ class Harry {
     }
     updateFalling(gs) {
         const { ladder, holes, wall } = _map__WEBPACK_IMPORTED_MODULE_2__.map[this.scene];
-        if (ladder && this.y >= 134 && this.y < Y_LOWER_LEVEL && this.x === 72) {
-            this.startClimbing(134 + 4 * Math.floor((this.y - 134) / 4));
+        if (ladder && this.y >= 134 && this.y < Y_LOWER_LEVEL && this.x >= 68 && this.x <= 75) {
+            const stepsToTop = Math.floor((this.y - 134) / 4);
+            this.startClimbing(134 + 4 * stepsToTop);
+            this.dir ^= stepsToTop & 1;
             return;
         }
         const nextY = this.y + this.vy;

@@ -172,7 +172,8 @@ export class Harry {
                 this.startClimbing(134);
                 return;
             } 
-            if (this.y === Y_LOWER_LEVEL && upPressed && this.x >= 64 && this.x <= 80) {
+            if (this.y === Y_LOWER_LEVEL && upPressed && !(leftPressed || rightPressed) && this.x >= 64 
+                    && this.x <= 80) {
                 this.startClimbing(this.y);
                 return;
             }
@@ -192,8 +193,10 @@ export class Harry {
     private updateFalling(gs: GameState) {
         const { ladder, holes, wall } = map[this.scene];
 
-        if (ladder && this.y >= 134 && this.y < Y_LOWER_LEVEL && this.x === 72) {
-            this.startClimbing(134 + 4 * Math.floor((this.y - 134) / 4));
+        if (ladder && this.y >= 134 && this.y < Y_LOWER_LEVEL && this.x >= 68 && this.x <= 75) {
+            const stepsToTop = Math.floor((this.y - 134) / 4);
+            this.startClimbing(134 + 4 * stepsToTop);
+            this.dir ^= stepsToTop & 1;
             return;           
         } 
 
