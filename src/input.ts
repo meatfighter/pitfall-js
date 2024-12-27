@@ -1,5 +1,29 @@
 import { exit } from '@/screen';
 
+export let leftPressed = false;
+export let rightPressed = false;
+export let upPressed = false;
+export let downPressed = false;
+export let jumpPressed = false;
+
+export let leftJustPressed = false;
+export let rightJustPressed = false;
+export let upJustPressed = false;
+export let downJustPressed = false;
+export let jumpJustPressed = false;
+
+export let leftJustReleased = false;
+export let rightJustReleased = false;
+export let upJustReleased = false;
+export let downJustReleased = false;
+export let jumpJustReleased = false;
+
+let lastLeftPressed = false;
+let lastRightPressed = false;
+let lastUpPressed = false;
+let lastDownPressed = false;
+let lastJumpPressed = false;
+
 let leftKeyPressed = 0;
 let rightKeyPressed = 0;
 let upKeyPressed = 0;
@@ -83,6 +107,33 @@ export function stopInput() {
 }
 
 export function updateInput() {
+    leftPressed = leftKeyPressed > rightKeyPressed;
+    rightPressed = rightKeyPressed > leftKeyPressed;
+    upPressed = upKeyPressed > downKeyPressed;
+    downPressed = downKeyPressed > upKeyPressed;
+    jumpPressed = jumpKeyPressed;
+
+    leftJustPressed = leftPressed && !lastLeftPressed;
+    leftJustReleased = !leftPressed && lastLeftPressed;
+
+    rightJustPressed = rightPressed && !lastRightPressed;
+    rightJustReleased = !rightPressed && lastRightPressed;
+    
+    upJustPressed = upPressed && !lastUpPressed;
+    upJustReleased = !upPressed && lastUpPressed;
+
+    downJustPressed = downPressed && !lastDownPressed;
+    downJustReleased = !downPressed && lastDownPressed;
+
+    jumpJustPressed = jumpPressed && !lastJumpPressed;
+    jumpJustReleased = !jumpPressed && lastJumpPressed;
+
+    lastLeftPressed = leftPressed;
+    lastRightPressed = rightPressed;
+    lastUpPressed = upPressed;
+    lastDownPressed = downPressed;
+    lastJumpPressed = jumpPressed;    
+
     // const gamepads = navigator.getGamepads();
     // if (!gamepads) {
     //     return;

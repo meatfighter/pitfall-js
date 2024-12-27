@@ -14,7 +14,7 @@ const T = JUMP_ARC_BASE;
 const G = 2 * JUMP_ARC_HEIGHT / (T * T);
 const VY0 = -G * T;
 
-enum State {    
+enum MainState {    
     GROUNDED,
     STARTING_FALL,
     FALLING,
@@ -22,7 +22,16 @@ enum State {
     CLIMBING,
 }
 
+enum FallState {
+    NOT_FALLING,
+    STARTED,
+    FALLING,
+    ENDED,
+}
+
 export class Harry {   
+    mainState = MainState.GROUNDED;
+    fallState = FallState.NOT_FALLING;
     scene = 0;
     absoluteX = 12;
     x = this.absoluteX;
@@ -31,7 +40,6 @@ export class Harry {
     dir = 0;
     sprite = 0;
     runCounter = 0;
-    state = State.GROUNDED;
     climbCounter = 0;
     lastLeftPressed = false;
     lastRightPressed = false;
@@ -50,44 +58,44 @@ export class Harry {
 
         const { ladder, holes, wall } = map[this.scene];
 
-        if (this.state === State.GROUNDED && this.y === Y_UPPER_LEVEL && holes
+        if (this.mainState === MainState.GROUNDED && this.y === Y_UPPER_LEVEL && holes
                 && ((this.x >= 40 && this.x <= 51) || (this.x >= 92 && this.x <= 103))) {
             this.vy = G;
-            this.state = State.STARTING_FALL;
+            this.mainState = MainState.STARTING_FALL;
         }
 
-        if (this.state === State.GROUNDED) {
+        if (this.mainState === MainState.GROUNDED) {
             if (!this.lastJumpPressed && jumpPressed) {
                 this.vy = VY0;                
-                this.state = State.STARTING_FALL;
+                this.mainState = MainState.STARTING_FALL;
             } 
         } 
        
-        if (this.state === State.STARTING_FALL) {
+        if (this.mainState === MainState.STARTING_FALL) {
             this.y += this.vy;
             this.vy += G;
             this.sprite = 2;
-            this.state = State.FALLING;
-        } else if (this.state === State.FALLING) {
+            this.mainState = MainState.FALLING;
+        } else if (this.mainState === MainState.FALLING) {
             const nextY = this.y + this.vy;
             if (this.y <= Y_UPPER_LEVEL && nextY >= Y_UPPER_LEVEL 
                     && (!holes || this.x < 40 || this.x > 103 || (this.x > 51 && this.x < 92))) {
                 this.y = Y_UPPER_LEVEL;
                 this.vy = 0;
                 this.sprite = 2;
-                this.state = State.ENDING_FALL;
+                this.mainState = MainState.ENDING_FALL;
             } else if (this.y <= Y_LOWER_LEVEL && nextY >= Y_LOWER_LEVEL) {
                 this.y = Y_LOWER_LEVEL;
                 this.vy = 0;
                 this.sprite = 2;
-                this.state = State.ENDING_FALL;
+                this.mainState = MainState.ENDING_FALL;
             } else {
                 this.y += this.vy;
                 this.vy += G;
                 this.sprite = 5;
             }
             if (ladder && this.y >= 134 && this.y < Y_LOWER_LEVEL && this.x === 72) {
-                this.state = State.CLIMBING;
+                this.mainState = MainState.CLIMBING;
                 this.y = 134 + 4 * Math.floor((this.y - 134) / 4);
                 this.sprite = 7;
                 this.climbCounter = 0;
@@ -95,11 +103,11 @@ export class Harry {
         }
 
         let shifting = false;
-        outer: if (this.state === State.CLIMBING) {
+        outer: if (this.mainState === MainState.CLIMBING) {
             if (this.y <= 142) {
                 if ((!this.lastRightPressed && rightPressed) 
                         || (this.y === 134 && upPressed && (rightPressed || (!leftPressed && this.dir === 0)))) {
-                    this.state = State.GROUNDED;
+                    this.mainState = MainState.GROUNDED;
                     const deltaX = 77 - this.x;                    
                     this.absoluteX += deltaX;
                     this.x += deltaX;
@@ -111,7 +119,7 @@ export class Harry {
                     break outer;
                 } else if ((!this.lastLeftPressed && leftPressed) 
                         || (this.y === 134 && upPressed && (leftPressed || (!rightPressed && this.dir === 1)))) {
-                    this.state = State.GROUNDED;
+                    this.mainState = MainState.GROUNDED;
                     const deltaX = 67 - this.x;
                     this.absoluteX += deltaX;
                     this.x += deltaX;
@@ -124,7 +132,7 @@ export class Harry {
                 }
             }            
             if (this.y >= 170 && (leftPressed || rightPressed)) {
-                this.state = State.GROUNDED;
+                this.mainState = MainState.GROUNDED;
                 this.y = Y_LOWER_LEVEL;
                 this.sprite = 0;
                 break outer;
@@ -139,7 +147,7 @@ export class Harry {
                 }
             } else if (downPressed) {
                 if (this.y === Y_LOWER_LEVEL) {
-                    this.state = State.GROUNDED;
+                    this.mainState = MainState.GROUNDED;
                     this.sprite = 0;
                     break outer;
                 } else if (++this.climbCounter >= 8) {
@@ -216,18 +224,18 @@ export class Harry {
         
         if (ladder) {
             if ((this.y <= Y_UPPER_LEVEL && this.y + G >= Y_UPPER_LEVEL && this.x >= 68 && this.x <= 75)
-                    || (this.state === State.GROUNDED && this.y === Y_UPPER_LEVEL && downPressed && this.x >= 64 
+                    || (this.mainState === MainState.GROUNDED && this.y === Y_UPPER_LEVEL && downPressed && this.x >= 64 
                             && this.x <= 80)) {
-                this.state = State.CLIMBING;
+                this.mainState = MainState.CLIMBING;
                 const deltaX = 72 - this.x;
                 this.absoluteX += deltaX;
                 this.x += deltaX;
                 this.y = 134;
                 this.sprite = 7;
                 this.climbCounter = 0;
-            } else if ((this.state === State.GROUNDED && this.y === Y_LOWER_LEVEL && upPressed && this.x >= 64 
+            } else if ((this.mainState === MainState.GROUNDED && this.y === Y_LOWER_LEVEL && upPressed && this.x >= 64 
                     && this.x <= 80)) {
-                this.state = State.CLIMBING;
+                this.mainState = MainState.CLIMBING;
                 const deltaX = 72 - this.x;
                 this.absoluteX += deltaX;
                 this.x += deltaX;
@@ -236,7 +244,7 @@ export class Harry {
             }
         }
 
-        if (this.state === State.GROUNDED) {
+        if (this.mainState === MainState.GROUNDED) {
             if (shifting) {
                 if (this.runCounter === 0 && ++this.sprite === 6) {
                     this.sprite = 1;
@@ -246,9 +254,9 @@ export class Harry {
                 this.runCounter = 0;
                 this.sprite = 0;
             }
-        } else if (this.state === State.ENDING_FALL) {
+        } else if (this.mainState === MainState.ENDING_FALL) {
             this.runCounter = 0;
-            this.state = State.GROUNDED;
+            this.mainState = MainState.GROUNDED;
         }     
 
         this.lastLeftPressed = leftPressed;

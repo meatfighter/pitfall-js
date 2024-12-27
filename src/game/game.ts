@@ -1,7 +1,8 @@
 import { GameState } from './game-state';
 import { colors, Colors, Resolution, leavesSprites, branchesSprite, wallSprite } from '@/graphics';
 import { map, Wall } from './map';
-import { clamp, mod } from '@/math';
+import { clamp } from '@/math';
+import { updateInput } from '@/input';
 
 const SCENE_ALPHA_DELTA = 1 / 30;
 
@@ -24,7 +25,9 @@ export function saveGame() {
     gs.save();    
 }
 
-export function update() {   
+export function update() {
+    updateInput();
+
     if (gs.sceneAlpha < 1) {
         gs.sceneAlpha += SCENE_ALPHA_DELTA;
         if (gs.sceneAlpha > 1) {
