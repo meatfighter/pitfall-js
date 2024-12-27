@@ -5,6 +5,8 @@ import { clamp, mod } from '@/math';
 
 const SCENE_ALPHA_DELTA = 1 / 30;
 
+const SCROLL_MARGIN = 4;
+
 const TRUNKS = [
     [ 8, 40, 100, 132 ],
     [ 16, 48, 92, 124 ],
@@ -39,7 +41,15 @@ export function update() {
         gs.sceneAlpha = clamp(1 - gs.sceneAlpha, 0, 1);
     }
 
-    gs.ox = Math.round(gs.harry.x + gs.harry.laggyX - gs.harry.absoluteX) - 76;
+    const targetScrollX = Math.floor(gs.harry.absoluteX);
+    if (targetScrollX < gs.scrollX - SCROLL_MARGIN) {
+        gs.scrollX -= (gs.lastScrollX === targetScrollX) ? .5 : 1;
+    } else if (targetScrollX > gs.scrollX + SCROLL_MARGIN) {
+        gs.scrollX += (gs.lastScrollX === targetScrollX) ? .5 : 1;
+    }
+    gs.lastScrollX = targetScrollX;
+    gs.ox = Math.floor(gs.harry.x) - 76 + Math.floor(gs.scrollX - targetScrollX);
+
     if (gs.ox < 0) {
         gs.nextOx = gs.ox + Resolution.WIDTH;        
         gs.nextScene = gs.harry.scene - (underground ? 3 : 1);
@@ -132,7 +142,7 @@ export function renderScreen(ctx: OffscreenCanvasRenderingContext2D) {
         ctx.globalAlpha = 1;
     }
 
-    gs.harry.render(gs, ctx);
+    gs.harry.render(gs, ctx, gs.ox);
 
     renderLeaves(ctx, gs.harry.scene, gs.ox);
     if (gs.sceneAlpha === 1) {

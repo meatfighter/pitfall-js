@@ -226,6 +226,8 @@ __webpack_require__.r(__webpack_exports__);
 
 class GameState {
     harry = new _harry__WEBPACK_IMPORTED_MODULE_1__.Harry();
+    scrollX = Math.floor(this.harry.absoluteX);
+    lastScrollX = this.scrollX;
     ox = 0;
     nextOx = 0;
     nextScene = 0;
@@ -263,6 +265,7 @@ __webpack_require__.r(__webpack_exports__);
 
 
 const SCENE_ALPHA_DELTA = 1 / 30;
+const SCROLL_MARGIN = 4;
 const TRUNKS = [
     [8, 40, 100, 132],
     [16, 48, 92, 124],
@@ -290,7 +293,15 @@ function update() {
         gs.lastNextScene = gs.nextScene;
         gs.sceneAlpha = (0,_math__WEBPACK_IMPORTED_MODULE_3__.clamp)(1 - gs.sceneAlpha, 0, 1);
     }
-    gs.ox = Math.round(gs.harry.x + gs.harry.laggyX - gs.harry.absoluteX) - 76;
+    const targetScrollX = Math.floor(gs.harry.absoluteX);
+    if (targetScrollX < gs.scrollX - SCROLL_MARGIN) {
+        gs.scrollX -= (gs.lastScrollX === targetScrollX) ? .5 : 1;
+    }
+    else if (targetScrollX > gs.scrollX + SCROLL_MARGIN) {
+        gs.scrollX += (gs.lastScrollX === targetScrollX) ? .5 : 1;
+    }
+    gs.lastScrollX = targetScrollX;
+    gs.ox = Math.floor(gs.harry.x) - 76 + Math.floor(gs.scrollX - targetScrollX);
     if (gs.ox < 0) {
         gs.nextOx = gs.ox + _graphics__WEBPACK_IMPORTED_MODULE_1__.Resolution.WIDTH;
         gs.nextScene = gs.harry.scene - (underground ? 3 : 1);
@@ -375,7 +386,7 @@ function renderScreen(ctx) {
         renderBackground(ctx, gs.nextScene, gs.nextOx);
         ctx.globalAlpha = 1;
     }
-    gs.harry.render(gs, ctx);
+    gs.harry.render(gs, ctx, gs.ox);
     renderLeaves(ctx, gs.harry.scene, gs.ox);
     if (gs.sceneAlpha === 1) {
         renderLeaves(ctx, gs.nextScene, gs.nextOx);
@@ -427,7 +438,6 @@ var State;
 class Harry {
     scene = 0;
     absoluteX = 12;
-    laggyX = this.absoluteX;
     x = this.absoluteX;
     y = Y_UPPER_LEVEL;
     vy = 0;
@@ -487,7 +497,6 @@ class Harry {
                 this.sprite = 5;
             }
             if (ladder && this.y >= 134 && this.y < Y_LOWER_LEVEL && this.x === 72) {
-                console.log('--1');
                 this.state = State.CLIMBING;
                 this.y = 134 + 4 * Math.floor((this.y - 134) / 4);
                 this.sprite = 7;
@@ -663,20 +672,14 @@ class Harry {
             this.runCounter = 0;
             this.state = State.GROUNDED;
         }
-        if (this.laggyX < this.absoluteX - 4) {
-            this.laggyX += .5;
-        }
-        else if (this.laggyX > this.absoluteX + 4) {
-            this.laggyX -= .5;
-        }
         this.lastLeftPressed = leftPressed;
         this.lastRightPressed = rightPressed;
         this.lastJumpPressed = jumpPressed;
     }
-    render(gs, ctx) {
+    render(gs, ctx, ox) {
         const sprite = _graphics__WEBPACK_IMPORTED_MODULE_0__.harrySprites[this.dir][this.sprite];
-        const X = Math.floor(gs.harry.absoluteX - gs.harry.laggyX) + 72;
-        const Y = Math.floor(this.y - 22);
+        const X = Math.floor(this.x) - 4 - ox;
+        const Y = Math.floor(this.y) - 22;
         if (Y < 101 || Y >= 127) {
             ctx.drawImage(sprite, X, Y);
         }

@@ -25,7 +25,6 @@ enum State {
 export class Harry {   
     scene = 0;
     absoluteX = 12;
-    laggyX = this.absoluteX;
     x = this.absoluteX;
     y = Y_UPPER_LEVEL;
     vy = 0;
@@ -88,7 +87,6 @@ export class Harry {
                 this.sprite = 5;
             }
             if (ladder && this.y >= 134 && this.y < Y_LOWER_LEVEL && this.x === 72) {
-                console.log('--1');
                 this.state = State.CLIMBING;
                 this.y = 134 + 4 * Math.floor((this.y - 134) / 4);
                 this.sprite = 7;
@@ -251,23 +249,17 @@ export class Harry {
         } else if (this.state === State.ENDING_FALL) {
             this.runCounter = 0;
             this.state = State.GROUNDED;
-        }
-
-        if (this.laggyX < this.absoluteX - 4) {
-            this.laggyX += .5;
-        } else if (this.laggyX > this.absoluteX + 4) {
-            this.laggyX -= .5;
-        }       
+        }     
 
         this.lastLeftPressed = leftPressed;
         this.lastRightPressed = rightPressed;
         this.lastJumpPressed = jumpPressed;
     }
 
-    render(gs: GameState, ctx: OffscreenCanvasRenderingContext2D) {
+    render(gs: GameState, ctx: OffscreenCanvasRenderingContext2D, ox: number) {
         const sprite = harrySprites[this.dir][this.sprite];
-        const X = Math.floor(gs.harry.absoluteX - gs.harry.laggyX) + 72;
-        const Y = Math.floor(this.y - 22);
+        const X = Math.floor(this.x) - 4 - ox;
+        const Y = Math.floor(this.y) - 22;
         if (Y < 101 || Y >= 127) {
             ctx.drawImage(sprite, X, Y);
         } else {
