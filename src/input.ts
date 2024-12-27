@@ -202,26 +202,6 @@ export function updateInput() {
     // lastFireGamepadDown = fireDown;
 }
 
-export function isLeftPressed(): boolean {
-    return leftKeyPressed > rightKeyPressed;
-}
-
-export function isRightPressed(): boolean {
-    return rightKeyPressed > leftKeyPressed;
-}
-
-export function isUpPressed(): boolean {
-    return upKeyPressed > downKeyPressed;
-}
-
-export function isDownPressed(): boolean {
-    return downKeyPressed > upKeyPressed;
-}
-
-export function isJumpPressed(): boolean {
-    return jumpKeyPressed;
-}
-
 function cancelHideCursorTimer() {
     if (hideCursorTimeoutId !== null) {
         clearTimeout(hideCursorTimeoutId);

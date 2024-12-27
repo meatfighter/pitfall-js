@@ -17,7 +17,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _screen__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./screen */ "./src/screen.ts");
 
 
-const FRAMES_PER_SECOND = 60;
+const FRAMES_PER_SECOND = 5;
 const MILLIS_PER_FRAME = 1000 / FRAMES_PER_SECOND;
 const MAX_UPDATES_WITHOUT_RENDER = 5;
 let animationRunning = false;
@@ -260,6 +260,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _graphics__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @/graphics */ "./src/graphics.ts");
 /* harmony import */ var _map__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./map */ "./src/game/map.ts");
 /* harmony import */ var _math__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! @/math */ "./src/math.ts");
+/* harmony import */ var _input__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! @/input */ "./src/input.ts");
+
 
 
 
@@ -280,6 +282,7 @@ function saveGame() {
     gs.save();
 }
 function update() {
+    (0,_input__WEBPACK_IMPORTED_MODULE_4__.updateInput)();
     if (gs.sceneAlpha < 1) {
         gs.sceneAlpha += SCENE_ALPHA_DELTA;
         if (gs.sceneAlpha > 1) {
@@ -427,15 +430,15 @@ const JUMP_ARC_HEIGHT = 11;
 const T = JUMP_ARC_BASE;
 const G = 2 * JUMP_ARC_HEIGHT / (T * T);
 const VY0 = -G * T;
-var State;
-(function (State) {
-    State[State["GROUNDED"] = 0] = "GROUNDED";
-    State[State["STARTING_FALL"] = 1] = "STARTING_FALL";
-    State[State["FALLING"] = 2] = "FALLING";
-    State[State["ENDING_FALL"] = 3] = "ENDING_FALL";
-    State[State["CLIMBING"] = 4] = "CLIMBING";
-})(State || (State = {}));
+var MainState;
+(function (MainState) {
+    MainState[MainState["STANDING"] = 0] = "STANDING";
+    MainState[MainState["FALLING"] = 1] = "FALLING";
+    MainState[MainState["CLIMBING"] = 2] = "CLIMBING";
+})(MainState || (MainState = {}));
 class Harry {
+    mainState = MainState.STANDING;
+    lastMainState = MainState.STANDING;
     scene = 0;
     absoluteX = 12;
     x = this.absoluteX;
@@ -444,125 +447,74 @@ class Harry {
     dir = 0;
     sprite = 0;
     runCounter = 0;
-    state = State.GROUNDED;
     climbCounter = 0;
-    lastLeftPressed = false;
-    lastRightPressed = false;
-    lastJumpPressed = false;
     isUnderground() {
         return this.y > 146;
     }
-    update(gs) {
-        const upPressed = (0,_input__WEBPACK_IMPORTED_MODULE_1__.isUpPressed)();
-        const downPressed = (0,_input__WEBPACK_IMPORTED_MODULE_1__.isDownPressed)();
-        const rightPressed = (0,_input__WEBPACK_IMPORTED_MODULE_1__.isRightPressed)();
-        const leftPressed = (0,_input__WEBPACK_IMPORTED_MODULE_1__.isLeftPressed)();
-        const jumpPressed = (0,_input__WEBPACK_IMPORTED_MODULE_1__.isJumpPressed)();
-        const { ladder, holes, wall } = _map__WEBPACK_IMPORTED_MODULE_2__.map[this.scene];
-        if (this.state === State.GROUNDED && this.y === Y_UPPER_LEVEL && holes
-            && ((this.x >= 40 && this.x <= 51) || (this.x >= 92 && this.x <= 103))) {
-            this.vy = G;
-            this.state = State.STARTING_FALL;
-        }
-        if (this.state === State.GROUNDED) {
-            if (!this.lastJumpPressed && jumpPressed) {
-                this.vy = VY0;
-                this.state = State.STARTING_FALL;
-            }
-        }
-        if (this.state === State.STARTING_FALL) {
-            this.y += this.vy;
-            this.vy += G;
-            this.sprite = 2;
-            this.state = State.FALLING;
-        }
-        else if (this.state === State.FALLING) {
-            const nextY = this.y + this.vy;
-            if (this.y <= Y_UPPER_LEVEL && nextY >= Y_UPPER_LEVEL
-                && (!holes || this.x < 40 || this.x > 103 || (this.x > 51 && this.x < 92))) {
-                this.y = Y_UPPER_LEVEL;
-                this.vy = 0;
-                this.sprite = 2;
-                this.state = State.ENDING_FALL;
-            }
-            else if (this.y <= Y_LOWER_LEVEL && nextY >= Y_LOWER_LEVEL) {
-                this.y = Y_LOWER_LEVEL;
-                this.vy = 0;
-                this.sprite = 2;
-                this.state = State.ENDING_FALL;
+    setX(x) {
+        this.incrementX(x - this.x);
+    }
+    incrementX(deltaX) {
+        this.absoluteX += deltaX;
+        this.x += deltaX;
+        this.dir = (deltaX > 0) ? 0 : 1;
+        if (this.x < 0) {
+            this.x += _graphics__WEBPACK_IMPORTED_MODULE_0__.Resolution.WIDTH;
+            if (this.y > Y_UPPER_LEVEL) {
+                this.scene -= 3;
             }
             else {
-                this.y += this.vy;
-                this.vy += G;
-                this.sprite = 5;
+                --this.scene;
             }
-            if (ladder && this.y >= 134 && this.y < Y_LOWER_LEVEL && this.x === 72) {
-                this.state = State.CLIMBING;
-                this.y = 134 + 4 * Math.floor((this.y - 134) / 4);
-                this.sprite = 7;
-                this.climbCounter = 0;
+            if (this.scene < 0) {
+                this.scene += _map__WEBPACK_IMPORTED_MODULE_2__.map.length;
             }
         }
+        else if (this.x >= _graphics__WEBPACK_IMPORTED_MODULE_0__.Resolution.WIDTH) {
+            this.x -= _graphics__WEBPACK_IMPORTED_MODULE_0__.Resolution.WIDTH;
+            if (this.y > Y_UPPER_LEVEL) {
+                this.scene += 3;
+            }
+            else {
+                ++this.scene;
+            }
+            if (this.scene >= _map__WEBPACK_IMPORTED_MODULE_2__.map.length) {
+                this.scene -= _map__WEBPACK_IMPORTED_MODULE_2__.map.length;
+            }
+        }
+    }
+    startFalling(v0) {
+        this.mainState = MainState.FALLING;
+        this.y += v0;
+        this.vy = G + v0;
+        this.sprite = 2;
+    }
+    endFalling(y) {
+        this.mainState = MainState.STANDING;
+        this.y = y;
+        this.vy = 0;
+        this.sprite = 2;
+        this.runCounter = 0;
+    }
+    startClimbing(y) {
+        this.mainState = MainState.CLIMBING;
+        this.setX(72);
+        this.y = y;
+        this.sprite = 7;
+        this.climbCounter = 0;
+    }
+    endClimbing(x, y, dir) {
+        this.mainState = MainState.STANDING;
+        this.setX(x);
+        this.y = y;
+        this.runCounter = 0;
+        this.sprite = 0;
+        this.dir = dir;
+    }
+    updateShift(gs) {
+        const { wall } = _map__WEBPACK_IMPORTED_MODULE_2__.map[this.scene];
         let shifting = false;
-        outer: if (this.state === State.CLIMBING) {
-            if (this.y <= 142) {
-                if ((!this.lastRightPressed && rightPressed)
-                    || (this.y === 134 && upPressed && (rightPressed || (!leftPressed && this.dir === 0)))) {
-                    this.state = State.GROUNDED;
-                    const deltaX = 77 - this.x;
-                    this.absoluteX += deltaX;
-                    this.x += deltaX;
-                    this.y = Y_UPPER_LEVEL;
-                    shifting = true;
-                    this.runCounter = 0;
-                    this.sprite = 0;
-                    this.dir = 0;
-                    break outer;
-                }
-                else if ((!this.lastLeftPressed && leftPressed)
-                    || (this.y === 134 && upPressed && (leftPressed || (!rightPressed && this.dir === 1)))) {
-                    this.state = State.GROUNDED;
-                    const deltaX = 67 - this.x;
-                    this.absoluteX += deltaX;
-                    this.x += deltaX;
-                    this.y = Y_UPPER_LEVEL;
-                    shifting = true;
-                    this.runCounter = 0;
-                    this.sprite = 0;
-                    this.dir = 1;
-                    break outer;
-                }
-            }
-            if (this.y >= 170 && (leftPressed || rightPressed)) {
-                this.state = State.GROUNDED;
-                this.y = Y_LOWER_LEVEL;
-                this.sprite = 0;
-                break outer;
-            }
-            if (upPressed) {
-                if (this.y === 134) {
-                    this.climbCounter = 0;
-                }
-                else if (++this.climbCounter >= 8) {
-                    this.climbCounter = 0;
-                    this.y -= 4;
-                    this.dir ^= 1;
-                }
-            }
-            else if (downPressed) {
-                if (this.y === Y_LOWER_LEVEL) {
-                    this.state = State.GROUNDED;
-                    this.sprite = 0;
-                    break outer;
-                }
-                else if (++this.climbCounter >= 8) {
-                    this.climbCounter = 0;
-                    this.y += 4;
-                    this.dir ^= 1;
-                }
-            }
-        }
-        else if (rightPressed) {
+        if (_input__WEBPACK_IMPORTED_MODULE_1__.rightPressed) {
             let moveRight = true;
             if (this.y >= 120 && ((wall === _map__WEBPACK_IMPORTED_MODULE_2__.Wall.RIGHT && this.x === 127) || (wall === _map__WEBPACK_IMPORTED_MODULE_2__.Wall.LEFT && this.x === 9))) {
                 moveRight = false;
@@ -580,25 +532,11 @@ class Harry {
                 }
             }
             if (moveRight) {
-                this.absoluteX += .5;
-                this.x += .5;
-                if (this.x >= _graphics__WEBPACK_IMPORTED_MODULE_0__.Resolution.WIDTH) {
-                    this.x -= _graphics__WEBPACK_IMPORTED_MODULE_0__.Resolution.WIDTH;
-                    if (this.y > Y_UPPER_LEVEL) {
-                        this.scene += 3;
-                    }
-                    else {
-                        ++this.scene;
-                    }
-                    if (this.scene >= _map__WEBPACK_IMPORTED_MODULE_2__.map.length) {
-                        this.scene -= _map__WEBPACK_IMPORTED_MODULE_2__.map.length;
-                    }
-                }
-                this.dir = 0;
+                this.incrementX(.5);
                 shifting = true;
             }
         }
-        else if (leftPressed) {
+        else if (_input__WEBPACK_IMPORTED_MODULE_1__.leftPressed) {
             let moveLeft = true;
             if (this.y >= 120 && ((wall === _map__WEBPACK_IMPORTED_MODULE_2__.Wall.LEFT && this.x === 18) || (wall === _map__WEBPACK_IMPORTED_MODULE_2__.Wall.RIGHT && this.x === 136))) {
                 moveLeft = false;
@@ -616,65 +554,123 @@ class Harry {
                 }
             }
             if (moveLeft) {
-                this.absoluteX -= .5;
-                this.x -= .5;
-                if (this.x < 0) {
-                    this.x += _graphics__WEBPACK_IMPORTED_MODULE_0__.Resolution.WIDTH;
-                    if (this.y > Y_UPPER_LEVEL) {
-                        this.scene -= 3;
-                    }
-                    else {
-                        --this.scene;
-                    }
-                    if (this.scene < 0) {
-                        this.scene += _map__WEBPACK_IMPORTED_MODULE_2__.map.length;
-                    }
-                }
-                this.dir = 1;
+                this.incrementX(-.5);
                 shifting = true;
             }
         }
+        return shifting;
+    }
+    updateStanding(gs) {
+        const { ladder, holes } = _map__WEBPACK_IMPORTED_MODULE_2__.map[this.scene];
+        if (holes && this.y === Y_UPPER_LEVEL && ((this.x >= 40 && this.x <= 51) || (this.x >= 92 && this.x <= 103))) {
+            this.startFalling(G);
+            return;
+        }
+        if (_input__WEBPACK_IMPORTED_MODULE_1__.jumpJustPressed) {
+            this.startFalling(VY0);
+            return;
+        }
         if (ladder) {
-            if ((this.y <= Y_UPPER_LEVEL && this.y + G >= Y_UPPER_LEVEL && this.x >= 68 && this.x <= 75)
-                || (this.state === State.GROUNDED && this.y === Y_UPPER_LEVEL && downPressed && this.x >= 64
-                    && this.x <= 80)) {
-                this.state = State.CLIMBING;
-                const deltaX = 72 - this.x;
-                this.absoluteX += deltaX;
-                this.x += deltaX;
-                this.y = 134;
-                this.sprite = 7;
-                this.climbCounter = 0;
+            if (this.y === Y_UPPER_LEVEL && ((this.x >= 68 && this.x <= 75)
+                || (_input__WEBPACK_IMPORTED_MODULE_1__.downPressed && this.x >= 64 && this.x <= 80))) {
+                this.startClimbing(134);
+                return;
             }
-            else if ((this.state === State.GROUNDED && this.y === Y_LOWER_LEVEL && upPressed && this.x >= 64
-                && this.x <= 80)) {
-                this.state = State.CLIMBING;
-                const deltaX = 72 - this.x;
-                this.absoluteX += deltaX;
-                this.x += deltaX;
-                this.sprite = 7;
-                this.climbCounter = 0;
+            if (this.y === Y_LOWER_LEVEL && _input__WEBPACK_IMPORTED_MODULE_1__.upPressed && this.x >= 64 && this.x <= 80) {
+                this.startClimbing(this.y);
+                return;
             }
         }
-        if (this.state === State.GROUNDED) {
-            if (shifting) {
-                if (this.runCounter === 0 && ++this.sprite === 6) {
-                    this.sprite = 1;
-                }
-                this.runCounter = (this.runCounter + 1) & 3;
+        if (this.updateShift(gs)) {
+            if (this.runCounter === 0 && ++this.sprite === 6) {
+                this.sprite = 1;
             }
-            else {
-                this.runCounter = 0;
-                this.sprite = 0;
-            }
+            this.runCounter = (this.runCounter + 1) & 3;
         }
-        else if (this.state === State.ENDING_FALL) {
+        else {
             this.runCounter = 0;
-            this.state = State.GROUNDED;
+            this.sprite = (this.lastMainState === MainState.FALLING) ? 2 : 0;
         }
-        this.lastLeftPressed = leftPressed;
-        this.lastRightPressed = rightPressed;
-        this.lastJumpPressed = jumpPressed;
+    }
+    updateFalling(gs) {
+        const { ladder, holes, wall } = _map__WEBPACK_IMPORTED_MODULE_2__.map[this.scene];
+        if (ladder && this.y >= 134 && this.y < Y_LOWER_LEVEL && this.x === 72) {
+            this.startClimbing(134 + 4 * Math.floor((this.y - 134) / 4));
+            return;
+        }
+        const nextY = this.y + this.vy;
+        if (this.y <= Y_UPPER_LEVEL && nextY >= Y_UPPER_LEVEL) {
+            if (ladder && this.x >= 68 && this.x <= 75) {
+                this.startClimbing(134);
+                return;
+            }
+            if (!holes || this.x < 40 || this.x > 103 || (this.x > 51 && this.x < 92)) {
+                this.endFalling(Y_UPPER_LEVEL);
+                return;
+            }
+        }
+        if (this.y <= Y_LOWER_LEVEL && nextY >= Y_LOWER_LEVEL) {
+            this.endFalling(Y_LOWER_LEVEL);
+            return;
+        }
+        this.y += this.vy;
+        this.vy += G;
+        this.sprite = 5;
+        this.updateShift(gs);
+    }
+    updateClimbing(gs) {
+        if (this.y <= 142) {
+            if (_input__WEBPACK_IMPORTED_MODULE_1__.rightJustPressed
+                || (this.y === 134 && _input__WEBPACK_IMPORTED_MODULE_1__.upPressed && (_input__WEBPACK_IMPORTED_MODULE_1__.rightPressed || (!_input__WEBPACK_IMPORTED_MODULE_1__.leftPressed && this.dir === 0)))) {
+                this.endClimbing(77, Y_UPPER_LEVEL, 0);
+                return;
+            }
+            if (_input__WEBPACK_IMPORTED_MODULE_1__.leftJustPressed
+                || (this.y === 134 && _input__WEBPACK_IMPORTED_MODULE_1__.upPressed && (_input__WEBPACK_IMPORTED_MODULE_1__.leftPressed || (!_input__WEBPACK_IMPORTED_MODULE_1__.rightPressed && this.dir === 1)))) {
+                this.endClimbing(67, Y_UPPER_LEVEL, 1);
+                return;
+            }
+        }
+        if (this.y >= 170 && (_input__WEBPACK_IMPORTED_MODULE_1__.leftPressed || _input__WEBPACK_IMPORTED_MODULE_1__.rightPressed)) {
+            this.endClimbing(this.x, Y_LOWER_LEVEL, this.dir);
+            return;
+        }
+        if (_input__WEBPACK_IMPORTED_MODULE_1__.upPressed) {
+            if (this.y === 134) {
+                this.climbCounter = 0;
+            }
+            else if (++this.climbCounter >= 8) {
+                this.climbCounter = 0;
+                this.y -= 4;
+                this.dir ^= 1;
+            }
+        }
+        else if (_input__WEBPACK_IMPORTED_MODULE_1__.downPressed) {
+            if (this.y === Y_LOWER_LEVEL) {
+                this.endClimbing(this.x, Y_LOWER_LEVEL, this.dir);
+                return;
+            }
+            if (++this.climbCounter >= 8) {
+                this.climbCounter = 0;
+                this.y += 4;
+                this.dir ^= 1;
+            }
+        }
+    }
+    update(gs) {
+        const state = this.mainState;
+        switch (this.mainState) {
+            case MainState.STANDING:
+                this.updateStanding(gs);
+                break;
+            case MainState.FALLING:
+                this.updateFalling(gs);
+                break;
+            case MainState.CLIMBING:
+                this.updateClimbing(gs);
+                break;
+        }
+        this.lastMainState = state;
     }
     render(gs, ctx, ox) {
         const sprite = _graphics__WEBPACK_IMPORTED_MODULE_0__.harrySprites[this.dir][this.sprite];
@@ -1173,19 +1169,49 @@ async function init() {
 
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   isDownPressed: () => (/* binding */ isDownPressed),
-/* harmony export */   isJumpPressed: () => (/* binding */ isJumpPressed),
-/* harmony export */   isLeftPressed: () => (/* binding */ isLeftPressed),
-/* harmony export */   isRightPressed: () => (/* binding */ isRightPressed),
+/* harmony export */   downJustPressed: () => (/* binding */ downJustPressed),
+/* harmony export */   downJustReleased: () => (/* binding */ downJustReleased),
+/* harmony export */   downPressed: () => (/* binding */ downPressed),
 /* harmony export */   isTouchOnlyDevice: () => (/* binding */ isTouchOnlyDevice),
-/* harmony export */   isUpPressed: () => (/* binding */ isUpPressed),
+/* harmony export */   jumpJustPressed: () => (/* binding */ jumpJustPressed),
+/* harmony export */   jumpJustReleased: () => (/* binding */ jumpJustReleased),
+/* harmony export */   jumpPressed: () => (/* binding */ jumpPressed),
+/* harmony export */   leftJustPressed: () => (/* binding */ leftJustPressed),
+/* harmony export */   leftJustReleased: () => (/* binding */ leftJustReleased),
+/* harmony export */   leftPressed: () => (/* binding */ leftPressed),
 /* harmony export */   resetInput: () => (/* binding */ resetInput),
+/* harmony export */   rightJustPressed: () => (/* binding */ rightJustPressed),
+/* harmony export */   rightJustReleased: () => (/* binding */ rightJustReleased),
+/* harmony export */   rightPressed: () => (/* binding */ rightPressed),
 /* harmony export */   startInput: () => (/* binding */ startInput),
 /* harmony export */   stopInput: () => (/* binding */ stopInput),
+/* harmony export */   upJustPressed: () => (/* binding */ upJustPressed),
+/* harmony export */   upJustReleased: () => (/* binding */ upJustReleased),
+/* harmony export */   upPressed: () => (/* binding */ upPressed),
 /* harmony export */   updateInput: () => (/* binding */ updateInput)
 /* harmony export */ });
 /* harmony import */ var _screen__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @/screen */ "./src/screen.ts");
 
+let leftPressed = false;
+let rightPressed = false;
+let upPressed = false;
+let downPressed = false;
+let jumpPressed = false;
+let leftJustPressed = false;
+let rightJustPressed = false;
+let upJustPressed = false;
+let downJustPressed = false;
+let jumpJustPressed = false;
+let leftJustReleased = false;
+let rightJustReleased = false;
+let upJustReleased = false;
+let downJustReleased = false;
+let jumpJustReleased = false;
+let lastLeftPressed = false;
+let lastRightPressed = false;
+let lastUpPressed = false;
+let lastDownPressed = false;
+let lastJumpPressed = false;
 let leftKeyPressed = 0;
 let rightKeyPressed = 0;
 let upKeyPressed = 0;
@@ -1251,6 +1277,26 @@ function stopInput() {
     resetInput();
 }
 function updateInput() {
+    leftPressed = leftKeyPressed > rightKeyPressed;
+    rightPressed = rightKeyPressed > leftKeyPressed;
+    upPressed = upKeyPressed > downKeyPressed;
+    downPressed = downKeyPressed > upKeyPressed;
+    jumpPressed = jumpKeyPressed;
+    leftJustPressed = leftPressed && !lastLeftPressed;
+    leftJustReleased = !leftPressed && lastLeftPressed;
+    rightJustPressed = rightPressed && !lastRightPressed;
+    rightJustReleased = !rightPressed && lastRightPressed;
+    upJustPressed = upPressed && !lastUpPressed;
+    upJustReleased = !upPressed && lastUpPressed;
+    downJustPressed = downPressed && !lastDownPressed;
+    downJustReleased = !downPressed && lastDownPressed;
+    jumpJustPressed = jumpPressed && !lastJumpPressed;
+    jumpJustReleased = !jumpPressed && lastJumpPressed;
+    lastLeftPressed = leftPressed;
+    lastRightPressed = rightPressed;
+    lastUpPressed = upPressed;
+    lastDownPressed = downPressed;
+    lastJumpPressed = jumpPressed;
     // const gamepads = navigator.getGamepads();
     // if (!gamepads) {
     //     return;
@@ -1309,21 +1355,6 @@ function updateInput() {
     //     fireKeyPressed = false;
     // }
     // lastFireGamepadDown = fireDown;
-}
-function isLeftPressed() {
-    return leftKeyPressed > rightKeyPressed;
-}
-function isRightPressed() {
-    return rightKeyPressed > leftKeyPressed;
-}
-function isUpPressed() {
-    return upKeyPressed > downKeyPressed;
-}
-function isDownPressed() {
-    return downKeyPressed > upKeyPressed;
-}
-function isJumpPressed() {
-    return jumpKeyPressed;
 }
 function cancelHideCursorTimer() {
     if (hideCursorTimeoutId !== null) {
