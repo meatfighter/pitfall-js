@@ -6,6 +6,7 @@ import { updateInput } from '@/input';
 
 const SCENE_ALPHA_DELTA = 1 / 30;
 
+const MIN_SCROLL_DELTA = .5;
 const SCROLL_MARGIN = 4;
 
 const TRUNKS = [
@@ -35,14 +36,16 @@ function updateScene(scene: number) {
 export function update() {
     updateInput();
 
-    updateScene(gs.harry.scene);
-    updateScene(gs.nextScene);
-    if (gs.sceneAlpha < 1) {
-        gs.sceneAlpha += SCENE_ALPHA_DELTA;
-        if (gs.sceneAlpha > 1) {
-            gs.sceneAlpha = 1;
+    if (!gs.harry.isInjured()) {
+        updateScene(gs.harry.scene);
+        updateScene(gs.nextScene);
+        if (gs.sceneAlpha < 1) {
+            gs.sceneAlpha += SCENE_ALPHA_DELTA;
+            if (gs.sceneAlpha > 1) {
+                gs.sceneAlpha = 1;
+            }
+            updateScene(gs.lastNextScene);
         }
-        updateScene(gs.lastNextScene);        
     } 
    
     gs.harry.update(gs);
@@ -56,12 +59,20 @@ export function update() {
 
     const targetScrollX = Math.floor(gs.harry.absoluteX);
     if (targetScrollX < gs.scrollX - SCROLL_MARGIN) {
-        gs.scrollX -= (gs.lastScrollX === targetScrollX) ? .5 : 1;
+        if (gs.lastScrollX === targetScrollX || gs.harry.teleported) {
+            gs.scrollX -= MIN_SCROLL_DELTA;
+        } else {
+            gs.scrollX -= Math.max(MIN_SCROLL_DELTA, gs.lastScrollX - targetScrollX);
+        }
     } else if (targetScrollX > gs.scrollX + SCROLL_MARGIN) {
-        gs.scrollX += (gs.lastScrollX === targetScrollX) ? .5 : 1;
+        if (gs.lastScrollX === targetScrollX || gs.harry.teleported) {
+            gs.scrollX += MIN_SCROLL_DELTA;
+        } else {
+            gs.scrollX += Math.max(MIN_SCROLL_DELTA, targetScrollX - gs.lastScrollX);
+        }
     }
     gs.lastScrollX = targetScrollX;
-    gs.ox = Math.floor(gs.harry.x) - 76 + Math.floor(gs.scrollX - targetScrollX);
+    gs.ox = Math.floor(gs.harry.x) - 76 + Math.floor(gs.scrollX) - targetScrollX;
 
     if (gs.ox < 0) {
         gs.nextOx = gs.ox + Resolution.WIDTH;        

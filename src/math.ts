@@ -23,34 +23,6 @@ export function mod(n: number, m: number): number {
     return ((n % m) + m) % m;
 }
 
-// TODO REMOVE
-export function bulletIntersects(
-        bulletX: number, bulletY: number, bulletHeight: number,
-        mask: Mask, maskX: number, maskY: number): boolean {
-
-    maskX = Math.floor(maskX);
-    maskY = Math.floor(maskY);                    
-    bulletX = Math.floor(bulletX) - maskX;
-    bulletY = Math.floor(bulletY) - maskY;
- 
-    const maskMaxX = mask[0].length - 1;
-    const maskMaxY = mask.length - 1;
-    const bulletMaxY = bulletY + bulletHeight - 1;
-    
-    if (bulletMaxY < 0 || bulletX < 0 || bulletY > maskMaxY || bulletX > maskMaxX) {
-        return false;
-    }
-
-    const yMax = Math.min(bulletMaxY, maskMaxY);
-    for (let y = Math.max(bulletY, 0); y <= yMax; ++y) {
-        if (mask[y][bulletX]) {
-            return true;
-        }
-    }
-
-    return false;
-}
-
 export function spritesIntersect(
         mask0: Mask, x0: number, y0: number,
         mask1: Mask, x1: number, y1: number): boolean {
@@ -79,7 +51,7 @@ export function spritesIntersect(
     const yMax = Math.min(yMax0, yMax1);
     for (let y = yMin; y <= yMax; ++y) {
         for (let x = xMin; x <= xMax; ++x) {
-            if (mask0[y][x]) {
+            if (mask0[y][x] && mask1[y - y1][x - x1]) {
                 return true;
             }
         }

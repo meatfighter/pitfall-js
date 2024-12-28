@@ -1,4 +1,4 @@
-import { harrySprites, Resolution } from '@/graphics';
+import { harryMasks, harrySprites, Resolution, Mask } from '@/graphics';
 import { GameState } from './game-state';
 import { 
     leftPressed, leftJustPressed, leftJustReleased,
@@ -8,6 +8,7 @@ import {
     jumpPressed, jumpJustPressed, jumpJustReleased,
  } from '@/input';
 import { map, Wall } from './map';
+import { spritesIntersect } from '@/math';
 
 const Y_UPPER_LEVEL = 119;
 const Y_LOWER_LEVEL = 174;
@@ -20,10 +21,15 @@ const T = JUMP_ARC_BASE;
 const G = 2 * JUMP_ARC_HEIGHT / (T * T);
 const VY0 = -G * T;
 
-enum MainState {    
+const INJURED_DELAY = 140;
+
+const X_SPAWN_MARGIN = Resolution.WIDTH / 4;
+
+enum MainState {
     STANDING,
     FALLING,
     CLIMBING,
+    INJURED,
 }
 
 export class Harry {   
@@ -38,19 +44,31 @@ export class Harry {
     sprite = 0;
     runCounter = 0;
     climbCounter = 0;
+    teleported = false;
+    injuredCounter = 0;
+    tunnelSpawning = false;
+
+    intersects(mask: Mask, x: number, y: number): boolean {
+        return spritesIntersect(mask, x, y, harryMasks[this.dir][this.sprite], Math.floor(this.x) - 4, 
+                Math.floor(this.y) - 22);
+    }
 
     isUnderground() {
         return this.y > 146;
     }
 
+    private teleport(x: number) {
+        this.teleported = true;
+        this.setX(x);
+    }
+
     private setX(x: number) {
         this.incrementX(x - this.x);
-    }
+    }    
 
     private incrementX(deltaX: number) {
         this.absoluteX += deltaX;
-        this.x += deltaX;
-        this.dir = (deltaX > 0) ? 0 : 1;
+        this.x += deltaX;        
 
         if (this.x < 0) {
             this.x += Resolution.WIDTH;
@@ -88,19 +106,20 @@ export class Harry {
         this.vy = 0;
         this.sprite = 2;
         this.runCounter = 0;
+        this.tunnelSpawning = false;
     }
 
     private startClimbing(y: number) {
         this.mainState = MainState.CLIMBING;
-        this.setX(72);
+        this.teleport(72);
         this.y = y;
         this.sprite = 7;
-        this.climbCounter = 0;
+        this.climbCounter = 0;        
     }
 
     private endClimbing(x: number, y: number, dir: number) {
         this.mainState = MainState.STANDING;
-        this.setX(x);
+        this.teleport(x);
         this.y = y;
         this.runCounter = 0;
         this.sprite = 0;
@@ -128,6 +147,7 @@ export class Harry {
             } 
             if (moveRight) {
                 this.incrementX(.5);
+                this.dir = 0;
                 shifting = true;
             }
         } else if (leftPressed) {
@@ -147,6 +167,7 @@ export class Harry {
             }
             if (moveLeft) {
                 this.incrementX(-.5);
+                this.dir = 1;
                 shifting = true;
             }
         }
@@ -263,9 +284,49 @@ export class Harry {
                 this.dir ^= 1;
             }
         } 
-    }    
+    }
+
+    isInjured() {
+        return this.mainState === MainState.INJURED;
+    }
+    
+    injure() {
+        this.mainState = MainState.INJURED;
+        this.injuredCounter = INJURED_DELAY;
+    }
+
+    private startTunnelSpawn() {
+        this.mainState = MainState.FALLING;
+        this.tunnelSpawning = true;
+        let spawnX: number;
+        if (this.dir === 0) {
+            spawnX = this.x - X_SPAWN_MARGIN;
+            if (spawnX < 4) {
+                spawnX = this.x + X_SPAWN_MARGIN;
+            }    
+        } else {
+            spawnX = this.x + X_SPAWN_MARGIN;
+            if (spawnX >= 148) {
+                spawnX = this.x - X_SPAWN_MARGIN;
+            }
+        }
+        this.teleport(spawnX);
+        this.y = 149;
+        this.vy = 0;
+        this.sprite = 2;
+    }
+    
+    private updateInjured(gs: GameState) {
+        if (--this.injuredCounter === 0) {
+            if (this.isUnderground()) {
+                this.startTunnelSpawn();
+            }
+            return;
+        }
+    }
 
     update(gs: GameState) {
+        this.teleported = false;
         const state = this.mainState;
         switch (this.mainState) {
             case MainState.STANDING:
@@ -276,7 +337,10 @@ export class Harry {
                 break; 
             case MainState.CLIMBING:
                 this.updateClimbing(gs);
-                break;        
+                break;
+            case MainState.INJURED:
+                this.updateInjured(gs);
+                break;            
         }
         this.lastMainState = state;
     }
@@ -285,9 +349,11 @@ export class Harry {
         const sprite = harrySprites[this.dir][this.sprite];
         const X = Math.floor(this.x) - 4 - ox;
         const Y = Math.floor(this.y) - 22;
-        if (Y < 101 || Y >= 127) {
+        if (this.tunnelSpawning && Y >= 127 && Y < 142) {
+            ctx.drawImage(sprite, 0, 142 - Y, 8, Y - 100, X, 142, 8, Y - 100);
+        } else if (Y < 101 || Y >= 127) {
             ctx.drawImage(sprite, X, Y);
-        } else {
+        } else {            
             if (Y < 122) {
                 ctx.drawImage(sprite, 0, 0, 8, 122 - Y, X, Y, 8, 122 - Y);
             }

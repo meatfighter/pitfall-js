@@ -47,7 +47,7 @@ export const crocSprites: Sprite[][] = new Array<Sprite[]>(2); // direction, spr
 export const crocMasks: Mask[][] = new Array<Mask[]>(2); // direction, mask
 
 export const sorpionSprites: Sprite[][] = new Array<Sprite[]>(2); // direction, sprite
-export const sorpionMasks: Mask[][] = new Array<Mask[]>(2); // direction, mask
+export const scorpionMasks: Mask[][] = new Array<Mask[]>(2); // direction, mask
 
 export const leavesSprites: Sprite[][] = new Array<Sprite[]>(2); // direction, sprite
 
@@ -267,11 +267,11 @@ export async function init() {
 
         // sorpion
         sorpionSprites[dir] = new Array<Sprite>(2);
-        sorpionMasks[dir] = new Array<Mask>(2);
+        scorpionMasks[dir] = new Array<Mask>(2);
         createSpriteAndMask(binStr, palette, Offsets.SCORPION1, Offsets.SCORPIONCOLOR, 16, flipped,
-                sprite => sorpionSprites[dir][0] = sprite, mask => sorpionMasks[dir][0] = mask, promises);
+                sprite => sorpionSprites[dir][0] = sprite, mask => scorpionMasks[dir][0] = mask, promises);
         createSpriteAndMask(binStr, palette, Offsets.SCORPION0, Offsets.SCORPIONCOLOR, 16, flipped,
-                sprite => sorpionSprites[dir][1] = sprite, mask => sorpionMasks[dir][1] = mask, promises);
+                sprite => sorpionSprites[dir][1] = sprite, mask => scorpionMasks[dir][1] = mask, promises);
     }
 
     // log
