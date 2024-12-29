@@ -48,6 +48,7 @@ export class Harry {
     teleported = false;
     injuredCounter = 0;
     tunnelSpawning = false;
+    releasedVine = false;
 
     intersects(mask: Mask, x: number, y: number): boolean {
         return spritesIntersect(mask, x, y, harryMasks[this.dir][this.sprite], Math.floor(this.x) - 4, 
@@ -112,6 +113,7 @@ export class Harry {
         this.sprite = 2;
         this.runCounter = 0;
         this.tunnelSpawning = false;
+        this.releasedVine = false;
     }
 
     private startClimbing(y: number) {
@@ -341,6 +343,12 @@ export class Harry {
         const p = vinePoints[gs.vine.sprite];
         this.setX(this.dir === 0 ? p.x + 1 : p.x);
         this.y = p.y + 17;
+
+        if ((this.dir === 0 && rightJustPressed) || (this.dir === 1 && leftJustPressed)) {
+            this.startFalling(0);
+            this.releasedVine = true;
+            return;
+        }
     }
 
     update(gs: GameState) {

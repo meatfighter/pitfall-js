@@ -407,14 +407,14 @@ export async function init() {
         for (let sprite = 0; sprite < 2; ++sprite) {
             promises.push(createSprite(64, 5, imageData => {
                 for (let y = 0; y < 5; ++y) {
-                    const Y = (sprite === 0) ? y : 4 - y;
-                    const byte = binStr.charCodeAt(Offsets.PIT);
+                    const Y = (sprite === 0) ? 4 - y : y;
+                    const byte = binStr.charCodeAt(Offsets.PIT + y);
                     for (let x = 0, mask = 0x80, x4 = 0; x < 8; ++x, mask >>= 1, x4 += 4) {
                         if ((byte & mask) === 0) {
                             for (let i = 0; i < 4; ++i) {
                                 const X = x4 + i;
-                                setColor(imageData, X, Y, pitCol);
-                                setColor(imageData, 63 - X, Y, pitCol);
+                                setColor(imageData, 31 - X, Y, pitCol);
+                                setColor(imageData, 32 + X, Y, pitCol);
                             }
                         }
                     }

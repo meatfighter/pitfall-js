@@ -1,4 +1,4 @@
-import { map, Wall } from './map';
+import { map, Wall, Pit } from './map';
 import { GameState } from './game-state';
 import { colors, Colors, Resolution, leavesSprites, branchesSprite, wallSprite } from '@/graphics';
 import { clamp } from '@/math';
@@ -38,6 +38,7 @@ export function update() {
 
     if (!gs.harry.isInjured()) {
         gs.vine.update(gs);
+        gs.pit.update(gs);
         updateScene(gs.harry.scene);
         updateScene(gs.nextScene);
         if (gs.sceneAlpha < 1) {
@@ -103,7 +104,7 @@ function renderStrips(ctx: OffscreenCanvasRenderingContext2D) {
 }
 
 function renderBackground(ctx: OffscreenCanvasRenderingContext2D, scene: number, ox: number) {
-    const { trees, ladder, holes, wall, vine } = map[scene];
+    const { trees, ladder, holes, wall, vine, pit } = map[scene];
     const { scorpion } = gs.sceneStates[scene];
     const trunks = TRUNKS[trees];
     ctx.fillStyle = colors[Colors.DARK_BROWN];
@@ -147,6 +148,10 @@ function renderBackground(ctx: OffscreenCanvasRenderingContext2D, scene: number,
 
     if (vine) {
         gs.vine.render(gs, ctx, ox);
+    }
+
+    if (pit !== Pit.NONE) {
+        gs.pit.render(gs, pit, ctx, ox);
     }
 }
 

@@ -225,7 +225,9 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _harry__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./harry */ "./src/game/harry.ts");
 /* harmony import */ var _scorpion__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./scorpion */ "./src/game/scorpion.ts");
 /* harmony import */ var _vine__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./vine */ "./src/game/vine.ts");
-/* harmony import */ var _map__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./map */ "./src/game/map.ts");
+/* harmony import */ var _pit__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./pit */ "./src/game/pit.ts");
+/* harmony import */ var _map__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./map */ "./src/game/map.ts");
+
 
 
 
@@ -235,9 +237,10 @@ class SceneState {
     scorpion = null;
 }
 class GameState {
-    sceneStates = new Array(_map__WEBPACK_IMPORTED_MODULE_4__.map.length);
+    sceneStates = new Array(_map__WEBPACK_IMPORTED_MODULE_5__.map.length);
     harry = new _harry__WEBPACK_IMPORTED_MODULE_1__.Harry();
     vine = new _vine__WEBPACK_IMPORTED_MODULE_3__.Vine();
+    pit = new _pit__WEBPACK_IMPORTED_MODULE_4__.Pit();
     scrollX = Math.floor(this.harry.absoluteX);
     lastScrollX = this.scrollX;
     ox = 0;
@@ -248,9 +251,9 @@ class GameState {
     sceneAlpha = 1;
     lastMinOx = 0;
     constructor() {
-        for (let i = _map__WEBPACK_IMPORTED_MODULE_4__.map.length - 1; i >= 0; --i) {
+        for (let i = _map__WEBPACK_IMPORTED_MODULE_5__.map.length - 1; i >= 0; --i) {
             this.sceneStates[i] = new SceneState();
-            if (_map__WEBPACK_IMPORTED_MODULE_4__.map[i].scorpion) {
+            if (_map__WEBPACK_IMPORTED_MODULE_5__.map[i].scorpion) {
                 this.sceneStates[i].scorpion = new _scorpion__WEBPACK_IMPORTED_MODULE_2__.Scorpion(i);
             }
         }
@@ -312,6 +315,7 @@ function update() {
     (0,_input__WEBPACK_IMPORTED_MODULE_4__.updateInput)();
     if (!gs.harry.isInjured()) {
         gs.vine.update(gs);
+        gs.pit.update(gs);
         updateScene(gs.harry.scene);
         updateScene(gs.nextScene);
         if (gs.sceneAlpha < 1) {
@@ -375,7 +379,7 @@ function renderStrips(ctx) {
     ctx.fillRect(0, 142, _graphics__WEBPACK_IMPORTED_MODULE_2__.Resolution.WIDTH, 32);
 }
 function renderBackground(ctx, scene, ox) {
-    const { trees, ladder, holes, wall, vine } = _map__WEBPACK_IMPORTED_MODULE_0__.map[scene];
+    const { trees, ladder, holes, wall, vine, pit } = _map__WEBPACK_IMPORTED_MODULE_0__.map[scene];
     const { scorpion } = gs.sceneStates[scene];
     const trunks = TRUNKS[trees];
     ctx.fillStyle = _graphics__WEBPACK_IMPORTED_MODULE_2__.colors[_graphics__WEBPACK_IMPORTED_MODULE_2__.Colors.DARK_BROWN];
@@ -414,6 +418,9 @@ function renderBackground(ctx, scene, ox) {
     }
     if (vine) {
         gs.vine.render(gs, ctx, ox);
+    }
+    if (pit !== _map__WEBPACK_IMPORTED_MODULE_0__.Pit.NONE) {
+        gs.pit.render(gs, pit, ctx, ox);
     }
 }
 function renderLeaves(ctx, scene, ox) {
@@ -507,6 +514,7 @@ class Harry {
     teleported = false;
     injuredCounter = 0;
     tunnelSpawning = false;
+    releasedVine = false;
     intersects(mask, x, y) {
         return (0,_math__WEBPACK_IMPORTED_MODULE_3__.spritesIntersect)(mask, x, y, _graphics__WEBPACK_IMPORTED_MODULE_0__.harryMasks[this.dir][this.sprite], Math.floor(this.x) - 4, Math.floor(this.y) - 22);
     }
@@ -564,6 +572,7 @@ class Harry {
         this.sprite = 2;
         this.runCounter = 0;
         this.tunnelSpawning = false;
+        this.releasedVine = false;
     }
     startClimbing(y) {
         this.mainState = MainState.CLIMBING;
@@ -777,6 +786,11 @@ class Harry {
         const p = _graphics__WEBPACK_IMPORTED_MODULE_0__.vinePoints[gs.vine.sprite];
         this.setX(this.dir === 0 ? p.x + 1 : p.x);
         this.y = p.y + 17;
+        if ((this.dir === 0 && _input__WEBPACK_IMPORTED_MODULE_1__.rightJustPressed) || (this.dir === 1 && _input__WEBPACK_IMPORTED_MODULE_1__.leftJustPressed)) {
+            this.startFalling(0);
+            this.releasedVine = true;
+            return;
+        }
     }
     update(gs) {
         this.teleported = false;
@@ -952,6 +966,106 @@ for (let i = 0; i < map.length; ++i) {
 
 /***/ }),
 
+/***/ "./src/game/pit.ts":
+/*!*************************!*\
+  !*** ./src/game/pit.ts ***!
+  \*************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   Pit: () => (/* binding */ Pit)
+/* harmony export */ });
+/* harmony import */ var _map__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./map */ "./src/game/map.ts");
+/* harmony import */ var _graphics__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @/graphics */ "./src/graphics.ts");
+
+
+const OPEN_FRAMES = 71;
+const CLOSED_FRAMES = 143;
+const SHIFT_FRAMES = 4;
+var State;
+(function (State) {
+    State[State["OPENED"] = 0] = "OPENED";
+    State[State["CLOSING"] = 1] = "CLOSING";
+    State[State["CLOSED"] = 2] = "CLOSED";
+    State[State["OPENING"] = 3] = "OPENING";
+})(State || (State = {}));
+class Pit {
+    state = State.OPENED;
+    offset = 0;
+    counter = OPEN_FRAMES;
+    updateOpened(gs) {
+        if (--this.counter >= 0) {
+            return;
+        }
+        this.state = State.CLOSING;
+        this.counter = SHIFT_FRAMES;
+        ++this.offset;
+    }
+    updateClosing(gs) {
+        if (--this.counter >= 0) {
+            return;
+        }
+        if (++this.offset === 5) {
+            this.state = State.CLOSED;
+            this.counter = CLOSED_FRAMES;
+            return;
+        }
+        this.counter = SHIFT_FRAMES;
+    }
+    updateClosed(gs) {
+        if (--this.counter >= 0) {
+            return;
+        }
+        this.state = State.OPENING;
+        this.counter = SHIFT_FRAMES;
+        --this.offset;
+    }
+    updateOpening(gs) {
+        if (--this.counter >= 0) {
+            return;
+        }
+        if (--this.offset === 0) {
+            this.state = State.OPENED;
+            this.counter = OPEN_FRAMES;
+            return;
+        }
+        this.counter = SHIFT_FRAMES;
+    }
+    update(gs) {
+        switch (this.state) {
+            case State.OPENED:
+                this.updateOpened(gs);
+                break;
+            case State.CLOSING:
+                this.updateClosing(gs);
+                break;
+            case State.CLOSED:
+                this.updateClosed(gs);
+                break;
+            case State.OPENING:
+                this.updateOpening(gs);
+                break;
+        }
+    }
+    render(gs, pit, ctx, ox) {
+        const sprites = _graphics__WEBPACK_IMPORTED_MODULE_1__.pitSprites[(pit === _map__WEBPACK_IMPORTED_MODULE_0__.Pit.TAR || pit == _map__WEBPACK_IMPORTED_MODULE_0__.Pit.SHIFTING_TAR) ? 0 : 1];
+        if (pit === _map__WEBPACK_IMPORTED_MODULE_0__.Pit.SHIFTING_TAR || pit === _map__WEBPACK_IMPORTED_MODULE_0__.Pit.SHIFTING_QUICKSAND) {
+            if (this.state !== State.CLOSED) {
+                ctx.drawImage(sprites[0], 0, 0, 64, 5 - this.offset, 40 - ox, 114 + this.offset, 64, 5 - this.offset);
+                ctx.drawImage(sprites[1], 0, this.offset, 64, 5 - this.offset, 40 - ox, 119, 64, 5 - this.offset);
+            }
+        }
+        else {
+            ctx.drawImage(sprites[0], 40 - ox, 114);
+            ctx.drawImage(sprites[1], 40 - ox, 119);
+        }
+    }
+}
+
+
+/***/ }),
+
 /***/ "./src/game/point.ts":
 /*!***************************!*\
   !*** ./src/game/point.ts ***!
@@ -1064,7 +1178,8 @@ class Vine {
             this.sprite = 0;
         }
         const { harry } = gs;
-        if (_map__WEBPACK_IMPORTED_MODULE_1__.map[harry.scene].vine && harry.isFalling() && harry.intersects(_graphics__WEBPACK_IMPORTED_MODULE_0__.vineMasks[this.sprite], 39, 28)) {
+        if (_map__WEBPACK_IMPORTED_MODULE_1__.map[harry.scene].vine && !harry.releasedVine && harry.isFalling()
+            && harry.intersects(_graphics__WEBPACK_IMPORTED_MODULE_0__.vineMasks[this.sprite], 39, 28)) {
             harry.swing();
         }
     }
@@ -1462,14 +1577,14 @@ async function init() {
         for (let sprite = 0; sprite < 2; ++sprite) {
             promises.push(createSprite(64, 5, imageData => {
                 for (let y = 0; y < 5; ++y) {
-                    const Y = (sprite === 0) ? y : 4 - y;
-                    const byte = binStr.charCodeAt(Offsets.PIT);
+                    const Y = (sprite === 0) ? 4 - y : y;
+                    const byte = binStr.charCodeAt(Offsets.PIT + y);
                     for (let x = 0, mask = 0x80, x4 = 0; x < 8; ++x, mask >>= 1, x4 += 4) {
                         if ((byte & mask) === 0) {
                             for (let i = 0; i < 4; ++i) {
                                 const X = x4 + i;
-                                setColor(imageData, X, Y, pitCol);
-                                setColor(imageData, 63 - X, Y, pitCol);
+                                setColor(imageData, 31 - X, Y, pitCol);
+                                setColor(imageData, 32 + X, Y, pitCol);
                             }
                         }
                     }

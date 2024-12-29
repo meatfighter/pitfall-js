@@ -14,7 +14,8 @@ export class Vine {
         }
 
         const { harry } = gs;
-        if (map[harry.scene].vine && harry.isFalling() && harry.intersects(vineMasks[this.sprite], 39, 28)) {
+        if (map[harry.scene].vine && !harry.releasedVine && harry.isFalling() 
+                && harry.intersects(vineMasks[this.sprite], 39, 28)) {
             harry.swing();
         }
     }
