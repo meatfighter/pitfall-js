@@ -1,3 +1,6 @@
+import { TAU } from '@/math';
+import { Point } from '@/game/point';
+
 class RGBColor {
     constructor(public readonly r: number, public readonly g: number, public readonly b: number) {        
     }
@@ -76,6 +79,46 @@ export let branchesSprite: Sprite;
 export const charSprites: Sprite[][] = new Array<Sprite[]>(256); // color, character
 
 export const pitSprites: Sprite[][] = new Array<Sprite[]>(2); // color (0=black, 1=blue), sprite (0=bottom, 1=top)
+
+export const VINE_PERIOD = 285;
+export const VINE_CX = 70;
+export const VINE_CY = 28;
+export const vinePoints = new Array<Point>(VINE_PERIOD);
+export const vineSprites = new Array<Sprite>(VINE_PERIOD);
+export const vineMasks = new Array<Mask>(VINE_PERIOD);
+
+function createVineSprites(palette: RGBColor[], promises: Promise<any>[]) {
+    const LENGTH = 73;
+    const DISTORTION = 245 / 145;
+    const MAX_ANGLE = Math.atan(1 / DISTORTION);
+    
+    let minX = VINE_CX;
+    let minY = VINE_CY;
+    let maxX = VINE_CX;
+    let maxY = VINE_CY;        
+    for (let i = 0; i < VINE_PERIOD; ++i) {
+        const a = MAX_ANGLE * Math.sin(TAU * i / VINE_PERIOD);
+        const p = new Point(Math.round(VINE_CX + LENGTH * DISTORTION * Math.sin(a) / 2), 
+                Math.round(VINE_CY + LENGTH * Math.cos(a)));
+        vinePoints[i] = p;
+        minX = Math.min(minX, p.x);
+        minY = Math.min(minY, p.y);
+        maxX = Math.max(maxX, p.x);
+        maxY = Math.max(maxY, p.y); 
+    }
+
+    const color = palette[Colors.DARK_BROWN];
+    const width = maxX - minX + 1;
+    const height = maxY - minY + 1;
+    const imageData = new ImageData(width, height);    
+    for (let i = 0; i < vinePoints.length; ++i) {
+        const p = vinePoints[i];
+        imageData.data.fill(0);
+        plotLine(imageData, VINE_CX - minX, VINE_CY - minY, p.x - minX, p.y - minY, color);
+        vineMasks[i] = createMask(imageData);
+        promises.push(createImageBitmap(imageData).then(imageBitmap => vineSprites[i] = imageBitmap));
+    }    
+}
 
 async function createSprite(width: number, height: number, callback: (imageData: ImageData) => void):
         Promise<{ imageBitmap: Sprite, imageData: ImageData }> {
@@ -157,6 +200,30 @@ function setColor(imageData: ImageData, x: number, y: number, color: RGBColor) {
     data[offset + 1] = color.g;
     data[offset + 2] = color.b;
     data[offset + 3] = 0xFF;
+}
+
+function plotLine(imageData: ImageData, x0: number, y0: number, x1: number, y1: number, color: RGBColor) {
+    const dx = Math.abs(x1 - x0);
+    const sx = x0 < x1 ? 1 : -1;
+    const dy = -Math.abs(y1 - y0);
+    const sy = y0 < y1 ? 1 : -1;
+    let error = dx + dy
+    
+    while (true) {
+        setColor(imageData, x0, y0, color); 
+        if (x0 === x1 && y0 === y1) {
+            break;
+        }
+        const e2 = 2 * error;
+        if (e2 >= dy) {
+            error = error + dy;
+            x0 = x0 + sx;
+        }
+        if (e2 <= dx) {
+            error = error + dx;
+            y0 = y0 + sy;
+        }
+    }
 }
 
 export async function init() {
@@ -355,6 +422,9 @@ export async function init() {
             }).then(({ imageBitmap }) => pitSprites[color][sprite] = imageBitmap));
         }
     }
-    
+
+    // vines
+    createVineSprites(palette, promises);
+        
     await Promise.all(promises);
 }

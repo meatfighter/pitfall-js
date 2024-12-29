@@ -1,6 +1,7 @@
 import { store, saveStore } from '@/store';
 import { Harry } from './harry';
 import { Scorpion } from './scorpion';
+import { Vine } from './vine';
 import { map } from './map';
 
 export class SceneState {
@@ -11,6 +12,7 @@ export class GameState {
 
     sceneStates: SceneState[] = new Array<SceneState>(map.length);
     harry = new Harry();
+    vine = new Vine();
     scrollX = Math.floor(this.harry.absoluteX);
     lastScrollX = this.scrollX;
     ox = 0;

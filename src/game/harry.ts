@@ -1,4 +1,4 @@
-import { harryMasks, harrySprites, Resolution, Mask } from '@/graphics';
+import { harryMasks, harrySprites, Resolution, Mask, vinePoints } from '@/graphics';
 import { GameState } from './game-state';
 import { 
     leftPressed, leftJustPressed, leftJustReleased,
@@ -30,6 +30,7 @@ enum MainState {
     FALLING,
     CLIMBING,
     INJURED,
+    SWINGING,
 }
 
 export class Harry {   
@@ -51,6 +52,10 @@ export class Harry {
     intersects(mask: Mask, x: number, y: number): boolean {
         return spritesIntersect(mask, x, y, harryMasks[this.dir][this.sprite], Math.floor(this.x) - 4, 
                 Math.floor(this.y) - 22);
+    }
+
+    isFalling() {
+        return this.mainState === MainState.FALLING;
     }
 
     isUnderground() {
@@ -248,12 +253,14 @@ export class Harry {
 
     private updateClimbing(gs: GameState) {
         if (this.y <= 142) {
-            if (rightJustPressed 
+            if (rightJustPressed
+                    || (jumpJustPressed && this.dir === 0)
                     || (this.y === 134 && upPressed && (rightPressed || (!leftPressed && this.dir === 0)))) {
                 this.endClimbing(77, Y_UPPER_LEVEL, 0);
                 return;
             } 
             if (leftJustPressed 
+                    || (jumpJustPressed && this.dir === 1)
                     || (this.y === 134 && upPressed && (leftPressed || (!rightPressed && this.dir === 1)))) {
                 this.endClimbing(67, Y_UPPER_LEVEL, 1);
                 return;
@@ -325,6 +332,17 @@ export class Harry {
         }
     }
 
+    swing() {
+        this.mainState = MainState.SWINGING;
+        this.sprite = 6;
+    }
+
+    private updateSwinging(gs: GameState) {
+        const p = vinePoints[gs.vine.sprite];
+        this.setX(this.dir === 0 ? p.x + 1 : p.x);
+        this.y = p.y + 17;
+    }
+
     update(gs: GameState) {
         this.teleported = false;
         const state = this.mainState;
@@ -340,7 +358,10 @@ export class Harry {
                 break;
             case MainState.INJURED:
                 this.updateInjured(gs);
-                break;            
+                break;
+            case MainState.SWINGING:
+                this.updateSwinging(gs);
+                break;                
         }
         this.lastMainState = state;
     }

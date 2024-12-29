@@ -37,6 +37,7 @@ export function update() {
     updateInput();
 
     if (!gs.harry.isInjured()) {
+        gs.vine.update(gs);
         updateScene(gs.harry.scene);
         updateScene(gs.nextScene);
         if (gs.sceneAlpha < 1) {
@@ -102,7 +103,7 @@ function renderStrips(ctx: OffscreenCanvasRenderingContext2D) {
 }
 
 function renderBackground(ctx: OffscreenCanvasRenderingContext2D, scene: number, ox: number) {
-    const { trees, ladder, holes, wall } = map[scene];
+    const { trees, ladder, holes, wall, vine } = map[scene];
     const { scorpion } = gs.sceneStates[scene];
     const trunks = TRUNKS[trees];
     ctx.fillStyle = colors[Colors.DARK_BROWN];
@@ -142,6 +143,10 @@ function renderBackground(ctx: OffscreenCanvasRenderingContext2D, scene: number,
 
     if (scorpion) {
         scorpion.render(gs, ctx, ox);
+    }
+
+    if (vine) {
+        gs.vine.render(gs, ctx, ox);
     }
 }
 

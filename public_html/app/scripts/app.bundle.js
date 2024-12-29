@@ -224,7 +224,9 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _store__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @/store */ "./src/store.ts");
 /* harmony import */ var _harry__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./harry */ "./src/game/harry.ts");
 /* harmony import */ var _scorpion__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./scorpion */ "./src/game/scorpion.ts");
-/* harmony import */ var _map__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./map */ "./src/game/map.ts");
+/* harmony import */ var _vine__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./vine */ "./src/game/vine.ts");
+/* harmony import */ var _map__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./map */ "./src/game/map.ts");
+
 
 
 
@@ -233,8 +235,9 @@ class SceneState {
     scorpion = null;
 }
 class GameState {
-    sceneStates = new Array(_map__WEBPACK_IMPORTED_MODULE_3__.map.length);
+    sceneStates = new Array(_map__WEBPACK_IMPORTED_MODULE_4__.map.length);
     harry = new _harry__WEBPACK_IMPORTED_MODULE_1__.Harry();
+    vine = new _vine__WEBPACK_IMPORTED_MODULE_3__.Vine();
     scrollX = Math.floor(this.harry.absoluteX);
     lastScrollX = this.scrollX;
     ox = 0;
@@ -245,9 +248,9 @@ class GameState {
     sceneAlpha = 1;
     lastMinOx = 0;
     constructor() {
-        for (let i = _map__WEBPACK_IMPORTED_MODULE_3__.map.length - 1; i >= 0; --i) {
+        for (let i = _map__WEBPACK_IMPORTED_MODULE_4__.map.length - 1; i >= 0; --i) {
             this.sceneStates[i] = new SceneState();
-            if (_map__WEBPACK_IMPORTED_MODULE_3__.map[i].scorpion) {
+            if (_map__WEBPACK_IMPORTED_MODULE_4__.map[i].scorpion) {
                 this.sceneStates[i].scorpion = new _scorpion__WEBPACK_IMPORTED_MODULE_2__.Scorpion(i);
             }
         }
@@ -308,6 +311,7 @@ function updateScene(scene) {
 function update() {
     (0,_input__WEBPACK_IMPORTED_MODULE_4__.updateInput)();
     if (!gs.harry.isInjured()) {
+        gs.vine.update(gs);
         updateScene(gs.harry.scene);
         updateScene(gs.nextScene);
         if (gs.sceneAlpha < 1) {
@@ -371,7 +375,7 @@ function renderStrips(ctx) {
     ctx.fillRect(0, 142, _graphics__WEBPACK_IMPORTED_MODULE_2__.Resolution.WIDTH, 32);
 }
 function renderBackground(ctx, scene, ox) {
-    const { trees, ladder, holes, wall } = _map__WEBPACK_IMPORTED_MODULE_0__.map[scene];
+    const { trees, ladder, holes, wall, vine } = _map__WEBPACK_IMPORTED_MODULE_0__.map[scene];
     const { scorpion } = gs.sceneStates[scene];
     const trunks = TRUNKS[trees];
     ctx.fillStyle = _graphics__WEBPACK_IMPORTED_MODULE_2__.colors[_graphics__WEBPACK_IMPORTED_MODULE_2__.Colors.DARK_BROWN];
@@ -407,6 +411,9 @@ function renderBackground(ctx, scene, ox) {
     }
     if (scorpion) {
         scorpion.render(gs, ctx, ox);
+    }
+    if (vine) {
+        gs.vine.render(gs, ctx, ox);
     }
 }
 function renderLeaves(ctx, scene, ox) {
@@ -483,6 +490,7 @@ var MainState;
     MainState[MainState["FALLING"] = 1] = "FALLING";
     MainState[MainState["CLIMBING"] = 2] = "CLIMBING";
     MainState[MainState["INJURED"] = 3] = "INJURED";
+    MainState[MainState["SWINGING"] = 4] = "SWINGING";
 })(MainState || (MainState = {}));
 class Harry {
     mainState = MainState.STANDING;
@@ -501,6 +509,9 @@ class Harry {
     tunnelSpawning = false;
     intersects(mask, x, y) {
         return (0,_math__WEBPACK_IMPORTED_MODULE_3__.spritesIntersect)(mask, x, y, _graphics__WEBPACK_IMPORTED_MODULE_0__.harryMasks[this.dir][this.sprite], Math.floor(this.x) - 4, Math.floor(this.y) - 22);
+    }
+    isFalling() {
+        return this.mainState === MainState.FALLING;
     }
     isUnderground() {
         return this.y > 146;
@@ -684,11 +695,13 @@ class Harry {
     updateClimbing(gs) {
         if (this.y <= 142) {
             if (_input__WEBPACK_IMPORTED_MODULE_1__.rightJustPressed
+                || (_input__WEBPACK_IMPORTED_MODULE_1__.jumpJustPressed && this.dir === 0)
                 || (this.y === 134 && _input__WEBPACK_IMPORTED_MODULE_1__.upPressed && (_input__WEBPACK_IMPORTED_MODULE_1__.rightPressed || (!_input__WEBPACK_IMPORTED_MODULE_1__.leftPressed && this.dir === 0)))) {
                 this.endClimbing(77, Y_UPPER_LEVEL, 0);
                 return;
             }
             if (_input__WEBPACK_IMPORTED_MODULE_1__.leftJustPressed
+                || (_input__WEBPACK_IMPORTED_MODULE_1__.jumpJustPressed && this.dir === 1)
                 || (this.y === 134 && _input__WEBPACK_IMPORTED_MODULE_1__.upPressed && (_input__WEBPACK_IMPORTED_MODULE_1__.leftPressed || (!_input__WEBPACK_IMPORTED_MODULE_1__.rightPressed && this.dir === 1)))) {
                 this.endClimbing(67, Y_UPPER_LEVEL, 1);
                 return;
@@ -756,6 +769,15 @@ class Harry {
             return;
         }
     }
+    swing() {
+        this.mainState = MainState.SWINGING;
+        this.sprite = 6;
+    }
+    updateSwinging(gs) {
+        const p = _graphics__WEBPACK_IMPORTED_MODULE_0__.vinePoints[gs.vine.sprite];
+        this.setX(this.dir === 0 ? p.x + 1 : p.x);
+        this.y = p.y + 17;
+    }
     update(gs) {
         this.teleported = false;
         const state = this.mainState;
@@ -771,6 +793,9 @@ class Harry {
                 break;
             case MainState.INJURED:
                 this.updateInjured(gs);
+                break;
+            case MainState.SWINGING:
+                this.updateSwinging(gs);
                 break;
         }
         this.lastMainState = state;
@@ -927,6 +952,28 @@ for (let i = 0; i < map.length; ++i) {
 
 /***/ }),
 
+/***/ "./src/game/point.ts":
+/*!***************************!*\
+  !*** ./src/game/point.ts ***!
+  \***************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   Point: () => (/* binding */ Point)
+/* harmony export */ });
+class Point {
+    x;
+    y;
+    constructor(x, y) {
+        this.x = x;
+        this.y = y;
+    }
+}
+
+
+/***/ }),
+
 /***/ "./src/game/scorpion.ts":
 /*!******************************!*\
   !*** ./src/game/scorpion.ts ***!
@@ -996,6 +1043,39 @@ class Scorpion {
 
 /***/ }),
 
+/***/ "./src/game/vine.ts":
+/*!**************************!*\
+  !*** ./src/game/vine.ts ***!
+  \**************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   Vine: () => (/* binding */ Vine)
+/* harmony export */ });
+/* harmony import */ var _graphics__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @/graphics */ "./src/graphics.ts");
+/* harmony import */ var _map__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./map */ "./src/game/map.ts");
+
+
+class Vine {
+    sprite = 0;
+    update(gs) {
+        if (++this.sprite === _graphics__WEBPACK_IMPORTED_MODULE_0__.vinePoints.length) {
+            this.sprite = 0;
+        }
+        const { harry } = gs;
+        if (_map__WEBPACK_IMPORTED_MODULE_1__.map[harry.scene].vine && harry.isFalling() && harry.intersects(_graphics__WEBPACK_IMPORTED_MODULE_0__.vineMasks[this.sprite], 39, 28)) {
+            harry.swing();
+        }
+    }
+    render(gs, ctx, ox) {
+        ctx.drawImage(_graphics__WEBPACK_IMPORTED_MODULE_0__.vineSprites[this.sprite], 39 - ox, 28);
+    }
+}
+
+
+/***/ }),
+
 /***/ "./src/graphics.ts":
 /*!*************************!*\
   !*** ./src/graphics.ts ***!
@@ -1007,6 +1087,9 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   Colors: () => (/* binding */ Colors),
 /* harmony export */   PhysicalDimensions: () => (/* binding */ PhysicalDimensions),
 /* harmony export */   Resolution: () => (/* binding */ Resolution),
+/* harmony export */   VINE_CX: () => (/* binding */ VINE_CX),
+/* harmony export */   VINE_CY: () => (/* binding */ VINE_CY),
+/* harmony export */   VINE_PERIOD: () => (/* binding */ VINE_PERIOD),
 /* harmony export */   branchesSprite: () => (/* binding */ branchesSprite),
 /* harmony export */   charSprites: () => (/* binding */ charSprites),
 /* harmony export */   cobraMasks: () => (/* binding */ cobraMasks),
@@ -1033,8 +1116,15 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   silverMasks: () => (/* binding */ silverMasks),
 /* harmony export */   silverSprites: () => (/* binding */ silverSprites),
 /* harmony export */   sorpionSprites: () => (/* binding */ sorpionSprites),
+/* harmony export */   vineMasks: () => (/* binding */ vineMasks),
+/* harmony export */   vinePoints: () => (/* binding */ vinePoints),
+/* harmony export */   vineSprites: () => (/* binding */ vineSprites),
 /* harmony export */   wallSprite: () => (/* binding */ wallSprite)
 /* harmony export */ });
+/* harmony import */ var _math__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @/math */ "./src/math.ts");
+/* harmony import */ var _game_point__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @/game/point */ "./src/game/point.ts");
+
+
 class RGBColor {
     r;
     g;
@@ -1100,6 +1190,41 @@ let wallSprite;
 let branchesSprite;
 const charSprites = new Array(256); // color, character
 const pitSprites = new Array(2); // color (0=black, 1=blue), sprite (0=bottom, 1=top)
+const VINE_PERIOD = 285;
+const VINE_CX = 70;
+const VINE_CY = 28;
+const vinePoints = new Array(VINE_PERIOD);
+const vineSprites = new Array(VINE_PERIOD);
+const vineMasks = new Array(VINE_PERIOD);
+function createVineSprites(palette, promises) {
+    const LENGTH = 73;
+    const DISTORTION = 245 / 145;
+    const MAX_ANGLE = Math.atan(1 / DISTORTION);
+    let minX = VINE_CX;
+    let minY = VINE_CY;
+    let maxX = VINE_CX;
+    let maxY = VINE_CY;
+    for (let i = 0; i < VINE_PERIOD; ++i) {
+        const a = MAX_ANGLE * Math.sin(_math__WEBPACK_IMPORTED_MODULE_0__.TAU * i / VINE_PERIOD);
+        const p = new _game_point__WEBPACK_IMPORTED_MODULE_1__.Point(Math.round(VINE_CX + LENGTH * DISTORTION * Math.sin(a) / 2), Math.round(VINE_CY + LENGTH * Math.cos(a)));
+        vinePoints[i] = p;
+        minX = Math.min(minX, p.x);
+        minY = Math.min(minY, p.y);
+        maxX = Math.max(maxX, p.x);
+        maxY = Math.max(maxY, p.y);
+    }
+    const color = palette[Colors.DARK_BROWN];
+    const width = maxX - minX + 1;
+    const height = maxY - minY + 1;
+    const imageData = new ImageData(width, height);
+    for (let i = 0; i < vinePoints.length; ++i) {
+        const p = vinePoints[i];
+        imageData.data.fill(0);
+        plotLine(imageData, VINE_CX - minX, VINE_CY - minY, p.x - minX, p.y - minY, color);
+        vineMasks[i] = createMask(imageData);
+        promises.push(createImageBitmap(imageData).then(imageBitmap => vineSprites[i] = imageBitmap));
+    }
+}
 async function createSprite(width, height, callback) {
     return new Promise(resolve => {
         const imageData = new ImageData(width, height);
@@ -1173,6 +1298,28 @@ function setColor(imageData, x, y, color) {
     data[offset + 1] = color.g;
     data[offset + 2] = color.b;
     data[offset + 3] = 0xFF;
+}
+function plotLine(imageData, x0, y0, x1, y1, color) {
+    const dx = Math.abs(x1 - x0);
+    const sx = x0 < x1 ? 1 : -1;
+    const dy = -Math.abs(y1 - y0);
+    const sy = y0 < y1 ? 1 : -1;
+    let error = dx + dy;
+    while (true) {
+        setColor(imageData, x0, y0, color);
+        if (x0 === x1 && y0 === y1) {
+            break;
+        }
+        const e2 = 2 * error;
+        if (e2 >= dy) {
+            error = error + dy;
+            x0 = x0 + sx;
+        }
+        if (e2 <= dx) {
+            error = error + dx;
+            y0 = y0 + sy;
+        }
+    }
 }
 async function init() {
     let Offsets;
@@ -1330,6 +1477,8 @@ async function init() {
             }).then(({ imageBitmap }) => pitSprites[color][sprite] = imageBitmap));
         }
     }
+    // vines
+    createVineSprites(palette, promises);
     await Promise.all(promises);
 }
 
