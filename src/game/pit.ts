@@ -1,10 +1,18 @@
 import { GameState } from './game-state';
-import { Pit as PitType } from './map';
+import { Pit as PitType, map } from './map';
 import { pitSprites } from '@/graphics';
 
 const OPEN_FRAMES = 71;
 const CLOSED_FRAMES = 143;
 const SHIFT_FRAMES = 4;
+
+const X_BOUNDS = [
+    [ 40, 103 ],
+    [ 44, 99 ],
+    [ 48, 95 ],
+    [ 56, 87 ],
+    [ 68, 75 ],
+];
 
 enum State {
     OPENED,
@@ -76,6 +84,21 @@ export class Pit {
                 this.updateOpening(gs);
                 break;                              
         }
+
+        const { harry } = gs;
+        switch (map[harry.scene].pit) {
+            case PitType.TAR:
+            case PitType.QUICKSAND:
+            case PitType.CROCS: // TODO ENHANCE   
+                harry.checkSink(X_BOUNDS[0][0], X_BOUNDS[0][1]);    
+                break;
+            case PitType.SHIFTING_TAR:
+            case PitType.SHIFTING_QUICKSAND:
+                if (this.offset < 5) {
+                    harry.checkSink(X_BOUNDS[this.offset][0], X_BOUNDS[this.offset][1]);
+                }
+                break;
+        }
     }
 
     render(gs: GameState, pit: PitType, ctx: OffscreenCanvasRenderingContext2D, ox: number) {
@@ -88,6 +111,9 @@ export class Pit {
         } else {
             ctx.drawImage(sprites[0], 40 - ox, 114);
             ctx.drawImage(sprites[1], 40 - ox, 119);
+            if (pit === PitType.CROCS) {
+                // TODO DRAW CROCS
+            }
         }
     }
 }

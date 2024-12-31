@@ -3,10 +3,13 @@ import { Harry } from './harry';
 import { Scorpion } from './scorpion';
 import { Vine } from './vine';
 import { Pit } from './pit';
-import { map } from './map';
+import { map, Treasure } from './map';
 
 export class SceneState {
-    scorpion: Scorpion | null = null;
+    constructor(public readonly scorpion: Scorpion | null,
+                public treasure: Treasure
+    ) {
+    }
 }
 
 export class GameState {
@@ -28,10 +31,8 @@ export class GameState {
 
     constructor() {
         for (let i = map.length - 1; i >= 0; --i) {
-            this.sceneStates[i] = new SceneState();
-            if (map[i].scorpion) {
-                this.sceneStates[i].scorpion = new Scorpion(i);
-            }
+            const scene = map[i];
+            this.sceneStates[i] = new SceneState(scene.scorpion ? new Scorpion(i) : null, scene.treasure);
         }
     }
 

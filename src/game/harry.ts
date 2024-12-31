@@ -21,7 +21,7 @@ const T = JUMP_ARC_BASE;
 const G = 2 * JUMP_ARC_HEIGHT / (T * T);
 const VY0 = -G * T;
 
-const INJURED_DELAY = 140;
+const INJURED_DELAY = 134;
 
 const X_SPAWN_MARGIN = Resolution.WIDTH / 4;
 
@@ -31,6 +31,7 @@ enum MainState {
     CLIMBING,
     INJURED,
     SWINGING,
+    SINKING,
 }
 
 export class Harry {   
@@ -296,7 +297,7 @@ export class Harry {
     }
 
     isInjured() {
-        return this.mainState === MainState.INJURED;
+        return this.mainState === MainState.INJURED || this.mainState === MainState.SINKING;
     }
     
     injure() {
@@ -351,6 +352,21 @@ export class Harry {
         }
     }
 
+    checkSink(xMin: number, xMax: number) {
+        if (this.mainState !== MainState.STANDING || this.y !== Y_UPPER_LEVEL || this.x < xMin || this.x > xMax) {
+            return;
+        }
+        this.mainState = MainState.SINKING;
+        this.sprite = 0;
+    }
+
+    private updateSinking(gs: GameState) {
+        if (++this.y > 143) {
+            this.injure();
+            return;
+        }
+    }    
+
     update(gs: GameState) {
         this.teleported = false;
         const state = this.mainState;
@@ -369,7 +385,10 @@ export class Harry {
                 break;
             case MainState.SWINGING:
                 this.updateSwinging(gs);
-                break;                
+                break;
+            case MainState.SINKING:
+                this.updateSinking(gs);
+                break;
         }
         this.lastMainState = state;
     }
@@ -378,7 +397,11 @@ export class Harry {
         const sprite = harrySprites[this.dir][this.sprite];
         const X = Math.floor(this.x) - 4 - ox;
         const Y = Math.floor(this.y) - 22;
-        if (this.tunnelSpawning && Y >= 127 && Y < 142) {
+        if (this.mainState === MainState.SINKING) {
+            if (Y < 119) {
+                ctx.drawImage(sprite, 0, 0, 8, 119 - Y, X, Y, 8, 119 - Y);
+            }
+        } else if (this.tunnelSpawning && Y >= 127 && Y < 142) {
             ctx.drawImage(sprite, 0, 142 - Y, 8, Y - 100, X, 142, 8, Y - 100);
         } else if (Y < 101 || Y >= 127) {
             ctx.drawImage(sprite, X, Y);

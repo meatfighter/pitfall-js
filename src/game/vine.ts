@@ -1,7 +1,5 @@
 import { vinePoints, vineSprites, vineMasks } from '@/graphics';
 import { GameState } from './game-state';
-import { Point } from './point';
-import { spritesIntersect } from '@/math';
 import { map } from './map';
 
 export class Vine {

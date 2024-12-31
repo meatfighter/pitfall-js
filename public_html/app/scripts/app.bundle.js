@@ -489,7 +489,7 @@ const JUMP_ARC_HEIGHT = 11;
 const T = JUMP_ARC_BASE;
 const G = 2 * JUMP_ARC_HEIGHT / (T * T);
 const VY0 = -G * T;
-const INJURED_DELAY = 140;
+const INJURED_DELAY = 134;
 const X_SPAWN_MARGIN = _graphics__WEBPACK_IMPORTED_MODULE_0__.Resolution.WIDTH / 4;
 var MainState;
 (function (MainState) {
@@ -498,6 +498,7 @@ var MainState;
     MainState[MainState["CLIMBING"] = 2] = "CLIMBING";
     MainState[MainState["INJURED"] = 3] = "INJURED";
     MainState[MainState["SWINGING"] = 4] = "SWINGING";
+    MainState[MainState["SINKING"] = 5] = "SINKING";
 })(MainState || (MainState = {}));
 class Harry {
     mainState = MainState.STANDING;
@@ -743,7 +744,7 @@ class Harry {
         }
     }
     isInjured() {
-        return this.mainState === MainState.INJURED;
+        return this.mainState === MainState.INJURED || this.mainState === MainState.SINKING;
     }
     injure() {
         this.mainState = MainState.INJURED;
@@ -792,6 +793,19 @@ class Harry {
             return;
         }
     }
+    checkSink(xMin, xMax) {
+        if (this.mainState !== MainState.STANDING || this.y !== Y_UPPER_LEVEL || this.x < xMin || this.x > xMax) {
+            return;
+        }
+        this.mainState = MainState.SINKING;
+        this.sprite = 0;
+    }
+    updateSinking(gs) {
+        if (++this.y > 143) {
+            this.injure();
+            return;
+        }
+    }
     update(gs) {
         this.teleported = false;
         const state = this.mainState;
@@ -811,6 +825,9 @@ class Harry {
             case MainState.SWINGING:
                 this.updateSwinging(gs);
                 break;
+            case MainState.SINKING:
+                this.updateSinking(gs);
+                break;
         }
         this.lastMainState = state;
     }
@@ -818,7 +835,12 @@ class Harry {
         const sprite = _graphics__WEBPACK_IMPORTED_MODULE_0__.harrySprites[this.dir][this.sprite];
         const X = Math.floor(this.x) - 4 - ox;
         const Y = Math.floor(this.y) - 22;
-        if (this.tunnelSpawning && Y >= 127 && Y < 142) {
+        if (this.mainState === MainState.SINKING) {
+            if (Y < 119) {
+                ctx.drawImage(sprite, 0, 0, 8, 119 - Y, X, Y, 8, 119 - Y);
+            }
+        }
+        else if (this.tunnelSpawning && Y >= 127 && Y < 142) {
             ctx.drawImage(sprite, 0, 142 - Y, 8, Y - 100, X, 142, 8, Y - 100);
         }
         else if (Y < 101 || Y >= 127) {
@@ -983,6 +1005,13 @@ __webpack_require__.r(__webpack_exports__);
 const OPEN_FRAMES = 71;
 const CLOSED_FRAMES = 143;
 const SHIFT_FRAMES = 4;
+const X_BOUNDS = [
+    [40, 103],
+    [44, 99],
+    [48, 95],
+    [56, 87],
+    [68, 75],
+];
 var State;
 (function (State) {
     State[State["OPENED"] = 0] = "OPENED";
@@ -1045,6 +1074,20 @@ class Pit {
                 break;
             case State.OPENING:
                 this.updateOpening(gs);
+                break;
+        }
+        const { harry } = gs;
+        switch (_map__WEBPACK_IMPORTED_MODULE_0__.map[harry.scene].pit) {
+            case _map__WEBPACK_IMPORTED_MODULE_0__.Pit.TAR:
+            case _map__WEBPACK_IMPORTED_MODULE_0__.Pit.QUICKSAND:
+            case _map__WEBPACK_IMPORTED_MODULE_0__.Pit.CROCS: // TODO ENHANCE   
+                harry.checkSink(X_BOUNDS[0][0], X_BOUNDS[0][1]);
+                break;
+            case _map__WEBPACK_IMPORTED_MODULE_0__.Pit.SHIFTING_TAR:
+            case _map__WEBPACK_IMPORTED_MODULE_0__.Pit.SHIFTING_QUICKSAND:
+                if (this.offset < 5) {
+                    harry.checkSink(X_BOUNDS[this.offset][0], X_BOUNDS[this.offset][1]);
+                }
                 break;
         }
     }
