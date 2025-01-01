@@ -47,7 +47,6 @@ export const cobraSprites: Sprite[][] = new Array<Sprite[]>(2); // direction, sp
 export const cobraMasks: Mask[][] = new Array<Mask[]>(2); // direction, mask
 
 export const crocSprites: Sprite[][] = new Array<Sprite[]>(2); // direction, sprite
-export const crocMasks: Mask[][] = new Array<Mask[]>(2); // direction, mask
 
 export const sorpionSprites: Sprite[][] = new Array<Sprite[]>(2); // direction, sprite
 export const scorpionMasks: Mask[][] = new Array<Mask[]>(2); // direction, mask
@@ -284,8 +283,8 @@ export async function init() {
 
     const palette = extractPalette();
 
-    const binStr = atob('0tLS0tLS0tLS0tLSyMjIyMjISkpKEtLS0tLS0tLS0tLIyMjIyMjISkpKEhISEhISEhISEhISEhISEhISEhISEj4+Pi4uLi'
-        + '4uLi4uAAAGAAYAAAAAAAAAAABCQtLS0tLS0tLS0tLS0tLS0tIGBgYGBgYGBgYGBgYSBgYGDg4ODg4ODg4ODg4ODg4ODgZCQkIGQkJCBkJCQg'
+    const binStr = atob('0tLS0tLS0tLS0tLSyMjIyMjISkpKEtLS0tLS0tLS0tLIyMjIyMjISkpKEhISEhISEhISEhISEhISEhIQEBAQED4+Pi4uLi'
+        + '4uLi4uAAAEAAQAAAAAAAAAAABCQtDQ0NDQ0NDQ0NDQ0NDQ0NAEBAQEBAQEBAQEBAQSBAQEDg4ODg4ODg4ODg4ODg4ODgZCQkIGQkJCBkJCQg'
         + 'ZCQkJCQh4eHh4eHh4eDg4ODg4OHh4eHh4eHh4ODg4ODg4ODgYGBgYGBgYODg4ODg4ODg7S0tLSEBAQEBAQEBABg8//ABg9fxi8/v8wePz+AA'
         + 'AAAAAzctoeHBhYWHw+GhgQGBgYAACAgMNiYjY+HBgYPD46OBgYEBgYGAAQICIkNDIWHhwYGBwcGBgYGBAYGBgADAgoKD4KDhwYGBwcGBgYGB'
         + 'gQGBgYAAACQ0R0FBwcGBgYPD46OBgYEBgYGAAYEBwYGBgYGBgYGBgcHhoYGBAYGBgAAAAAAAAAY/L23MDAwMDA8NCQ0NDAADAQEBAWFBQWEh'
@@ -326,11 +325,10 @@ export async function init() {
 
         // croc
         crocSprites[dir] = new Array<Sprite>(2);
-        crocMasks[dir] = new Array<Mask>(2);
         createSpriteAndMask(binStr, palette, Offsets.CROCO1, Offsets.CROCOCOLOR, 16, flipped,
-                sprite => crocSprites[dir][0] = sprite, mask => crocMasks[dir][0] = mask, promises);
+                sprite => crocSprites[dir][0] = sprite, null, promises);
         createSpriteAndMask(binStr, palette, Offsets.CROCO0, Offsets.CROCOCOLOR, 16, flipped,
-                sprite => crocSprites[dir][1] = sprite, mask => crocMasks[dir][1] = mask, promises);
+                sprite => crocSprites[dir][1] = sprite, null, promises);
 
         // sorpion
         sorpionSprites[dir] = new Array<Sprite>(2);

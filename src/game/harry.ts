@@ -100,14 +100,15 @@ export class Harry {
         }
     }
 
-    private startFalling(v0: number) {
+    private startFalling(gs: GameState, v0: number) {
         this.mainState = MainState.FALLING;
         this.y += v0;
         this.vy = G + v0;
         this.sprite = 2;
+        this.updateShift(gs)
     }
 
-    private endFalling(y: number) {
+    private endFalling(gs: GameState, y: number) {
         this.mainState = MainState.STANDING;
         this.y = y;
         this.vy = 0;
@@ -115,6 +116,7 @@ export class Harry {
         this.runCounter = 0;
         this.tunnelSpawning = false;
         this.releasedVine = false;
+        this.updateShift(gs);
     }
 
     private startClimbing(y: number) {
@@ -186,12 +188,12 @@ export class Harry {
         const { ladder, holes } = map[this.scene];
 
         if (holes && this.y === Y_UPPER_LEVEL && ((this.x >= 40 && this.x <= 51) || (this.x >= 92 && this.x <= 103))) {
-            this.startFalling(G);
+            this.startFalling(gs, G);
             return;
         }
 
-        if (jumpJustPressed) {
-            this.startFalling(VY0);
+        if (jumpPressed) {
+            this.startFalling(gs, VY0);
             return;
         }
 
@@ -237,13 +239,13 @@ export class Harry {
                 return;
             }
             if (!holes || this.x < 40 || this.x > 103 || (this.x > 51 && this.x < 92)) {
-                this.endFalling(Y_UPPER_LEVEL);
+                this.endFalling(gs, Y_UPPER_LEVEL);
                 return;        
             }
         } 
             
         if (this.y <= Y_LOWER_LEVEL && nextY >= Y_LOWER_LEVEL) {
-            this.endFalling(Y_LOWER_LEVEL);
+            this.endFalling(gs, Y_LOWER_LEVEL);
             return;
         }
 
@@ -355,19 +357,20 @@ export class Harry {
         this.y = p.y + 17;
 
         if ((this.dir === 0 && rightJustPressed) || (this.dir === 1 && leftJustPressed)) {
-            this.startFalling(0);
+            this.startFalling(gs, 0);
             this.releasedVine = true;
             return;
         }
     }
 
-    checkSink(xMin: number, xMax: number) {
+    checkSink(xMin: number, xMax: number): boolean {
         const X = Math.floor(this.x);
         if (this.mainState !== MainState.STANDING || this.y !== Y_UPPER_LEVEL || X < xMin || X > xMax) {
-            return;
+            return false;
         }
         this.mainState = MainState.SINKING;
         this.sprite = 0;
+        return true;
     }
 
     private updateSinking(gs: GameState) {
@@ -377,7 +380,8 @@ export class Harry {
         }
     }    
 
-    update(gs: GameState) {        
+    update(gs: GameState) {
+        console.log(`${this.x}`); // TODO REMOVE        
         const state = this.mainState;
         switch (this.mainState) {
             case MainState.STANDING:

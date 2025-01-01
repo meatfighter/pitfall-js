@@ -6,6 +6,9 @@ import { Pit } from './pit';
 import { map, TreasureType } from './map';
 
 export class SceneState {
+
+    enteredLeft = false;
+
     constructor(public readonly scorpion: Scorpion | null,
                 public treasure: TreasureType
     ) {

@@ -38,6 +38,9 @@ export function update() {
 
     gs.harry.teleported = false;
 
+    const scene0 = gs.harry.scene;
+    const scene1 = gs.nextScene;
+
     if (!gs.harry.isInjured()) {
         gs.vine.update(gs);
         gs.pit.update(gs);
@@ -84,11 +87,17 @@ export function update() {
         if (gs.nextScene < 0) {
             gs.nextScene += map.length;
         }
+        if (gs.nextScene !== scene0 && gs.nextScene !== scene1) {
+            gs.sceneStates[gs.nextScene].enteredLeft = false;
+        }
     } else {
         gs.nextOx = gs.ox - Resolution.WIDTH;
         gs.nextScene = gs.harry.scene + (underground ? 3 : 1);
         if (gs.nextScene >= map.length) {
             gs.nextScene -= map.length;
+        }
+        if (gs.nextScene !== scene0 && gs.nextScene !== scene1) {
+            gs.sceneStates[gs.nextScene].enteredLeft = true;
         }
     }
 }
@@ -153,7 +162,7 @@ function renderBackground(ctx: OffscreenCanvasRenderingContext2D, scene: number,
     }
 
     if (pit !== PitType.NONE) {
-        gs.pit.render(gs, pit, ctx, ox);
+        gs.pit.render(gs, ctx, scene, ox);
     }
 }
 

@@ -1,12 +1,15 @@
 import { GameState } from './game-state';
 import { PitType, map } from './map';
-import { pitSprites } from '@/graphics';
+import { pitSprites, crocSprites } from '@/graphics';
 
-const OPEN_FRAMES = 71;
-const CLOSED_FRAMES = 143;
-const SHIFT_FRAMES = 4;
+const PIT_OPEN_FRAMES = 71;
+const PIT_CLOSED_FRAMES = 143;
+const PIT_SHIFT_FRAMES = 4;
 
-const X_BOUNDS = [
+const CROC_CLOSED_FRAMES = 128;
+const CROC_OPENED_FRAMES = 128;
+
+const X_SHIFTS = [
     [ 41, 103 ],
     [ 45, 99 ],
     [ 49, 95 ],
@@ -14,105 +17,190 @@ const X_BOUNDS = [
     [ 69, 75 ],
 ];
 
-enum State {
+const X_CLOSED_CROCS = [
+    [ 41, 51 ],
+    [ 61, 67 ],
+    [ 77, 83 ],
+    [ 93, 103 ],
+];
+
+const X_OPENED_CROCS_LEFT = [
+    [ 41, 56 ],
+    [ 61, 72 ],
+    [ 77, 88 ],
+    [ 93, 103 ],
+];
+
+const X_OPENED_CROCS_RIGHT = [
+    [ 41, 51 ],
+    [ 56, 67 ],
+    [ 72, 83 ],
+    [ 88, 103 ],
+];
+
+enum PitState {
     OPENED,
     CLOSING,
     CLOSED,
     OPENING,
 }
 
+enum CrocState {
+    OPENED,
+    CLOSED,
+}
+
 export class Pit {
 
-    state = State.OPENED;
-    offset = 0;
-    counter = OPEN_FRAMES;
+    pitState = PitState.OPENED;
+    pitOffset = 0;
+    pitCounter = PIT_OPEN_FRAMES;
 
-    private updateOpened(gs: GameState) {
-        if (--this.counter >= 0) {
+    crocState = CrocState.CLOSED;
+    crocCounter = CROC_CLOSED_FRAMES;
+
+    private updatePitOpened(gs: GameState) {
+        if (--this.pitCounter >= 0) {
             return;
         }
-        this.state = State.CLOSING;
-        this.counter = SHIFT_FRAMES;
-        ++this.offset;
+        this.pitState = PitState.CLOSING;
+        this.pitCounter = PIT_SHIFT_FRAMES;
+        ++this.pitOffset;
     }
 
-    private updateClosing(gs: GameState) {
-        if (--this.counter >= 0) {
+    private updatePitClosing(gs: GameState) {
+        if (--this.pitCounter >= 0) {
             return;
         }
-        if (++this.offset === 5) {
-            this.state = State.CLOSED;
-            this.counter = CLOSED_FRAMES;
+        if (++this.pitOffset === 5) {
+            this.pitState = PitState.CLOSED;
+            this.pitCounter = PIT_CLOSED_FRAMES;
             return;
         } 
-        this.counter = SHIFT_FRAMES;
+        this.pitCounter = PIT_SHIFT_FRAMES;
     }
     
-    private updateClosed(gs: GameState) {
-        if (--this.counter >= 0) {
+    private updatePitClosed(gs: GameState) {
+        if (--this.pitCounter >= 0) {
             return;
         }
-        this.state = State.OPENING;
-        this.counter = SHIFT_FRAMES;
-        --this.offset;
+        this.pitState = PitState.OPENING;
+        this.pitCounter = PIT_SHIFT_FRAMES;
+        --this.pitOffset;
     }
     
-    private updateOpening(gs: GameState) {
-        if (--this.counter >= 0) {
+    private updatePitOpening(gs: GameState) {
+        if (--this.pitCounter >= 0) {
             return;
         }
-        if (--this.offset === 0) {
-            this.state = State.OPENED;
-            this.counter = OPEN_FRAMES;
+        if (--this.pitOffset === 0) {
+            this.pitState = PitState.OPENED;
+            this.pitCounter = PIT_OPEN_FRAMES;
             return;
         } 
-        this.counter = SHIFT_FRAMES;
+        this.pitCounter = PIT_SHIFT_FRAMES;
+    }
+
+    private updateCrocOpened(gs: GameState) {
+        if (--this.crocCounter === 0) {
+            this.crocState = CrocState.CLOSED;
+            this.crocCounter = CROC_CLOSED_FRAMES + 1;
+            this.updateCrocClosed(gs);
+            return;
+        }
+
+        const { harry, sceneStates } = gs;
+        if (map[harry.scene].pit !== PitType.CROCS) {
+            return;
+        }
+
+        const xOpenedCrocs = (sceneStates[harry.scene].enteredLeft) ? X_OPENED_CROCS_RIGHT : X_OPENED_CROCS_LEFT;
+        for (let i = xOpenedCrocs.length - 1; i >= 0; --i) {
+            const xCrocs = xOpenedCrocs[i];
+            if (harry.checkSink(xCrocs[0], xCrocs[1])) {
+                break;
+            }
+        }
+    }
+
+    private updateCrocClosed(gs: GameState) {
+        // if (--this.crocCounter === 0) {
+        //     this.crocState = CrocState.OPENED;
+        //     this.crocCounter = CROC_OPENED_FRAMES + 1;
+        //     this.updateCrocOpened(gs);
+        //     return;
+        // }
+
+        const { harry } = gs;
+        if (map[harry.scene].pit !== PitType.CROCS) {
+            return;
+        }
+
+        for (let i = X_CLOSED_CROCS.length - 1; i >= 0; --i) {
+            const xCrocs = X_CLOSED_CROCS[i];
+            if (harry.checkSink(xCrocs[0], xCrocs[1])) {
+                break;
+            }
+        }
     }    
 
     update(gs: GameState) {
-        switch (this.state) {
-            case State.OPENED:
-                this.updateOpened(gs);
+        switch (this.pitState) {
+            case PitState.OPENED:
+                this.updatePitOpened(gs);
                 break;
-            case State.CLOSING:
-                this.updateClosing(gs);
+            case PitState.CLOSING:
+                this.updatePitClosing(gs);
                 break;  
-            case State.CLOSED:
-                this.updateClosed(gs);
+            case PitState.CLOSED:
+                this.updatePitClosed(gs);
                 break;
-            case State.OPENING:
-                this.updateOpening(gs);
+            case PitState.OPENING:
+                this.updatePitOpening(gs);
                 break;                              
+        }
+
+        switch (this.crocState) {
+            case CrocState.OPENED:
+                this.updateCrocOpened(gs);
+                break;
+            case CrocState.CLOSED:
+                this.updateCrocClosed(gs);
+                break;    
         }
 
         const { harry } = gs;
         switch (map[harry.scene].pit) {
             case PitType.TAR:
-            case PitType.QUICKSAND:
-            case PitType.CROCS: // TODO ENHANCE   
-                harry.checkSink(X_BOUNDS[0][0], X_BOUNDS[0][1]);    
+            case PitType.QUICKSAND:               
+                harry.checkSink(X_SHIFTS[0][0], X_SHIFTS[0][1]);
                 break;
             case PitType.SHIFTING_TAR:
             case PitType.SHIFTING_QUICKSAND:
-                if (this.offset < 5) {
-                    harry.checkSink(X_BOUNDS[this.offset][0], X_BOUNDS[this.offset][1]);
+                if (this.pitOffset < 5) {
+                    harry.checkSink(X_SHIFTS[this.pitOffset][0], X_SHIFTS[this.pitOffset][1]);
                 }
                 break;
         }
     }
 
-    render(gs: GameState, pit: PitType, ctx: OffscreenCanvasRenderingContext2D, ox: number) {
+    render(gs: GameState, ctx: OffscreenCanvasRenderingContext2D, scene: number, ox: number) {
+        const { pit } = map[scene];
         const sprites = pitSprites[(pit === PitType.TAR || pit == PitType.SHIFTING_TAR) ? 0 : 1];
         if (pit === PitType.SHIFTING_TAR || pit === PitType.SHIFTING_QUICKSAND) {
-            if (this.state !== State.CLOSED) {
-                ctx.drawImage(sprites[0], 0, 0, 64, 5 - this.offset, 40 - ox, 114 + this.offset, 64, 5 - this.offset);
-                ctx.drawImage(sprites[1], 0, this.offset, 64, 5 - this.offset, 40 - ox, 119, 64, 5 - this.offset);
+            if (this.pitState !== PitState.CLOSED) {
+                ctx.drawImage(sprites[0], 0, 0, 64, 5 - this.pitOffset, 40 - ox, 114 + this.pitOffset, 64, 5 - this.pitOffset);
+                ctx.drawImage(sprites[1], 0, this.pitOffset, 64, 5 - this.pitOffset, 40 - ox, 119, 64, 5 - this.pitOffset);
             }
         } else {
             ctx.drawImage(sprites[0], 40 - ox, 114);
             ctx.drawImage(sprites[1], 40 - ox, 119);
             if (pit === PitType.CROCS) {
-                // TODO DRAW CROCS
+                const crocImages = crocSprites[gs.sceneStates[scene].enteredLeft ? 0 : 1];
+                const sprite = this.crocState === CrocState.OPENED ? 1 : 0;
+                ctx.drawImage(crocImages[sprite], 52 - ox, 111);
+                ctx.drawImage(crocImages[sprite], 68 - ox, 111);
+                ctx.drawImage(crocImages[sprite], 84 - ox, 111);
             }
         }
     }

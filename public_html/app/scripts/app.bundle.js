@@ -236,6 +236,7 @@ __webpack_require__.r(__webpack_exports__);
 class SceneState {
     scorpion;
     treasure;
+    enteredLeft = false;
     constructor(scorpion, treasure) {
         this.scorpion = scorpion;
         this.treasure = treasure;
@@ -317,6 +318,8 @@ function updateScene(scene) {
 function update() {
     (0,_input__WEBPACK_IMPORTED_MODULE_4__.updateInput)();
     gs.harry.teleported = false;
+    const scene0 = gs.harry.scene;
+    const scene1 = gs.nextScene;
     if (!gs.harry.isInjured()) {
         gs.vine.update(gs);
         gs.pit.update(gs);
@@ -362,12 +365,18 @@ function update() {
         if (gs.nextScene < 0) {
             gs.nextScene += _map__WEBPACK_IMPORTED_MODULE_0__.map.length;
         }
+        if (gs.nextScene !== scene0 && gs.nextScene !== scene1) {
+            gs.sceneStates[gs.nextScene].enteredLeft = false;
+        }
     }
     else {
         gs.nextOx = gs.ox - _graphics__WEBPACK_IMPORTED_MODULE_2__.Resolution.WIDTH;
         gs.nextScene = gs.harry.scene + (underground ? 3 : 1);
         if (gs.nextScene >= _map__WEBPACK_IMPORTED_MODULE_0__.map.length) {
             gs.nextScene -= _map__WEBPACK_IMPORTED_MODULE_0__.map.length;
+        }
+        if (gs.nextScene !== scene0 && gs.nextScene !== scene1) {
+            gs.sceneStates[gs.nextScene].enteredLeft = true;
         }
     }
 }
@@ -424,7 +433,7 @@ function renderBackground(ctx, scene, ox) {
         gs.vine.render(gs, ctx, ox);
     }
     if (pit !== _map__WEBPACK_IMPORTED_MODULE_0__.PitType.NONE) {
-        gs.pit.render(gs, pit, ctx, ox);
+        gs.pit.render(gs, ctx, scene, ox);
     }
 }
 function renderLeaves(ctx, scene, ox) {
@@ -564,13 +573,14 @@ class Harry {
             }
         }
     }
-    startFalling(v0) {
+    startFalling(gs, v0) {
         this.mainState = MainState.FALLING;
         this.y += v0;
         this.vy = G + v0;
         this.sprite = 2;
+        this.updateShift(gs);
     }
-    endFalling(y) {
+    endFalling(gs, y) {
         this.mainState = MainState.STANDING;
         this.y = y;
         this.vy = 0;
@@ -578,6 +588,7 @@ class Harry {
         this.runCounter = 0;
         this.tunnelSpawning = false;
         this.releasedVine = false;
+        this.updateShift(gs);
     }
     startClimbing(y) {
         this.mainState = MainState.CLIMBING;
@@ -648,11 +659,11 @@ class Harry {
     updateStanding(gs) {
         const { ladder, holes } = _map__WEBPACK_IMPORTED_MODULE_2__.map[this.scene];
         if (holes && this.y === Y_UPPER_LEVEL && ((this.x >= 40 && this.x <= 51) || (this.x >= 92 && this.x <= 103))) {
-            this.startFalling(G);
+            this.startFalling(gs, G);
             return;
         }
-        if (_input__WEBPACK_IMPORTED_MODULE_1__.jumpJustPressed) {
-            this.startFalling(VY0);
+        if (_input__WEBPACK_IMPORTED_MODULE_1__.jumpPressed) {
+            this.startFalling(gs, VY0);
             return;
         }
         if (ladder) {
@@ -693,12 +704,12 @@ class Harry {
                 return;
             }
             if (!holes || this.x < 40 || this.x > 103 || (this.x > 51 && this.x < 92)) {
-                this.endFalling(Y_UPPER_LEVEL);
+                this.endFalling(gs, Y_UPPER_LEVEL);
                 return;
             }
         }
         if (this.y <= Y_LOWER_LEVEL && nextY >= Y_LOWER_LEVEL) {
-            this.endFalling(Y_LOWER_LEVEL);
+            this.endFalling(gs, Y_LOWER_LEVEL);
             return;
         }
         this.y += this.vy;
@@ -800,7 +811,7 @@ class Harry {
         this.setX(this.dir === 0 ? p.x + 1 : p.x);
         this.y = p.y + 17;
         if ((this.dir === 0 && _input__WEBPACK_IMPORTED_MODULE_1__.rightJustPressed) || (this.dir === 1 && _input__WEBPACK_IMPORTED_MODULE_1__.leftJustPressed)) {
-            this.startFalling(0);
+            this.startFalling(gs, 0);
             this.releasedVine = true;
             return;
         }
@@ -808,10 +819,11 @@ class Harry {
     checkSink(xMin, xMax) {
         const X = Math.floor(this.x);
         if (this.mainState !== MainState.STANDING || this.y !== Y_UPPER_LEVEL || X < xMin || X > xMax) {
-            return;
+            return false;
         }
         this.mainState = MainState.SINKING;
         this.sprite = 0;
+        return true;
     }
     updateSinking(gs) {
         if (++this.y > 143 + INJURED_DELAY) {
@@ -820,6 +832,7 @@ class Harry {
         }
     }
     update(gs) {
+        console.log(`${this.x}`); // TODO REMOVE        
         const state = this.mainState;
         switch (this.mainState) {
             case MainState.STANDING:
@@ -1014,108 +1027,184 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _graphics__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @/graphics */ "./src/graphics.ts");
 
 
-const OPEN_FRAMES = 71;
-const CLOSED_FRAMES = 143;
-const SHIFT_FRAMES = 4;
-const X_BOUNDS = [
+const PIT_OPEN_FRAMES = 71;
+const PIT_CLOSED_FRAMES = 143;
+const PIT_SHIFT_FRAMES = 4;
+const CROC_CLOSED_FRAMES = 128;
+const CROC_OPENED_FRAMES = 128;
+const X_SHIFTS = [
     [41, 103],
     [45, 99],
     [49, 95],
     [57, 87],
     [69, 75],
 ];
-var State;
-(function (State) {
-    State[State["OPENED"] = 0] = "OPENED";
-    State[State["CLOSING"] = 1] = "CLOSING";
-    State[State["CLOSED"] = 2] = "CLOSED";
-    State[State["OPENING"] = 3] = "OPENING";
-})(State || (State = {}));
+const X_CLOSED_CROCS = [
+    [41, 51],
+    [61, 67],
+    [77, 83],
+    [93, 103],
+];
+const X_OPENED_CROCS_LEFT = [
+    [41, 56],
+    [61, 72],
+    [77, 88],
+    [93, 103],
+];
+const X_OPENED_CROCS_RIGHT = [
+    [41, 51],
+    [56, 67],
+    [72, 83],
+    [88, 103],
+];
+var PitState;
+(function (PitState) {
+    PitState[PitState["OPENED"] = 0] = "OPENED";
+    PitState[PitState["CLOSING"] = 1] = "CLOSING";
+    PitState[PitState["CLOSED"] = 2] = "CLOSED";
+    PitState[PitState["OPENING"] = 3] = "OPENING";
+})(PitState || (PitState = {}));
+var CrocState;
+(function (CrocState) {
+    CrocState[CrocState["OPENED"] = 0] = "OPENED";
+    CrocState[CrocState["CLOSED"] = 1] = "CLOSED";
+})(CrocState || (CrocState = {}));
 class Pit {
-    state = State.OPENED;
-    offset = 0;
-    counter = OPEN_FRAMES;
-    updateOpened(gs) {
-        if (--this.counter >= 0) {
+    pitState = PitState.OPENED;
+    pitOffset = 0;
+    pitCounter = PIT_OPEN_FRAMES;
+    crocState = CrocState.CLOSED;
+    crocCounter = CROC_CLOSED_FRAMES;
+    updatePitOpened(gs) {
+        if (--this.pitCounter >= 0) {
             return;
         }
-        this.state = State.CLOSING;
-        this.counter = SHIFT_FRAMES;
-        ++this.offset;
+        this.pitState = PitState.CLOSING;
+        this.pitCounter = PIT_SHIFT_FRAMES;
+        ++this.pitOffset;
     }
-    updateClosing(gs) {
-        if (--this.counter >= 0) {
+    updatePitClosing(gs) {
+        if (--this.pitCounter >= 0) {
             return;
         }
-        if (++this.offset === 5) {
-            this.state = State.CLOSED;
-            this.counter = CLOSED_FRAMES;
+        if (++this.pitOffset === 5) {
+            this.pitState = PitState.CLOSED;
+            this.pitCounter = PIT_CLOSED_FRAMES;
             return;
         }
-        this.counter = SHIFT_FRAMES;
+        this.pitCounter = PIT_SHIFT_FRAMES;
     }
-    updateClosed(gs) {
-        if (--this.counter >= 0) {
+    updatePitClosed(gs) {
+        if (--this.pitCounter >= 0) {
             return;
         }
-        this.state = State.OPENING;
-        this.counter = SHIFT_FRAMES;
-        --this.offset;
+        this.pitState = PitState.OPENING;
+        this.pitCounter = PIT_SHIFT_FRAMES;
+        --this.pitOffset;
     }
-    updateOpening(gs) {
-        if (--this.counter >= 0) {
+    updatePitOpening(gs) {
+        if (--this.pitCounter >= 0) {
             return;
         }
-        if (--this.offset === 0) {
-            this.state = State.OPENED;
-            this.counter = OPEN_FRAMES;
+        if (--this.pitOffset === 0) {
+            this.pitState = PitState.OPENED;
+            this.pitCounter = PIT_OPEN_FRAMES;
             return;
         }
-        this.counter = SHIFT_FRAMES;
+        this.pitCounter = PIT_SHIFT_FRAMES;
+    }
+    updateCrocOpened(gs) {
+        if (--this.crocCounter === 0) {
+            this.crocState = CrocState.CLOSED;
+            this.crocCounter = CROC_CLOSED_FRAMES + 1;
+            this.updateCrocClosed(gs);
+            return;
+        }
+        const { harry, sceneStates } = gs;
+        if (_map__WEBPACK_IMPORTED_MODULE_0__.map[harry.scene].pit !== _map__WEBPACK_IMPORTED_MODULE_0__.PitType.CROCS) {
+            return;
+        }
+        const xOpenedCrocs = (sceneStates[harry.scene].enteredLeft) ? X_OPENED_CROCS_RIGHT : X_OPENED_CROCS_LEFT;
+        for (let i = xOpenedCrocs.length - 1; i >= 0; --i) {
+            const xCrocs = xOpenedCrocs[i];
+            if (harry.checkSink(xCrocs[0], xCrocs[1])) {
+                break;
+            }
+        }
+    }
+    updateCrocClosed(gs) {
+        // if (--this.crocCounter === 0) {
+        //     this.crocState = CrocState.OPENED;
+        //     this.crocCounter = CROC_OPENED_FRAMES + 1;
+        //     this.updateCrocOpened(gs);
+        //     return;
+        // }
+        const { harry } = gs;
+        if (_map__WEBPACK_IMPORTED_MODULE_0__.map[harry.scene].pit !== _map__WEBPACK_IMPORTED_MODULE_0__.PitType.CROCS) {
+            return;
+        }
+        for (let i = X_CLOSED_CROCS.length - 1; i >= 0; --i) {
+            const xCrocs = X_CLOSED_CROCS[i];
+            if (harry.checkSink(xCrocs[0], xCrocs[1])) {
+                break;
+            }
+        }
     }
     update(gs) {
-        switch (this.state) {
-            case State.OPENED:
-                this.updateOpened(gs);
+        switch (this.pitState) {
+            case PitState.OPENED:
+                this.updatePitOpened(gs);
                 break;
-            case State.CLOSING:
-                this.updateClosing(gs);
+            case PitState.CLOSING:
+                this.updatePitClosing(gs);
                 break;
-            case State.CLOSED:
-                this.updateClosed(gs);
+            case PitState.CLOSED:
+                this.updatePitClosed(gs);
                 break;
-            case State.OPENING:
-                this.updateOpening(gs);
+            case PitState.OPENING:
+                this.updatePitOpening(gs);
+                break;
+        }
+        switch (this.crocState) {
+            case CrocState.OPENED:
+                this.updateCrocOpened(gs);
+                break;
+            case CrocState.CLOSED:
+                this.updateCrocClosed(gs);
                 break;
         }
         const { harry } = gs;
         switch (_map__WEBPACK_IMPORTED_MODULE_0__.map[harry.scene].pit) {
             case _map__WEBPACK_IMPORTED_MODULE_0__.PitType.TAR:
             case _map__WEBPACK_IMPORTED_MODULE_0__.PitType.QUICKSAND:
-            case _map__WEBPACK_IMPORTED_MODULE_0__.PitType.CROCS: // TODO ENHANCE   
-                harry.checkSink(X_BOUNDS[0][0], X_BOUNDS[0][1]);
+                harry.checkSink(X_SHIFTS[0][0], X_SHIFTS[0][1]);
                 break;
             case _map__WEBPACK_IMPORTED_MODULE_0__.PitType.SHIFTING_TAR:
             case _map__WEBPACK_IMPORTED_MODULE_0__.PitType.SHIFTING_QUICKSAND:
-                if (this.offset < 5) {
-                    harry.checkSink(X_BOUNDS[this.offset][0], X_BOUNDS[this.offset][1]);
+                if (this.pitOffset < 5) {
+                    harry.checkSink(X_SHIFTS[this.pitOffset][0], X_SHIFTS[this.pitOffset][1]);
                 }
                 break;
         }
     }
-    render(gs, pit, ctx, ox) {
+    render(gs, ctx, scene, ox) {
+        const { pit } = _map__WEBPACK_IMPORTED_MODULE_0__.map[scene];
         const sprites = _graphics__WEBPACK_IMPORTED_MODULE_1__.pitSprites[(pit === _map__WEBPACK_IMPORTED_MODULE_0__.PitType.TAR || pit == _map__WEBPACK_IMPORTED_MODULE_0__.PitType.SHIFTING_TAR) ? 0 : 1];
         if (pit === _map__WEBPACK_IMPORTED_MODULE_0__.PitType.SHIFTING_TAR || pit === _map__WEBPACK_IMPORTED_MODULE_0__.PitType.SHIFTING_QUICKSAND) {
-            if (this.state !== State.CLOSED) {
-                ctx.drawImage(sprites[0], 0, 0, 64, 5 - this.offset, 40 - ox, 114 + this.offset, 64, 5 - this.offset);
-                ctx.drawImage(sprites[1], 0, this.offset, 64, 5 - this.offset, 40 - ox, 119, 64, 5 - this.offset);
+            if (this.pitState !== PitState.CLOSED) {
+                ctx.drawImage(sprites[0], 0, 0, 64, 5 - this.pitOffset, 40 - ox, 114 + this.pitOffset, 64, 5 - this.pitOffset);
+                ctx.drawImage(sprites[1], 0, this.pitOffset, 64, 5 - this.pitOffset, 40 - ox, 119, 64, 5 - this.pitOffset);
             }
         }
         else {
             ctx.drawImage(sprites[0], 40 - ox, 114);
             ctx.drawImage(sprites[1], 40 - ox, 119);
             if (pit === _map__WEBPACK_IMPORTED_MODULE_0__.PitType.CROCS) {
-                // TODO DRAW CROCS
+                const crocImages = _graphics__WEBPACK_IMPORTED_MODULE_1__.crocSprites[gs.sceneStates[scene].enteredLeft ? 0 : 1];
+                const sprite = this.crocState === CrocState.OPENED ? 1 : 0;
+                ctx.drawImage(crocImages[sprite], 52 - ox, 111);
+                ctx.drawImage(crocImages[sprite], 68 - ox, 111);
+                ctx.drawImage(crocImages[sprite], 84 - ox, 111);
             }
         }
     }
@@ -1226,8 +1315,6 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   Vine: () => (/* binding */ Vine)
 /* harmony export */ });
 /* harmony import */ var _graphics__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @/graphics */ "./src/graphics.ts");
-/* harmony import */ var _map__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./map */ "./src/game/map.ts");
-
 
 class Vine {
     sprite = 0;
@@ -1235,14 +1322,14 @@ class Vine {
         if (++this.sprite === _graphics__WEBPACK_IMPORTED_MODULE_0__.vinePoints.length) {
             this.sprite = 0;
         }
-        const { harry } = gs;
-        if (_map__WEBPACK_IMPORTED_MODULE_1__.map[harry.scene].vine && !harry.releasedVine && harry.isFalling()
-            && harry.intersects(_graphics__WEBPACK_IMPORTED_MODULE_0__.vineMasks[this.sprite], 39, 28)) {
-            harry.swing();
-        }
+        // const { harry } = gs;
+        // if (map[harry.scene].vine && !harry.releasedVine && harry.isFalling() 
+        //         && harry.intersects(vineMasks[this.sprite], 39, 28)) {
+        //     harry.swing();
+        // }
     }
     render(gs, ctx, ox) {
-        ctx.drawImage(_graphics__WEBPACK_IMPORTED_MODULE_0__.vineSprites[this.sprite], 39 - ox, 28);
+        // ctx.drawImage(vineSprites[this.sprite], 39 - ox, 28);
     }
 }
 
@@ -1268,7 +1355,6 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   cobraMasks: () => (/* binding */ cobraMasks),
 /* harmony export */   cobraSprites: () => (/* binding */ cobraSprites),
 /* harmony export */   colors: () => (/* binding */ colors),
-/* harmony export */   crocMasks: () => (/* binding */ crocMasks),
 /* harmony export */   crocSprites: () => (/* binding */ crocSprites),
 /* harmony export */   fireMasks: () => (/* binding */ fireMasks),
 /* harmony export */   fireSprites: () => (/* binding */ fireSprites),
@@ -1343,7 +1429,6 @@ const harryMasks = new Array(2); // direction, mask
 const cobraSprites = new Array(2); // direction, sprite
 const cobraMasks = new Array(2); // direction, mask
 const crocSprites = new Array(2); // direction, sprite
-const crocMasks = new Array(2); // direction, mask
 const sorpionSprites = new Array(2); // direction, sprite
 const scorpionMasks = new Array(2); // direction, mask
 const leavesSprites = new Array(2); // direction, sprite
@@ -1550,8 +1635,8 @@ async function init() {
         Offsets[Offsets["COLON"] = 708] = "COLON";
     })(Offsets || (Offsets = {}));
     const palette = extractPalette();
-    const binStr = atob('0tLS0tLS0tLS0tLSyMjIyMjISkpKEtLS0tLS0tLS0tLIyMjIyMjISkpKEhISEhISEhISEhISEhISEhISEhISEj4+Pi4uLi'
-        + '4uLi4uAAAGAAYAAAAAAAAAAABCQtLS0tLS0tLS0tLS0tLS0tIGBgYGBgYGBgYGBgYSBgYGDg4ODg4ODg4ODg4ODg4ODgZCQkIGQkJCBkJCQg'
+    const binStr = atob('0tLS0tLS0tLS0tLSyMjIyMjISkpKEtLS0tLS0tLS0tLIyMjIyMjISkpKEhISEhISEhISEhISEhISEhIQEBAQED4+Pi4uLi'
+        + '4uLi4uAAAEAAQAAAAAAAAAAABCQtDQ0NDQ0NDQ0NDQ0NDQ0NAEBAQEBAQEBAQEBAQSBAQEDg4ODg4ODg4ODg4ODg4ODgZCQkIGQkJCBkJCQg'
         + 'ZCQkJCQh4eHh4eHh4eDg4ODg4OHh4eHh4eHh4ODg4ODg4ODgYGBgYGBgYODg4ODg4ODg7S0tLSEBAQEBAQEBABg8//ABg9fxi8/v8wePz+AA'
         + 'AAAAAzctoeHBhYWHw+GhgQGBgYAACAgMNiYjY+HBgYPD46OBgYEBgYGAAQICIkNDIWHhwYGBwcGBgYGBAYGBgADAgoKD4KDhwYGBwcGBgYGB'
         + 'gQGBgYAAACQ0R0FBwcGBgYPD46OBgYEBgYGAAYEBwYGBgYGBgYGBgcHhoYGBAYGBgAAAAAAAAAY/L23MDAwMDA8NCQ0NDAADAQEBAWFBQWEh'
@@ -1581,9 +1666,8 @@ async function init() {
         createSpriteAndMask(binStr, palette, Offsets.COBRA0, Offsets.COBRACOLOR, 16, flipped, sprite => cobraSprites[dir][1] = sprite, mask => cobraMasks[dir][1] = mask, promises);
         // croc
         crocSprites[dir] = new Array(2);
-        crocMasks[dir] = new Array(2);
-        createSpriteAndMask(binStr, palette, Offsets.CROCO1, Offsets.CROCOCOLOR, 16, flipped, sprite => crocSprites[dir][0] = sprite, mask => crocMasks[dir][0] = mask, promises);
-        createSpriteAndMask(binStr, palette, Offsets.CROCO0, Offsets.CROCOCOLOR, 16, flipped, sprite => crocSprites[dir][1] = sprite, mask => crocMasks[dir][1] = mask, promises);
+        createSpriteAndMask(binStr, palette, Offsets.CROCO1, Offsets.CROCOCOLOR, 16, flipped, sprite => crocSprites[dir][0] = sprite, null, promises);
+        createSpriteAndMask(binStr, palette, Offsets.CROCO0, Offsets.CROCOCOLOR, 16, flipped, sprite => crocSprites[dir][1] = sprite, null, promises);
         // sorpion
         sorpionSprites[dir] = new Array(2);
         scorpionMasks[dir] = new Array(2);
