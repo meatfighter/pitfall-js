@@ -529,6 +529,7 @@ class Harry {
     injuredCounter = 0;
     tunnelSpawning = false;
     releasedVine = false;
+    swallow = false;
     intersects(mask, x, y) {
         return (0,_math__WEBPACK_IMPORTED_MODULE_3__.spritesIntersect)(mask, x, y, _graphics__WEBPACK_IMPORTED_MODULE_0__.harryMasks[this.dir][this.sprite], Math.floor(this.x) - 4, Math.floor(this.y) - 22);
     }
@@ -792,6 +793,7 @@ class Harry {
         this.y = 51;
         this.vy = 0;
         this.sprite = 2;
+        this.swallow = false;
     }
     updateInjured(gs) {
         if (--this.injuredCounter === 0) {
@@ -825,6 +827,13 @@ class Harry {
         this.sprite = 0;
         return true;
     }
+    checkSwallow(xMin, xMax) {
+        const X = Math.floor(this.x);
+        if (X < xMin || X > xMax) {
+            return;
+        }
+        this.swallow = true;
+    }
     updateSinking(gs) {
         if (++this.y > 143 + INJURED_DELAY) {
             this.startTreeSpawn();
@@ -832,7 +841,6 @@ class Harry {
         }
     }
     update(gs) {
-        console.log(`${this.x}`); // TODO REMOVE        
         const state = this.mainState;
         switch (this.mainState) {
             case MainState.STANDING:
@@ -861,7 +869,16 @@ class Harry {
         const X = Math.floor(this.x) - 4 - ox;
         const Y = Math.floor(this.y) - 22;
         if (this.mainState === MainState.SINKING) {
-            if (Y < 119) {
+            if (this.swallow) {
+                if (Y < 121) {
+                    ctx.drawImage(sprite, 0, 0, 8, 121 - Y, X, Y, 8, 121 - Y);
+                    const crocImages = _graphics__WEBPACK_IMPORTED_MODULE_0__.crocSprites[gs.sceneStates[this.scene].enteredLeft ? 0 : 1];
+                    ctx.drawImage(crocImages[0], 0, 9, 8, 2, 52 - ox, 120, 8, 2);
+                    ctx.drawImage(crocImages[0], 0, 9, 8, 2, 68 - ox, 120, 8, 2);
+                    ctx.drawImage(crocImages[0], 0, 9, 8, 2, 84 - ox, 120, 8, 2);
+                }
+            }
+            else if (Y < 119) {
                 ctx.drawImage(sprite, 0, 0, 8, 119 - Y, X, Y, 8, 119 - Y);
             }
         }
@@ -1030,8 +1047,8 @@ __webpack_require__.r(__webpack_exports__);
 const PIT_OPEN_FRAMES = 71;
 const PIT_CLOSED_FRAMES = 143;
 const PIT_SHIFT_FRAMES = 4;
-const CROC_CLOSED_FRAMES = 128;
-const CROC_OPENED_FRAMES = 128;
+const CROC_CLOSED_FRAMES = 192; // 128
+const CROC_OPENED_FRAMES = 128; // 128
 const X_SHIFTS = [
     [41, 103],
     [45, 99],
@@ -1056,6 +1073,11 @@ const X_OPENED_CROCS_RIGHT = [
     [56, 67],
     [72, 83],
     [88, 103],
+];
+const X_CROCS = [
+    [53, 59],
+    [69, 75],
+    [85, 91],
 ];
 var PitState;
 (function (PitState) {
@@ -1124,21 +1146,25 @@ class Pit {
         if (_map__WEBPACK_IMPORTED_MODULE_0__.map[harry.scene].pit !== _map__WEBPACK_IMPORTED_MODULE_0__.PitType.CROCS) {
             return;
         }
-        const xOpenedCrocs = (sceneStates[harry.scene].enteredLeft) ? X_OPENED_CROCS_RIGHT : X_OPENED_CROCS_LEFT;
+        const xOpenedCrocs = (sceneStates[harry.scene].enteredLeft) ? X_OPENED_CROCS_LEFT : X_OPENED_CROCS_RIGHT;
         for (let i = xOpenedCrocs.length - 1; i >= 0; --i) {
             const xCrocs = xOpenedCrocs[i];
             if (harry.checkSink(xCrocs[0], xCrocs[1])) {
+                for (let j = X_CROCS.length - 1; j >= 0; --j) {
+                    const xs = X_CROCS[j];
+                    harry.checkSwallow(xs[0], xs[1]);
+                }
                 break;
             }
         }
     }
     updateCrocClosed(gs) {
-        // if (--this.crocCounter === 0) {
-        //     this.crocState = CrocState.OPENED;
-        //     this.crocCounter = CROC_OPENED_FRAMES + 1;
-        //     this.updateCrocOpened(gs);
-        //     return;
-        // }
+        if (--this.crocCounter === 0) {
+            this.crocState = CrocState.OPENED;
+            this.crocCounter = CROC_OPENED_FRAMES + 1;
+            this.updateCrocOpened(gs);
+            return;
+        }
         const { harry } = gs;
         if (_map__WEBPACK_IMPORTED_MODULE_0__.map[harry.scene].pit !== _map__WEBPACK_IMPORTED_MODULE_0__.PitType.CROCS) {
             return;

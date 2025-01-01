@@ -6,8 +6,8 @@ const PIT_OPEN_FRAMES = 71;
 const PIT_CLOSED_FRAMES = 143;
 const PIT_SHIFT_FRAMES = 4;
 
-const CROC_CLOSED_FRAMES = 128;
-const CROC_OPENED_FRAMES = 128;
+const CROC_CLOSED_FRAMES = 192; // 128
+const CROC_OPENED_FRAMES = 128; // 128
 
 const X_SHIFTS = [
     [ 41, 103 ],
@@ -37,6 +37,12 @@ const X_OPENED_CROCS_RIGHT = [
     [ 72, 83 ],
     [ 88, 103 ],
 ];
+
+const X_CROCS = [
+    [ 53, 59 ],
+    [ 69, 75 ],
+    [ 85, 91 ],
+]
 
 enum PitState {
     OPENED,
@@ -114,22 +120,26 @@ export class Pit {
             return;
         }
 
-        const xOpenedCrocs = (sceneStates[harry.scene].enteredLeft) ? X_OPENED_CROCS_RIGHT : X_OPENED_CROCS_LEFT;
+        const xOpenedCrocs = (sceneStates[harry.scene].enteredLeft) ? X_OPENED_CROCS_LEFT : X_OPENED_CROCS_RIGHT;
         for (let i = xOpenedCrocs.length - 1; i >= 0; --i) {
             const xCrocs = xOpenedCrocs[i];
             if (harry.checkSink(xCrocs[0], xCrocs[1])) {
+                for (let j = X_CROCS.length - 1; j >= 0; --j) {
+                    const xs = X_CROCS[j];
+                    harry.checkSwallow(xs[0], xs[1]);
+                }
                 break;
             }
         }
     }
 
     private updateCrocClosed(gs: GameState) {
-        // if (--this.crocCounter === 0) {
-        //     this.crocState = CrocState.OPENED;
-        //     this.crocCounter = CROC_OPENED_FRAMES + 1;
-        //     this.updateCrocOpened(gs);
-        //     return;
-        // }
+        if (--this.crocCounter === 0) {
+            this.crocState = CrocState.OPENED;
+            this.crocCounter = CROC_OPENED_FRAMES + 1;
+            this.updateCrocOpened(gs);
+            return;
+        }
 
         const { harry } = gs;
         if (map[harry.scene].pit !== PitType.CROCS) {

@@ -1,4 +1,4 @@
-import { harryMasks, harrySprites, Resolution, Mask, vinePoints } from '@/graphics';
+import { harryMasks, harrySprites, Resolution, Mask, vinePoints, crocSprites } from '@/graphics';
 import { GameState } from './game-state';
 import { 
     leftPressed, leftJustPressed, leftJustReleased,
@@ -50,6 +50,7 @@ export class Harry {
     injuredCounter = 0;
     tunnelSpawning = false;
     releasedVine = false;
+    swallow = false;
 
     intersects(mask: Mask, x: number, y: number): boolean {
         return spritesIntersect(mask, x, y, harryMasks[this.dir][this.sprite], Math.floor(this.x) - 4, 
@@ -334,6 +335,7 @@ export class Harry {
         this.y = 51;
         this.vy = 0;
         this.sprite = 2;
+        this.swallow = false;
     }    
     
     private updateInjured(gs: GameState) {
@@ -373,6 +375,14 @@ export class Harry {
         return true;
     }
 
+    checkSwallow(xMin: number, xMax: number) {
+        const X = Math.floor(this.x);
+        if (X < xMin || X > xMax) {
+            return;
+        }
+        this.swallow = true;
+    }
+
     private updateSinking(gs: GameState) {
         if (++this.y > 143 + INJURED_DELAY) {
             this.startTreeSpawn();
@@ -381,7 +391,6 @@ export class Harry {
     }    
 
     update(gs: GameState) {
-        console.log(`${this.x}`); // TODO REMOVE        
         const state = this.mainState;
         switch (this.mainState) {
             case MainState.STANDING:
@@ -411,7 +420,15 @@ export class Harry {
         const X = Math.floor(this.x) - 4 - ox;
         const Y = Math.floor(this.y) - 22;
         if (this.mainState === MainState.SINKING) {
-            if (Y < 119) {
+            if (this.swallow) {
+                if (Y < 121) {
+                    ctx.drawImage(sprite, 0, 0, 8, 121 - Y, X, Y, 8, 121 - Y);
+                    const crocImages = crocSprites[gs.sceneStates[this.scene].enteredLeft ? 0 : 1];                  
+                    ctx.drawImage(crocImages[0], 0, 9, 8, 2, 52 - ox, 120, 8, 2);
+                    ctx.drawImage(crocImages[0], 0, 9, 8, 2, 68 - ox, 120, 8, 2);
+                    ctx.drawImage(crocImages[0], 0, 9, 8, 2, 84 - ox, 120, 8, 2);                    
+                }
+            } else if (Y < 119) {
                 ctx.drawImage(sprite, 0, 0, 8, 119 - Y, X, Y, 8, 119 - Y);
             }
         } else if (this.tunnelSpawning && Y >= 127 && Y < 142) {
