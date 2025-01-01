@@ -1,4 +1,4 @@
-import { map, Wall, Pit } from './map';
+import { map, WallType, PitType } from './map';
 import { GameState } from './game-state';
 import { colors, Colors, Resolution, leavesSprites, branchesSprite, wallSprite } from '@/graphics';
 import { clamp } from '@/math';
@@ -35,6 +35,8 @@ function updateScene(scene: number) {
 
 export function update() {
     updateInput();
+
+    gs.harry.teleported = false;
 
     if (!gs.harry.isInjured()) {
         gs.vine.update(gs);
@@ -132,11 +134,11 @@ function renderBackground(ctx: OffscreenCanvasRenderingContext2D, scene: number,
     }
 
     switch(wall) {
-        case Wall.LEFT:
+        case WallType.LEFT:
             ctx.drawImage(wallSprite, 10 - ox, 142);
             ctx.drawImage(wallSprite, 10 - ox, 158);
             break;
-        case Wall.RIGHT:
+        case WallType.RIGHT:
             ctx.drawImage(wallSprite, 128 - ox, 142);
             ctx.drawImage(wallSprite, 128 - ox, 158);
             break;
@@ -150,7 +152,7 @@ function renderBackground(ctx: OffscreenCanvasRenderingContext2D, scene: number,
         gs.vine.render(gs, ctx, ox);
     }
 
-    if (pit !== Pit.NONE) {
+    if (pit !== PitType.NONE) {
         gs.pit.render(gs, pit, ctx, ox);
     }
 }

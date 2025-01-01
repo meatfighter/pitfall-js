@@ -3,11 +3,11 @@ import { Harry } from './harry';
 import { Scorpion } from './scorpion';
 import { Vine } from './vine';
 import { Pit } from './pit';
-import { map, Treasure } from './map';
+import { map, TreasureType } from './map';
 
 export class SceneState {
     constructor(public readonly scorpion: Scorpion | null,
-                public treasure: Treasure
+                public treasure: TreasureType
     ) {
     }
 }

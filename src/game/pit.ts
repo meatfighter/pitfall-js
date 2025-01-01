@@ -1,5 +1,5 @@
 import { GameState } from './game-state';
-import { Pit as PitType, map } from './map';
+import { PitType, map } from './map';
 import { pitSprites } from '@/graphics';
 
 const OPEN_FRAMES = 71;

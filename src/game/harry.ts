@@ -7,7 +7,7 @@ import {
     downPressed, downJustPressed, downJustReleased,
     jumpPressed, jumpJustPressed, jumpJustReleased,
  } from '@/input';
-import { map, Wall } from './map';
+import { map, WallType } from './map';
 import { spritesIntersect } from '@/math';
 
 const Y_UPPER_LEVEL = 119;
@@ -140,7 +140,7 @@ export class Harry {
         let shifting = false;
         if (rightPressed) {
             let moveRight = true;
-            if (this.y >= 120 && ((wall === Wall.RIGHT && this.x === 127) || (wall === Wall.LEFT && this.x === 9))) {
+            if (this.y >= 120 && ((wall === WallType.RIGHT && this.x === 127) || (wall === WallType.LEFT && this.x === 9))) {
                 moveRight = false;
             } else if (this.y > Y_UPPER_LEVEL && this.y <= Y_HOLE_BOTTOM) {
                 if (this.x >= 40 && this.x <= 51) {
@@ -160,7 +160,7 @@ export class Harry {
             }
         } else if (leftPressed) {
             let moveLeft = true;
-            if (this.y >= 120 && ((wall === Wall.LEFT && this.x === 18) || (wall === Wall.RIGHT && this.x === 136))) {
+            if (this.y >= 120 && ((wall === WallType.LEFT && this.x === 18) || (wall === WallType.RIGHT && this.x === 136))) {
                 moveLeft = false;
             } else if (this.y > Y_UPPER_LEVEL && this.y <= Y_HOLE_BOTTOM) {
                 if (this.x >= 40 && this.x <= 51) {
@@ -338,6 +338,7 @@ export class Harry {
     swing() {
         this.mainState = MainState.SWINGING;
         this.sprite = 6;
+        this.teleported = true;
     }
 
     private updateSwinging(gs: GameState) {
@@ -367,8 +368,7 @@ export class Harry {
         }
     }    
 
-    update(gs: GameState) {
-        this.teleported = false;
+    update(gs: GameState) {        
         const state = this.mainState;
         switch (this.mainState) {
             case MainState.STANDING:

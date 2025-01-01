@@ -1,6 +1,6 @@
 export const map = new Array<Scene>(255);
 
-export enum Pit {    
+export enum PitType {    
     TAR,
     QUICKSAND,
     CROCS,
@@ -9,7 +9,7 @@ export enum Pit {
     NONE,
 }
 
-export enum Treasure {
+export enum TreasureType {
     MONEY_BAG = 0,
     SILVER_BRICK = 1,
     GOLD_BRICK = 2,
@@ -17,7 +17,7 @@ export enum Treasure {
     NONE = 4,
 }
 
-export enum Obsticles {
+export enum ObsticleType {
     ONE_ROLLING_LOG = 0,
     TWO_ROLLING_LOGS_CLOSE = 1,
     TWO_ROLLING_LOGS_FAR = 2,
@@ -29,7 +29,7 @@ export enum Obsticles {
     NONE = 8,
 }
 
-export enum Wall {
+export enum WallType {
     LEFT = 0,
     RIGHT = 1,
     NONE = 2,
@@ -40,10 +40,10 @@ export class Scene {
                 public ladder: boolean,
                 public holes: boolean,
                 public vine: boolean,
-                public pit: Pit,
-                public treasure: Treasure,
-                public obsticles: Obsticles,
-                public wall: Wall,
+                public pit: PitType,
+                public treasure: TreasureType,
+                public obsticles: ObsticleType,
+                public wall: WallType,
                 public scorpion: boolean) {
     }
 }
@@ -54,10 +54,10 @@ for (let i = 0; i < map.length; ++i) {
     let ladder = false;
     let holes = false;
     let vine = false;
-    let pit = Pit.NONE;
-    let treasure = Treasure.NONE;
-    let obsticles = Obsticles.NONE;
-    let wall = Wall.NONE;
+    let pit = PitType.NONE;
+    let treasure = TreasureType.NONE;
+    let obsticles = ObsticleType.NONE;
+    let wall = WallType.NONE;
     switch ((seed >> 3) & 7) {
         case 0:
             ladder = true;
@@ -68,29 +68,29 @@ for (let i = 0; i < map.length; ++i) {
             break;
         case 2:
             vine = true;
-            pit = Pit.TAR;            
+            pit = PitType.TAR;            
             break;
         case 3:
             vine = true;
-            pit = Pit.QUICKSAND;
+            pit = PitType.QUICKSAND;
             break;
         case 4:
             vine = ((seed >> 1) & 1) === 1;
-            pit = Pit.CROCS;
+            pit = PitType.CROCS;
             break;
         case 5:
-            pit = Pit.SHIFTING_TAR;
+            pit = PitType.SHIFTING_TAR;
             treasure = seed & 3;
             break;
         case 6:
-            pit = Pit.SHIFTING_TAR;
+            pit = PitType.SHIFTING_TAR;
             vine = true;
             break;
         case 7:
-            pit = Pit.SHIFTING_QUICKSAND;
+            pit = PitType.SHIFTING_QUICKSAND;
             break;                            
     }
-    if (treasure === Treasure.NONE && pit !== Pit.CROCS) {
+    if (treasure === TreasureType.NONE && pit !== PitType.CROCS) {
         obsticles = seed & 7;
     }
     if (ladder) {
