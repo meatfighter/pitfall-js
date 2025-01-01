@@ -7,11 +7,11 @@ const CLOSED_FRAMES = 143;
 const SHIFT_FRAMES = 4;
 
 const X_BOUNDS = [
-    [ 40, 103 ],
-    [ 44, 99 ],
-    [ 48, 95 ],
-    [ 56, 87 ],
-    [ 68, 75 ],
+    [ 41, 103 ],
+    [ 45, 99 ],
+    [ 49, 95 ],
+    [ 57, 87 ],
+    [ 69, 75 ],
 ];
 
 enum State {

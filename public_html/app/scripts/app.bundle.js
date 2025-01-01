@@ -234,7 +234,12 @@ __webpack_require__.r(__webpack_exports__);
 
 
 class SceneState {
-    scorpion = null;
+    scorpion;
+    treasure;
+    constructor(scorpion, treasure) {
+        this.scorpion = scorpion;
+        this.treasure = treasure;
+    }
 }
 class GameState {
     sceneStates = new Array(_map__WEBPACK_IMPORTED_MODULE_5__.map.length);
@@ -252,10 +257,8 @@ class GameState {
     lastMinOx = 0;
     constructor() {
         for (let i = _map__WEBPACK_IMPORTED_MODULE_5__.map.length - 1; i >= 0; --i) {
-            this.sceneStates[i] = new SceneState();
-            if (_map__WEBPACK_IMPORTED_MODULE_5__.map[i].scorpion) {
-                this.sceneStates[i].scorpion = new _scorpion__WEBPACK_IMPORTED_MODULE_2__.Scorpion(i);
-            }
+            const scene = _map__WEBPACK_IMPORTED_MODULE_5__.map[i];
+            this.sceneStates[i] = new SceneState(scene.scorpion ? new _scorpion__WEBPACK_IMPORTED_MODULE_2__.Scorpion(i) : null, scene.treasure);
         }
     }
     save() {
@@ -313,6 +316,7 @@ function updateScene(scene) {
 }
 function update() {
     (0,_input__WEBPACK_IMPORTED_MODULE_4__.updateInput)();
+    gs.harry.teleported = false;
     if (!gs.harry.isInjured()) {
         gs.vine.update(gs);
         gs.pit.update(gs);
@@ -404,11 +408,11 @@ function renderBackground(ctx, scene, ox) {
         ctx.fillRect(92 - ox, 127, 12, 15);
     }
     switch (wall) {
-        case _map__WEBPACK_IMPORTED_MODULE_0__.Wall.LEFT:
+        case _map__WEBPACK_IMPORTED_MODULE_0__.WallType.LEFT:
             ctx.drawImage(_graphics__WEBPACK_IMPORTED_MODULE_2__.wallSprite, 10 - ox, 142);
             ctx.drawImage(_graphics__WEBPACK_IMPORTED_MODULE_2__.wallSprite, 10 - ox, 158);
             break;
-        case _map__WEBPACK_IMPORTED_MODULE_0__.Wall.RIGHT:
+        case _map__WEBPACK_IMPORTED_MODULE_0__.WallType.RIGHT:
             ctx.drawImage(_graphics__WEBPACK_IMPORTED_MODULE_2__.wallSprite, 128 - ox, 142);
             ctx.drawImage(_graphics__WEBPACK_IMPORTED_MODULE_2__.wallSprite, 128 - ox, 158);
             break;
@@ -419,7 +423,7 @@ function renderBackground(ctx, scene, ox) {
     if (vine) {
         gs.vine.render(gs, ctx, ox);
     }
-    if (pit !== _map__WEBPACK_IMPORTED_MODULE_0__.Pit.NONE) {
+    if (pit !== _map__WEBPACK_IMPORTED_MODULE_0__.PitType.NONE) {
         gs.pit.render(gs, pit, ctx, ox);
     }
 }
@@ -489,7 +493,7 @@ const JUMP_ARC_HEIGHT = 11;
 const T = JUMP_ARC_BASE;
 const G = 2 * JUMP_ARC_HEIGHT / (T * T);
 const VY0 = -G * T;
-const INJURED_DELAY = 134;
+const INJURED_DELAY = 20; //134;
 const X_SPAWN_MARGIN = _graphics__WEBPACK_IMPORTED_MODULE_0__.Resolution.WIDTH / 4;
 var MainState;
 (function (MainState) {
@@ -595,7 +599,7 @@ class Harry {
         let shifting = false;
         if (_input__WEBPACK_IMPORTED_MODULE_1__.rightPressed) {
             let moveRight = true;
-            if (this.y >= 120 && ((wall === _map__WEBPACK_IMPORTED_MODULE_2__.Wall.RIGHT && this.x === 127) || (wall === _map__WEBPACK_IMPORTED_MODULE_2__.Wall.LEFT && this.x === 9))) {
+            if (this.y >= 120 && ((wall === _map__WEBPACK_IMPORTED_MODULE_2__.WallType.RIGHT && this.x === 127) || (wall === _map__WEBPACK_IMPORTED_MODULE_2__.WallType.LEFT && this.x === 9))) {
                 moveRight = false;
             }
             else if (this.y > Y_UPPER_LEVEL && this.y <= Y_HOLE_BOTTOM) {
@@ -618,7 +622,7 @@ class Harry {
         }
         else if (_input__WEBPACK_IMPORTED_MODULE_1__.leftPressed) {
             let moveLeft = true;
-            if (this.y >= 120 && ((wall === _map__WEBPACK_IMPORTED_MODULE_2__.Wall.LEFT && this.x === 18) || (wall === _map__WEBPACK_IMPORTED_MODULE_2__.Wall.RIGHT && this.x === 136))) {
+            if (this.y >= 120 && ((wall === _map__WEBPACK_IMPORTED_MODULE_2__.WallType.LEFT && this.x === 18) || (wall === _map__WEBPACK_IMPORTED_MODULE_2__.WallType.RIGHT && this.x === 136))) {
                 moveLeft = false;
             }
             else if (this.y > Y_UPPER_LEVEL && this.y <= Y_HOLE_BOTTOM) {
@@ -771,6 +775,13 @@ class Harry {
         this.vy = 0;
         this.sprite = 2;
     }
+    startTreeSpawn() {
+        this.mainState = MainState.FALLING;
+        this.teleport((this.dir === 0) ? 16 : 135);
+        this.y = 51;
+        this.vy = 0;
+        this.sprite = 2;
+    }
     updateInjured(gs) {
         if (--this.injuredCounter === 0) {
             if (this.isUnderground()) {
@@ -782,6 +793,7 @@ class Harry {
     swing() {
         this.mainState = MainState.SWINGING;
         this.sprite = 6;
+        this.teleported = true;
     }
     updateSwinging(gs) {
         const p = _graphics__WEBPACK_IMPORTED_MODULE_0__.vinePoints[gs.vine.sprite];
@@ -794,20 +806,20 @@ class Harry {
         }
     }
     checkSink(xMin, xMax) {
-        if (this.mainState !== MainState.STANDING || this.y !== Y_UPPER_LEVEL || this.x < xMin || this.x > xMax) {
+        const X = Math.floor(this.x);
+        if (this.mainState !== MainState.STANDING || this.y !== Y_UPPER_LEVEL || X < xMin || X > xMax) {
             return;
         }
         this.mainState = MainState.SINKING;
         this.sprite = 0;
     }
     updateSinking(gs) {
-        if (++this.y > 143) {
-            this.injure();
+        if (++this.y > 143 + INJURED_DELAY) {
+            this.startTreeSpawn();
             return;
         }
     }
     update(gs) {
-        this.teleported = false;
         const state = this.mainState;
         switch (this.mainState) {
             case MainState.STANDING:
@@ -868,49 +880,49 @@ class Harry {
 
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   Obsticles: () => (/* binding */ Obsticles),
-/* harmony export */   Pit: () => (/* binding */ Pit),
+/* harmony export */   ObsticleType: () => (/* binding */ ObsticleType),
+/* harmony export */   PitType: () => (/* binding */ PitType),
 /* harmony export */   Scene: () => (/* binding */ Scene),
-/* harmony export */   Treasure: () => (/* binding */ Treasure),
-/* harmony export */   Wall: () => (/* binding */ Wall),
+/* harmony export */   TreasureType: () => (/* binding */ TreasureType),
+/* harmony export */   WallType: () => (/* binding */ WallType),
 /* harmony export */   map: () => (/* binding */ map)
 /* harmony export */ });
 const map = new Array(255);
-var Pit;
-(function (Pit) {
-    Pit[Pit["TAR"] = 0] = "TAR";
-    Pit[Pit["QUICKSAND"] = 1] = "QUICKSAND";
-    Pit[Pit["CROCS"] = 2] = "CROCS";
-    Pit[Pit["SHIFTING_TAR"] = 3] = "SHIFTING_TAR";
-    Pit[Pit["SHIFTING_QUICKSAND"] = 4] = "SHIFTING_QUICKSAND";
-    Pit[Pit["NONE"] = 5] = "NONE";
-})(Pit || (Pit = {}));
-var Treasure;
-(function (Treasure) {
-    Treasure[Treasure["MONEY_BAG"] = 0] = "MONEY_BAG";
-    Treasure[Treasure["SILVER_BRICK"] = 1] = "SILVER_BRICK";
-    Treasure[Treasure["GOLD_BRICK"] = 2] = "GOLD_BRICK";
-    Treasure[Treasure["DIAMOND_RING"] = 3] = "DIAMOND_RING";
-    Treasure[Treasure["NONE"] = 4] = "NONE";
-})(Treasure || (Treasure = {}));
-var Obsticles;
-(function (Obsticles) {
-    Obsticles[Obsticles["ONE_ROLLING_LOG"] = 0] = "ONE_ROLLING_LOG";
-    Obsticles[Obsticles["TWO_ROLLING_LOGS_CLOSE"] = 1] = "TWO_ROLLING_LOGS_CLOSE";
-    Obsticles[Obsticles["TWO_ROLLING_LOGS_FAR"] = 2] = "TWO_ROLLING_LOGS_FAR";
-    Obsticles[Obsticles["THREE_ROLLING_LOGS"] = 3] = "THREE_ROLLING_LOGS";
-    Obsticles[Obsticles["ONE_STATIONARY_LOG"] = 4] = "ONE_STATIONARY_LOG";
-    Obsticles[Obsticles["THREE_STATIONARY_LOGS"] = 5] = "THREE_STATIONARY_LOGS";
-    Obsticles[Obsticles["FIRE"] = 6] = "FIRE";
-    Obsticles[Obsticles["RATTLESNAKE"] = 7] = "RATTLESNAKE";
-    Obsticles[Obsticles["NONE"] = 8] = "NONE";
-})(Obsticles || (Obsticles = {}));
-var Wall;
-(function (Wall) {
-    Wall[Wall["LEFT"] = 0] = "LEFT";
-    Wall[Wall["RIGHT"] = 1] = "RIGHT";
-    Wall[Wall["NONE"] = 2] = "NONE";
-})(Wall || (Wall = {}));
+var PitType;
+(function (PitType) {
+    PitType[PitType["TAR"] = 0] = "TAR";
+    PitType[PitType["QUICKSAND"] = 1] = "QUICKSAND";
+    PitType[PitType["CROCS"] = 2] = "CROCS";
+    PitType[PitType["SHIFTING_TAR"] = 3] = "SHIFTING_TAR";
+    PitType[PitType["SHIFTING_QUICKSAND"] = 4] = "SHIFTING_QUICKSAND";
+    PitType[PitType["NONE"] = 5] = "NONE";
+})(PitType || (PitType = {}));
+var TreasureType;
+(function (TreasureType) {
+    TreasureType[TreasureType["MONEY_BAG"] = 0] = "MONEY_BAG";
+    TreasureType[TreasureType["SILVER_BRICK"] = 1] = "SILVER_BRICK";
+    TreasureType[TreasureType["GOLD_BRICK"] = 2] = "GOLD_BRICK";
+    TreasureType[TreasureType["DIAMOND_RING"] = 3] = "DIAMOND_RING";
+    TreasureType[TreasureType["NONE"] = 4] = "NONE";
+})(TreasureType || (TreasureType = {}));
+var ObsticleType;
+(function (ObsticleType) {
+    ObsticleType[ObsticleType["ONE_ROLLING_LOG"] = 0] = "ONE_ROLLING_LOG";
+    ObsticleType[ObsticleType["TWO_ROLLING_LOGS_CLOSE"] = 1] = "TWO_ROLLING_LOGS_CLOSE";
+    ObsticleType[ObsticleType["TWO_ROLLING_LOGS_FAR"] = 2] = "TWO_ROLLING_LOGS_FAR";
+    ObsticleType[ObsticleType["THREE_ROLLING_LOGS"] = 3] = "THREE_ROLLING_LOGS";
+    ObsticleType[ObsticleType["ONE_STATIONARY_LOG"] = 4] = "ONE_STATIONARY_LOG";
+    ObsticleType[ObsticleType["THREE_STATIONARY_LOGS"] = 5] = "THREE_STATIONARY_LOGS";
+    ObsticleType[ObsticleType["FIRE"] = 6] = "FIRE";
+    ObsticleType[ObsticleType["RATTLESNAKE"] = 7] = "RATTLESNAKE";
+    ObsticleType[ObsticleType["NONE"] = 8] = "NONE";
+})(ObsticleType || (ObsticleType = {}));
+var WallType;
+(function (WallType) {
+    WallType[WallType["LEFT"] = 0] = "LEFT";
+    WallType[WallType["RIGHT"] = 1] = "RIGHT";
+    WallType[WallType["NONE"] = 2] = "NONE";
+})(WallType || (WallType = {}));
 class Scene {
     trees;
     ladder;
@@ -939,10 +951,10 @@ for (let i = 0; i < map.length; ++i) {
     let ladder = false;
     let holes = false;
     let vine = false;
-    let pit = Pit.NONE;
-    let treasure = Treasure.NONE;
-    let obsticles = Obsticles.NONE;
-    let wall = Wall.NONE;
+    let pit = PitType.NONE;
+    let treasure = TreasureType.NONE;
+    let obsticles = ObsticleType.NONE;
+    let wall = WallType.NONE;
     switch ((seed >> 3) & 7) {
         case 0:
             ladder = true;
@@ -953,29 +965,29 @@ for (let i = 0; i < map.length; ++i) {
             break;
         case 2:
             vine = true;
-            pit = Pit.TAR;
+            pit = PitType.TAR;
             break;
         case 3:
             vine = true;
-            pit = Pit.QUICKSAND;
+            pit = PitType.QUICKSAND;
             break;
         case 4:
             vine = ((seed >> 1) & 1) === 1;
-            pit = Pit.CROCS;
+            pit = PitType.CROCS;
             break;
         case 5:
-            pit = Pit.SHIFTING_TAR;
+            pit = PitType.SHIFTING_TAR;
             treasure = seed & 3;
             break;
         case 6:
-            pit = Pit.SHIFTING_TAR;
+            pit = PitType.SHIFTING_TAR;
             vine = true;
             break;
         case 7:
-            pit = Pit.SHIFTING_QUICKSAND;
+            pit = PitType.SHIFTING_QUICKSAND;
             break;
     }
-    if (treasure === Treasure.NONE && pit !== Pit.CROCS) {
+    if (treasure === TreasureType.NONE && pit !== PitType.CROCS) {
         obsticles = seed & 7;
     }
     if (ladder) {
@@ -1006,11 +1018,11 @@ const OPEN_FRAMES = 71;
 const CLOSED_FRAMES = 143;
 const SHIFT_FRAMES = 4;
 const X_BOUNDS = [
-    [40, 103],
-    [44, 99],
-    [48, 95],
-    [56, 87],
-    [68, 75],
+    [41, 103],
+    [45, 99],
+    [49, 95],
+    [57, 87],
+    [69, 75],
 ];
 var State;
 (function (State) {
@@ -1078,13 +1090,13 @@ class Pit {
         }
         const { harry } = gs;
         switch (_map__WEBPACK_IMPORTED_MODULE_0__.map[harry.scene].pit) {
-            case _map__WEBPACK_IMPORTED_MODULE_0__.Pit.TAR:
-            case _map__WEBPACK_IMPORTED_MODULE_0__.Pit.QUICKSAND:
-            case _map__WEBPACK_IMPORTED_MODULE_0__.Pit.CROCS: // TODO ENHANCE   
+            case _map__WEBPACK_IMPORTED_MODULE_0__.PitType.TAR:
+            case _map__WEBPACK_IMPORTED_MODULE_0__.PitType.QUICKSAND:
+            case _map__WEBPACK_IMPORTED_MODULE_0__.PitType.CROCS: // TODO ENHANCE   
                 harry.checkSink(X_BOUNDS[0][0], X_BOUNDS[0][1]);
                 break;
-            case _map__WEBPACK_IMPORTED_MODULE_0__.Pit.SHIFTING_TAR:
-            case _map__WEBPACK_IMPORTED_MODULE_0__.Pit.SHIFTING_QUICKSAND:
+            case _map__WEBPACK_IMPORTED_MODULE_0__.PitType.SHIFTING_TAR:
+            case _map__WEBPACK_IMPORTED_MODULE_0__.PitType.SHIFTING_QUICKSAND:
                 if (this.offset < 5) {
                     harry.checkSink(X_BOUNDS[this.offset][0], X_BOUNDS[this.offset][1]);
                 }
@@ -1092,8 +1104,8 @@ class Pit {
         }
     }
     render(gs, pit, ctx, ox) {
-        const sprites = _graphics__WEBPACK_IMPORTED_MODULE_1__.pitSprites[(pit === _map__WEBPACK_IMPORTED_MODULE_0__.Pit.TAR || pit == _map__WEBPACK_IMPORTED_MODULE_0__.Pit.SHIFTING_TAR) ? 0 : 1];
-        if (pit === _map__WEBPACK_IMPORTED_MODULE_0__.Pit.SHIFTING_TAR || pit === _map__WEBPACK_IMPORTED_MODULE_0__.Pit.SHIFTING_QUICKSAND) {
+        const sprites = _graphics__WEBPACK_IMPORTED_MODULE_1__.pitSprites[(pit === _map__WEBPACK_IMPORTED_MODULE_0__.PitType.TAR || pit == _map__WEBPACK_IMPORTED_MODULE_0__.PitType.SHIFTING_TAR) ? 0 : 1];
+        if (pit === _map__WEBPACK_IMPORTED_MODULE_0__.PitType.SHIFTING_TAR || pit === _map__WEBPACK_IMPORTED_MODULE_0__.PitType.SHIFTING_QUICKSAND) {
             if (this.state !== State.CLOSED) {
                 ctx.drawImage(sprites[0], 0, 0, 64, 5 - this.offset, 40 - ox, 114 + this.offset, 64, 5 - this.offset);
                 ctx.drawImage(sprites[1], 0, this.offset, 64, 5 - this.offset, 40 - ox, 119, 64, 5 - this.offset);
@@ -1102,6 +1114,9 @@ class Pit {
         else {
             ctx.drawImage(sprites[0], 40 - ox, 114);
             ctx.drawImage(sprites[1], 40 - ox, 119);
+            if (pit === _map__WEBPACK_IMPORTED_MODULE_0__.PitType.CROCS) {
+                // TODO DRAW CROCS
+            }
         }
     }
 }

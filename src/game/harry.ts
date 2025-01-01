@@ -21,7 +21,7 @@ const T = JUMP_ARC_BASE;
 const G = 2 * JUMP_ARC_HEIGHT / (T * T);
 const VY0 = -G * T;
 
-const INJURED_DELAY = 134;
+const INJURED_DELAY = 20//134;
 
 const X_SPAWN_MARGIN = Resolution.WIDTH / 4;
 
@@ -325,6 +325,14 @@ export class Harry {
         this.vy = 0;
         this.sprite = 2;
     }
+
+    private startTreeSpawn() {
+        this.mainState = MainState.FALLING;
+        this.teleport((this.dir === 0) ? 16 : 135);
+        this.y = 51;
+        this.vy = 0;
+        this.sprite = 2;
+    }    
     
     private updateInjured(gs: GameState) {
         if (--this.injuredCounter === 0) {
@@ -354,7 +362,8 @@ export class Harry {
     }
 
     checkSink(xMin: number, xMax: number) {
-        if (this.mainState !== MainState.STANDING || this.y !== Y_UPPER_LEVEL || this.x < xMin || this.x > xMax) {
+        const X = Math.floor(this.x);
+        if (this.mainState !== MainState.STANDING || this.y !== Y_UPPER_LEVEL || X < xMin || X > xMax) {
             return;
         }
         this.mainState = MainState.SINKING;
@@ -362,8 +371,8 @@ export class Harry {
     }
 
     private updateSinking(gs: GameState) {
-        if (++this.y > 143) {
-            this.injure();
+        if (++this.y > 143 + INJURED_DELAY) {
+            this.startTreeSpawn();
             return;
         }
     }    

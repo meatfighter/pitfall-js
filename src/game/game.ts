@@ -161,7 +161,7 @@ function renderLeaves(ctx: OffscreenCanvasRenderingContext2D, scene: number, ox:
     const { trees } = map[scene];
     ctx.fillStyle = colors[Colors.DARK_GREEN];
     ctx.fillRect(0, 0, Resolution.WIDTH, 51);
-    ctx.drawImage(leavesSprites[1][trees], 6, 0, 2, 4, - ox, 51, 8, 8);    
+    ctx.drawImage(leavesSprites[1][trees], 6, 0, 2, 4, -ox, 51, 8, 8);
     for (let i = 1; i < 5; ++i) {
         ctx.drawImage(leavesSprites[(i & 1) ^ 1][trees], (i << 5) - ox - 24, 51, 32, 8);
     }
