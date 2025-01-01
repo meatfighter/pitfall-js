@@ -3,6 +3,7 @@ import { Harry } from './harry';
 import { Scorpion } from './scorpion';
 import { Vine } from './vine';
 import { Pit } from './pit';
+import { RollingLog } from './rolling-log';
 import { map, TreasureType } from './map';
 
 export class SceneState {
@@ -21,6 +22,7 @@ export class GameState {
     harry = new Harry();
     vine = new Vine();
     pit = new Pit();
+    rollingLog = new RollingLog();
     scrollX = Math.floor(this.harry.absoluteX);
     lastScrollX = this.scrollX;
     ox = 0;
@@ -29,8 +31,6 @@ export class GameState {
     lastNextScene = 0;
     lastHarryUnderground = false;
     sceneAlpha = 1;
-
-    lastMinOx = 0;
 
     constructor() {
         for (let i = map.length - 1; i >= 0; --i) {

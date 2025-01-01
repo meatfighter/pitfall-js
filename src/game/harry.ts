@@ -426,7 +426,7 @@ export class Harry {
                     const crocImages = crocSprites[gs.sceneStates[this.scene].enteredLeft ? 0 : 1];                  
                     ctx.drawImage(crocImages[0], 0, 9, 8, 2, 52 - ox, 120, 8, 2);
                     ctx.drawImage(crocImages[0], 0, 9, 8, 2, 68 - ox, 120, 8, 2);
-                    ctx.drawImage(crocImages[0], 0, 9, 8, 2, 84 - ox, 120, 8, 2);                    
+                    ctx.drawImage(crocImages[0], 0, 9, 8, 2, 84 - ox, 120, 8, 2);
                 }
             } else if (Y < 119) {
                 ctx.drawImage(sprite, 0, 0, 8, 119 - Y, X, Y, 8, 119 - Y);

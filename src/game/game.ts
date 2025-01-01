@@ -1,4 +1,4 @@
-import { map, WallType, PitType } from './map';
+import { map, WallType, PitType, ObsticleType } from './map';
 import { GameState } from './game-state';
 import { colors, Colors, Resolution, leavesSprites, branchesSprite, wallSprite } from '@/graphics';
 import { clamp } from '@/math';
@@ -44,6 +44,7 @@ export function update() {
     if (!gs.harry.isInjured()) {
         gs.vine.update(gs);
         gs.pit.update(gs);
+        gs.rollingLog.update(gs);
         updateScene(gs.harry.scene);
         updateScene(gs.nextScene);
         if (gs.sceneAlpha < 1) {
@@ -115,7 +116,7 @@ function renderStrips(ctx: OffscreenCanvasRenderingContext2D) {
 }
 
 function renderBackground(ctx: OffscreenCanvasRenderingContext2D, scene: number, ox: number) {
-    const { trees, ladder, holes, wall, vine, pit } = map[scene];
+    const { trees, ladder, holes, wall, vine, pit, obsticles } = map[scene];
     const { scorpion } = gs.sceneStates[scene];
     const trunks = TRUNKS[trees];
     ctx.fillStyle = colors[Colors.DARK_BROWN];
@@ -164,6 +165,15 @@ function renderBackground(ctx: OffscreenCanvasRenderingContext2D, scene: number,
     if (pit !== PitType.NONE) {
         gs.pit.render(gs, ctx, scene, ox);
     }
+
+    // switch (obsticles) {
+    //     case ObsticleType.ONE_ROLLING_LOG:
+    //     case ObsticleType.TWO_ROLLING_LOGS_CLOSE:    
+    //     case ObsticleType.TWO_ROLLING_LOGS_FAR:  
+    //     case ObsticleType.THREE_ROLLING_LOGS:
+            gs.rollingLog.render(gs, ctx, scene, ox);
+    //         break;  
+    // }
 }
 
 function renderLeaves(ctx: OffscreenCanvasRenderingContext2D, scene: number, ox: number) {

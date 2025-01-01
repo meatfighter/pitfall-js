@@ -11,14 +11,14 @@ export class Vine {
             this.sprite = 0;
         }
 
-        // const { harry } = gs;
-        // if (map[harry.scene].vine && !harry.releasedVine && harry.isFalling() 
-        //         && harry.intersects(vineMasks[this.sprite], 39, 28)) {
-        //     harry.swing();
-        // }
+        const { harry } = gs;
+        if (map[harry.scene].vine && !harry.releasedVine && harry.isFalling() 
+                && harry.intersects(vineMasks[this.sprite], 39, 28)) {
+            harry.swing();
+        }
     }
 
     render(gs: GameState, ctx: OffscreenCanvasRenderingContext2D, ox: number) {
-        // ctx.drawImage(vineSprites[this.sprite], 39 - ox, 28);
+        ctx.drawImage(vineSprites[this.sprite], 39 - ox, 28);
     }
 }

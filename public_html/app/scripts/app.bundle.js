@@ -226,7 +226,9 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _scorpion__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./scorpion */ "./src/game/scorpion.ts");
 /* harmony import */ var _vine__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./vine */ "./src/game/vine.ts");
 /* harmony import */ var _pit__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./pit */ "./src/game/pit.ts");
-/* harmony import */ var _map__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./map */ "./src/game/map.ts");
+/* harmony import */ var _rolling_log__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./rolling-log */ "./src/game/rolling-log.ts");
+/* harmony import */ var _map__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./map */ "./src/game/map.ts");
+
 
 
 
@@ -243,10 +245,11 @@ class SceneState {
     }
 }
 class GameState {
-    sceneStates = new Array(_map__WEBPACK_IMPORTED_MODULE_5__.map.length);
+    sceneStates = new Array(_map__WEBPACK_IMPORTED_MODULE_6__.map.length);
     harry = new _harry__WEBPACK_IMPORTED_MODULE_1__.Harry();
     vine = new _vine__WEBPACK_IMPORTED_MODULE_3__.Vine();
     pit = new _pit__WEBPACK_IMPORTED_MODULE_4__.Pit();
+    rollingLog = new _rolling_log__WEBPACK_IMPORTED_MODULE_5__.RollingLog();
     scrollX = Math.floor(this.harry.absoluteX);
     lastScrollX = this.scrollX;
     ox = 0;
@@ -255,10 +258,9 @@ class GameState {
     lastNextScene = 0;
     lastHarryUnderground = false;
     sceneAlpha = 1;
-    lastMinOx = 0;
     constructor() {
-        for (let i = _map__WEBPACK_IMPORTED_MODULE_5__.map.length - 1; i >= 0; --i) {
-            const scene = _map__WEBPACK_IMPORTED_MODULE_5__.map[i];
+        for (let i = _map__WEBPACK_IMPORTED_MODULE_6__.map.length - 1; i >= 0; --i) {
+            const scene = _map__WEBPACK_IMPORTED_MODULE_6__.map[i];
             this.sceneStates[i] = new SceneState(scene.scorpion ? new _scorpion__WEBPACK_IMPORTED_MODULE_2__.Scorpion(i) : null, scene.treasure);
         }
     }
@@ -323,6 +325,7 @@ function update() {
     if (!gs.harry.isInjured()) {
         gs.vine.update(gs);
         gs.pit.update(gs);
+        gs.rollingLog.update(gs);
         updateScene(gs.harry.scene);
         updateScene(gs.nextScene);
         if (gs.sceneAlpha < 1) {
@@ -392,7 +395,7 @@ function renderStrips(ctx) {
     ctx.fillRect(0, 142, _graphics__WEBPACK_IMPORTED_MODULE_2__.Resolution.WIDTH, 32);
 }
 function renderBackground(ctx, scene, ox) {
-    const { trees, ladder, holes, wall, vine, pit } = _map__WEBPACK_IMPORTED_MODULE_0__.map[scene];
+    const { trees, ladder, holes, wall, vine, pit, obsticles } = _map__WEBPACK_IMPORTED_MODULE_0__.map[scene];
     const { scorpion } = gs.sceneStates[scene];
     const trunks = TRUNKS[trees];
     ctx.fillStyle = _graphics__WEBPACK_IMPORTED_MODULE_2__.colors[_graphics__WEBPACK_IMPORTED_MODULE_2__.Colors.DARK_BROWN];
@@ -435,6 +438,14 @@ function renderBackground(ctx, scene, ox) {
     if (pit !== _map__WEBPACK_IMPORTED_MODULE_0__.PitType.NONE) {
         gs.pit.render(gs, ctx, scene, ox);
     }
+    // switch (obsticles) {
+    //     case ObsticleType.ONE_ROLLING_LOG:
+    //     case ObsticleType.TWO_ROLLING_LOGS_CLOSE:    
+    //     case ObsticleType.TWO_ROLLING_LOGS_FAR:  
+    //     case ObsticleType.THREE_ROLLING_LOGS:
+    gs.rollingLog.render(gs, ctx, scene, ox);
+    //         break;  
+    // }
 }
 function renderLeaves(ctx, scene, ox) {
     const { trees } = _map__WEBPACK_IMPORTED_MODULE_0__.map[scene];
@@ -1261,6 +1272,40 @@ class Point {
 
 /***/ }),
 
+/***/ "./src/game/rolling-log.ts":
+/*!*********************************!*\
+  !*** ./src/game/rolling-log.ts ***!
+  \*********************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   RollingLog: () => (/* binding */ RollingLog)
+/* harmony export */ });
+/* harmony import */ var _graphics__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @/graphics */ "./src/graphics.ts");
+
+const X_MAX = 144;
+class RollingLog {
+    xCounter = 0;
+    spriteCounter = 0;
+    update(gs) {
+        this.xCounter += .51;
+        if (this.xCounter > X_MAX) {
+            this.xCounter = 0;
+        }
+        this.spriteCounter = (this.spriteCounter + 1) & 0xF;
+    }
+    render(gs, ctx, scene, ox) {
+        //const { obsticles } = map[scene];
+        let x = Math.floor(gs.sceneStates[scene].enteredLeft ? this.xCounter : X_MAX - this.xCounter);
+        const s = this.spriteCounter >> 2;
+        ctx.drawImage(_graphics__WEBPACK_IMPORTED_MODULE_0__.logSprites[s & 1], x - ox, 111 + ((s === 0) ? 1 : 0));
+    }
+}
+
+
+/***/ }),
+
 /***/ "./src/game/scorpion.ts":
 /*!******************************!*\
   !*** ./src/game/scorpion.ts ***!
@@ -1341,6 +1386,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   Vine: () => (/* binding */ Vine)
 /* harmony export */ });
 /* harmony import */ var _graphics__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @/graphics */ "./src/graphics.ts");
+/* harmony import */ var _map__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./map */ "./src/game/map.ts");
+
 
 class Vine {
     sprite = 0;
@@ -1348,14 +1395,14 @@ class Vine {
         if (++this.sprite === _graphics__WEBPACK_IMPORTED_MODULE_0__.vinePoints.length) {
             this.sprite = 0;
         }
-        // const { harry } = gs;
-        // if (map[harry.scene].vine && !harry.releasedVine && harry.isFalling() 
-        //         && harry.intersects(vineMasks[this.sprite], 39, 28)) {
-        //     harry.swing();
-        // }
+        const { harry } = gs;
+        if (_map__WEBPACK_IMPORTED_MODULE_1__.map[harry.scene].vine && !harry.releasedVine && harry.isFalling()
+            && harry.intersects(_graphics__WEBPACK_IMPORTED_MODULE_0__.vineMasks[this.sprite], 39, 28)) {
+            harry.swing();
+        }
     }
     render(gs, ctx, ox) {
-        // ctx.drawImage(vineSprites[this.sprite], 39 - ox, 28);
+        ctx.drawImage(_graphics__WEBPACK_IMPORTED_MODULE_0__.vineSprites[this.sprite], 39 - ox, 28);
     }
 }
 
