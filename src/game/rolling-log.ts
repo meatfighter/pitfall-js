@@ -20,7 +20,7 @@ export class RollingLog {
 
     render(gs: GameState, ctx: OffscreenCanvasRenderingContext2D, scene: number, ox: number) {
         //const { obsticles } = map[scene];
-        let x = Math.floor(gs.sceneStates[scene].enteredLeft ? this.xCounter : X_MAX - this.xCounter);
+        let x = gs.round(gs.sceneStates[scene].enteredLeft ? this.xCounter : X_MAX - this.xCounter);
         const s = this.spriteCounter >> 2;
         ctx.drawImage(logSprites[s & 1], x - ox, 111 + ((s === 0) ? 1 : 0));
     }

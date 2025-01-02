@@ -359,7 +359,7 @@ export class Harry {
         this.y = p.y + 17;
 
         if ((this.dir === 0 && rightJustPressed) || (this.dir === 1 && leftJustPressed)) {
-            this.startFalling(gs, 0);
+            this.startFalling(gs, VY0);
             this.releasedVine = true;
             return;
         }

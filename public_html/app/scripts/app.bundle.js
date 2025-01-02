@@ -238,7 +238,7 @@ __webpack_require__.r(__webpack_exports__);
 class SceneState {
     scorpion;
     treasure;
-    enteredLeft = false;
+    enteredLeft = true;
     constructor(scorpion, treasure) {
         this.scorpion = scorpion;
         this.treasure = treasure;
@@ -252,6 +252,7 @@ class GameState {
     rollingLog = new _rolling_log__WEBPACK_IMPORTED_MODULE_5__.RollingLog();
     scrollX = Math.floor(this.harry.absoluteX);
     lastScrollX = this.scrollX;
+    roundBias = this.scrollX - this.harry.absoluteX;
     ox = 0;
     nextOx = 0;
     nextScene = 0;
@@ -263,6 +264,9 @@ class GameState {
             const scene = _map__WEBPACK_IMPORTED_MODULE_6__.map[i];
             this.sceneStates[i] = new SceneState(scene.scorpion ? new _scorpion__WEBPACK_IMPORTED_MODULE_2__.Scorpion(i) : null, scene.treasure);
         }
+    }
+    round(value) {
+        return Math.floor(value + this.roundBias);
     }
     save() {
         (0,_store__WEBPACK_IMPORTED_MODULE_0__.saveStore)();
@@ -344,12 +348,14 @@ function update() {
         gs.sceneAlpha = (0,_math__WEBPACK_IMPORTED_MODULE_3__.clamp)(1 - gs.sceneAlpha, 0, 1);
     }
     const targetScrollX = Math.floor(gs.harry.absoluteX);
+    gs.roundBias = 0;
     if (targetScrollX < gs.scrollX - SCROLL_MARGIN) {
         if (gs.lastScrollX === targetScrollX || gs.harry.teleported) {
             gs.scrollX -= MIN_SCROLL_DELTA;
         }
         else {
             gs.scrollX -= Math.max(MIN_SCROLL_DELTA, gs.lastScrollX - targetScrollX);
+            gs.roundBias = -.5;
         }
     }
     else if (targetScrollX > gs.scrollX + SCROLL_MARGIN) {
@@ -358,6 +364,7 @@ function update() {
         }
         else {
             gs.scrollX += Math.max(MIN_SCROLL_DELTA, targetScrollX - gs.lastScrollX);
+            gs.roundBias = .5;
         }
     }
     gs.lastScrollX = targetScrollX;
@@ -824,7 +831,7 @@ class Harry {
         this.setX(this.dir === 0 ? p.x + 1 : p.x);
         this.y = p.y + 17;
         if ((this.dir === 0 && _input__WEBPACK_IMPORTED_MODULE_1__.rightJustPressed) || (this.dir === 1 && _input__WEBPACK_IMPORTED_MODULE_1__.leftJustPressed)) {
-            this.startFalling(gs, 0);
+            this.startFalling(gs, VY0);
             this.releasedVine = true;
             return;
         }
@@ -1289,7 +1296,7 @@ class RollingLog {
     xCounter = 0;
     spriteCounter = 0;
     update(gs) {
-        this.xCounter += .51;
+        this.xCounter += .5;
         if (this.xCounter > X_MAX) {
             this.xCounter = 0;
         }
@@ -1297,7 +1304,7 @@ class RollingLog {
     }
     render(gs, ctx, scene, ox) {
         //const { obsticles } = map[scene];
-        let x = Math.floor(gs.sceneStates[scene].enteredLeft ? this.xCounter : X_MAX - this.xCounter);
+        let x = gs.round(gs.sceneStates[scene].enteredLeft ? this.xCounter : X_MAX - this.xCounter);
         const s = this.spriteCounter >> 2;
         ctx.drawImage(_graphics__WEBPACK_IMPORTED_MODULE_0__.logSprites[s & 1], x - ox, 111 + ((s === 0) ? 1 : 0));
     }
@@ -1326,6 +1333,7 @@ const FRAMES_PER_UPDATE = 8;
 class Scorpion {
     scene;
     x = X_START;
+    X = this.x;
     dir = 0;
     sprite = 0;
     updateCounter = FRAMES_PER_UPDATE;
@@ -1334,7 +1342,7 @@ class Scorpion {
     }
     update(gs) {
         const harryNearby = gs.harry.scene === this.scene && gs.harry.isUnderground();
-        if (harryNearby && gs.harry.intersects(_graphics__WEBPACK_IMPORTED_MODULE_0__.scorpionMasks[this.dir][this.sprite], Math.floor(this.x) - 4, 158)) {
+        if (harryNearby && gs.harry.intersects(_graphics__WEBPACK_IMPORTED_MODULE_0__.scorpionMasks[this.dir][this.sprite], gs.round(this.x) - 4, 158)) {
             gs.harry.injure();
             return;
         }
@@ -1368,7 +1376,7 @@ class Scorpion {
         }
     }
     render(gs, ctx, ox) {
-        ctx.drawImage(_graphics__WEBPACK_IMPORTED_MODULE_0__.sorpionSprites[this.dir][this.sprite], Math.floor(this.x) - 4 - ox, 158);
+        ctx.drawImage(_graphics__WEBPACK_IMPORTED_MODULE_0__.sorpionSprites[this.dir][this.sprite], gs.round(this.x) - 4 - ox, 158);
     }
 }
 

@@ -8,7 +8,7 @@ import { map, TreasureType } from './map';
 
 export class SceneState {
 
-    enteredLeft = false;
+    enteredLeft = true;
 
     constructor(public readonly scorpion: Scorpion | null,
                 public treasure: TreasureType
@@ -25,18 +25,23 @@ export class GameState {
     rollingLog = new RollingLog();
     scrollX = Math.floor(this.harry.absoluteX);
     lastScrollX = this.scrollX;
+    roundBias = this.scrollX - this.harry.absoluteX;
     ox = 0;
     nextOx = 0;
     nextScene = 0;
     lastNextScene = 0;
     lastHarryUnderground = false;
-    sceneAlpha = 1;
+    sceneAlpha = 1;    
 
     constructor() {
         for (let i = map.length - 1; i >= 0; --i) {
             const scene = map[i];
             this.sceneStates[i] = new SceneState(scene.scorpion ? new Scorpion(i) : null, scene.treasure);
         }
+    }
+
+    round(value: number): number {
+        return Math.floor(value + this.roundBias);
     }
 
     save() {

@@ -66,21 +66,24 @@ export function update() {
     }
 
     const targetScrollX = Math.floor(gs.harry.absoluteX);
+    gs.roundBias = 0;
     if (targetScrollX < gs.scrollX - SCROLL_MARGIN) {
         if (gs.lastScrollX === targetScrollX || gs.harry.teleported) {
             gs.scrollX -= MIN_SCROLL_DELTA;
         } else {
             gs.scrollX -= Math.max(MIN_SCROLL_DELTA, gs.lastScrollX - targetScrollX);
+            gs.roundBias = -.5;
         }
     } else if (targetScrollX > gs.scrollX + SCROLL_MARGIN) {
         if (gs.lastScrollX === targetScrollX || gs.harry.teleported) {
             gs.scrollX += MIN_SCROLL_DELTA;
         } else {
             gs.scrollX += Math.max(MIN_SCROLL_DELTA, targetScrollX - gs.lastScrollX);
+            gs.roundBias = .5;
         }
     }
     gs.lastScrollX = targetScrollX;
-    gs.ox = Math.floor(gs.harry.x) - 76 + Math.floor(gs.scrollX) - targetScrollX;
+    gs.ox = Math.floor(gs.harry.x) - 76 + Math.floor(gs.scrollX) - targetScrollX;    
 
     if (gs.ox < 0) {
         gs.nextOx = gs.ox + Resolution.WIDTH;        
