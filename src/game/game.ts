@@ -169,14 +169,9 @@ function renderBackground(ctx: OffscreenCanvasRenderingContext2D, scene: number,
         gs.pit.render(gs, ctx, scene, ox);
     }
 
-    // switch (obsticles) {
-    //     case ObsticleType.ONE_ROLLING_LOG:
-    //     case ObsticleType.TWO_ROLLING_LOGS_CLOSE:    
-    //     case ObsticleType.TWO_ROLLING_LOGS_FAR:  
-    //     case ObsticleType.THREE_ROLLING_LOGS:
-            gs.rollingLog.render(gs, ctx, scene, ox);
-    //         break;  
-    // }
+    if (obsticles <= ObsticleType.THREE_ROLLING_LOGS) {
+        gs.rollingLog.render(gs, ctx, scene, ox);
+    }
 }
 
 function renderLeaves(ctx: OffscreenCanvasRenderingContext2D, scene: number, ox: number) {

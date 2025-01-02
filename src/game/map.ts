@@ -19,7 +19,7 @@ export enum TreasureType {
 
 export enum ObsticleType {
     ONE_ROLLING_LOG = 0,
-    TWO_ROLLING_LOGS_CLOSE = 1,
+    TWO_ROLLING_LOGS_NEAR = 1,
     TWO_ROLLING_LOGS_FAR = 2,
     THREE_ROLLING_LOGS = 3,
     ONE_STATIONARY_LOG = 4,

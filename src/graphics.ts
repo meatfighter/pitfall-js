@@ -34,6 +34,7 @@ export enum Colors {
     DARK_GREEN = 0xd2,
     DARK_RED = 0x42,
     DARK_YELLOW = 0x14,
+    MID_YELLOW = 0x16,
     LIGHT_YELLOW = 0x18,
     DARK_BROWN = 0x10,    
 }
@@ -77,7 +78,7 @@ export let branchesSprite: Sprite;
 
 export const charSprites: Sprite[][] = new Array<Sprite[]>(256); // color, character
 
-export const pitSprites: Sprite[][] = new Array<Sprite[]>(2); // color (0=black, 1=blue), sprite (0=bottom, 1=top)
+export const pitSprites: Sprite[][] = new Array<Sprite[]>(3); // color(0=black,1=blue,2=yellow),sprite(0=bottom,1=top)
 
 export const VINE_PERIOD = 285;
 export const VINE_CX = 70;
@@ -399,8 +400,9 @@ export async function init() {
     }
 
     // pits
-    for (let color = 0; color < 2; ++color) {
-        const pitCol = palette[color === 0 ? Colors.BLACK : Colors.BLUE];
+    const pitColors = [ Colors.BLACK, Colors.BLUE, Colors.MID_YELLOW ];
+    for (let color = 0; color < pitColors.length; ++color) {
+        const pitCol = palette[pitColors[color]];
         pitSprites[color] = new Array<Sprite>(2);
         for (let sprite = 0; sprite < 2; ++sprite) {
             promises.push(createSprite(64, 5, imageData => {

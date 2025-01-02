@@ -32,6 +32,7 @@ enum MainState {
     INJURED,
     SWINGING,
     SINKING,
+    KNEELING,
 }
 
 export class Harry {   
@@ -388,7 +389,19 @@ export class Harry {
             this.startTreeSpawn();
             return;
         }
-    }    
+    }
+
+    kneel() {
+        this.mainState = MainState.KNEELING;
+        this.sprite = 5;
+        this.y = Y_UPPER_LEVEL + 5;
+    }
+
+    private updateKneeling(gs: GameState) {
+        this.mainState = MainState.STANDING;
+        this.sprite = 0;
+        this.y = Y_UPPER_LEVEL;
+    }
 
     update(gs: GameState) {
         const state = this.mainState;
@@ -411,6 +424,9 @@ export class Harry {
             case MainState.SINKING:
                 this.updateSinking(gs);
                 break;
+            case MainState.KNEELING:
+                this.updateKneeling(gs);
+                break;    
         }
         this.lastMainState = state;
     }

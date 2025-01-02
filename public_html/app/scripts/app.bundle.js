@@ -445,14 +445,9 @@ function renderBackground(ctx, scene, ox) {
     if (pit !== _map__WEBPACK_IMPORTED_MODULE_0__.PitType.NONE) {
         gs.pit.render(gs, ctx, scene, ox);
     }
-    // switch (obsticles) {
-    //     case ObsticleType.ONE_ROLLING_LOG:
-    //     case ObsticleType.TWO_ROLLING_LOGS_CLOSE:    
-    //     case ObsticleType.TWO_ROLLING_LOGS_FAR:  
-    //     case ObsticleType.THREE_ROLLING_LOGS:
-    gs.rollingLog.render(gs, ctx, scene, ox);
-    //         break;  
-    // }
+    if (obsticles <= _map__WEBPACK_IMPORTED_MODULE_0__.ObsticleType.THREE_ROLLING_LOGS) {
+        gs.rollingLog.render(gs, ctx, scene, ox);
+    }
 }
 function renderLeaves(ctx, scene, ox) {
     const { trees } = _map__WEBPACK_IMPORTED_MODULE_0__.map[scene];
@@ -956,7 +951,7 @@ var TreasureType;
 var ObsticleType;
 (function (ObsticleType) {
     ObsticleType[ObsticleType["ONE_ROLLING_LOG"] = 0] = "ONE_ROLLING_LOG";
-    ObsticleType[ObsticleType["TWO_ROLLING_LOGS_CLOSE"] = 1] = "TWO_ROLLING_LOGS_CLOSE";
+    ObsticleType[ObsticleType["TWO_ROLLING_LOGS_NEAR"] = 1] = "TWO_ROLLING_LOGS_NEAR";
     ObsticleType[ObsticleType["TWO_ROLLING_LOGS_FAR"] = 2] = "TWO_ROLLING_LOGS_FAR";
     ObsticleType[ObsticleType["THREE_ROLLING_LOGS"] = 3] = "THREE_ROLLING_LOGS";
     ObsticleType[ObsticleType["ONE_STATIONARY_LOG"] = 4] = "ONE_STATIONARY_LOG";
@@ -1235,6 +1230,10 @@ class Pit {
         const { pit } = _map__WEBPACK_IMPORTED_MODULE_0__.map[scene];
         const sprites = _graphics__WEBPACK_IMPORTED_MODULE_1__.pitSprites[(pit === _map__WEBPACK_IMPORTED_MODULE_0__.PitType.TAR || pit == _map__WEBPACK_IMPORTED_MODULE_0__.PitType.SHIFTING_TAR) ? 0 : 1];
         if (pit === _map__WEBPACK_IMPORTED_MODULE_0__.PitType.SHIFTING_TAR || pit === _map__WEBPACK_IMPORTED_MODULE_0__.PitType.SHIFTING_QUICKSAND) {
+            if (this.pitState !== PitState.OPENED) {
+                ctx.drawImage(_graphics__WEBPACK_IMPORTED_MODULE_1__.pitSprites[2][0], 40 - ox, 114);
+                ctx.drawImage(_graphics__WEBPACK_IMPORTED_MODULE_1__.pitSprites[2][1], 40 - ox, 119);
+            }
             if (this.pitState !== PitState.CLOSED) {
                 ctx.drawImage(sprites[0], 0, 0, 64, 5 - this.pitOffset, 40 - ox, 114 + this.pitOffset, 64, 5 - this.pitOffset);
                 ctx.drawImage(sprites[1], 0, this.pitOffset, 64, 5 - this.pitOffset, 40 - ox, 119, 64, 5 - this.pitOffset);
@@ -1290,23 +1289,89 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   RollingLog: () => (/* binding */ RollingLog)
 /* harmony export */ });
 /* harmony import */ var _graphics__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @/graphics */ "./src/graphics.ts");
+/* harmony import */ var _map__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./map */ "./src/game/map.ts");
 
-const X_MAX = 144;
+
 class RollingLog {
     xCounter = 0;
     spriteCounter = 0;
     update(gs) {
         this.xCounter += .5;
-        if (this.xCounter > X_MAX) {
+        if (this.xCounter === _graphics__WEBPACK_IMPORTED_MODULE_0__.Resolution.WIDTH) {
             this.xCounter = 0;
         }
         this.spriteCounter = (this.spriteCounter + 1) & 0xF;
     }
+    fadeLog(gs, scene, rollingRight, offset) {
+        if (gs.sceneStates[scene].enteredLeft !== rollingRight) {
+            return true;
+        }
+        const { obsticles } = _map__WEBPACK_IMPORTED_MODULE_1__.map[scene];
+        switch (offset) {
+            case 0:
+                if (obsticles > _map__WEBPACK_IMPORTED_MODULE_1__.ObsticleType.THREE_ROLLING_LOGS) {
+                    return true;
+                }
+                break;
+            case 16:
+                if (obsticles !== _map__WEBPACK_IMPORTED_MODULE_1__.ObsticleType.TWO_ROLLING_LOGS_NEAR) {
+                    return true;
+                }
+                break;
+            case 32:
+                if (obsticles !== _map__WEBPACK_IMPORTED_MODULE_1__.ObsticleType.TWO_ROLLING_LOGS_FAR && obsticles !== _map__WEBPACK_IMPORTED_MODULE_1__.ObsticleType.THREE_ROLLING_LOGS) {
+                    return true;
+                }
+                break;
+            case 64:
+                if (obsticles !== _map__WEBPACK_IMPORTED_MODULE_1__.ObsticleType.THREE_ROLLING_LOGS) {
+                    return true;
+                }
+                break;
+        }
+        return false;
+    }
+    renderLog(gs, ctx, sprite, x, y, offset, scene, rollingRight, ox) {
+        const X = (x + offset) % _graphics__WEBPACK_IMPORTED_MODULE_0__.Resolution.WIDTH;
+        if (X <= 15) {
+            let leftScene = scene - (gs.harry.isUnderground() ? 3 : 1);
+            if (leftScene < 0) {
+                leftScene += gs.sceneStates.length;
+            }
+            if (this.fadeLog(gs, leftScene, rollingRight, offset)) {
+                ctx.globalAlpha = (X + 1) / 17;
+            }
+        }
+        else if (X >= _graphics__WEBPACK_IMPORTED_MODULE_0__.Resolution.WIDTH - 15) {
+            let rightScene = scene + (gs.harry.isUnderground() ? 3 : 1);
+            if (rightScene >= gs.sceneStates.length) {
+                rightScene -= gs.sceneStates.length;
+            }
+            if (this.fadeLog(gs, rightScene, rollingRight, offset)) {
+                ctx.globalAlpha = (_graphics__WEBPACK_IMPORTED_MODULE_0__.Resolution.WIDTH - X + 1) / 17;
+            }
+        }
+        ctx.drawImage(_graphics__WEBPACK_IMPORTED_MODULE_0__.logSprites[sprite], X - 4 - ox, y);
+        ctx.globalAlpha = 1;
+    }
     render(gs, ctx, scene, ox) {
-        //const { obsticles } = map[scene];
-        let x = gs.round(gs.sceneStates[scene].enteredLeft ? this.xCounter : X_MAX - this.xCounter);
+        const rollingRight = gs.sceneStates[scene].enteredLeft;
+        let x = gs.round(rollingRight ? this.xCounter : _graphics__WEBPACK_IMPORTED_MODULE_0__.Resolution.WIDTH - .5 - this.xCounter);
         const s = this.spriteCounter >> 2;
-        ctx.drawImage(_graphics__WEBPACK_IMPORTED_MODULE_0__.logSprites[s & 1], x - ox, 111 + ((s === 0) ? 1 : 0));
+        const sprite = s & 1;
+        const y = 111 + ((s === 0) ? 1 : 0);
+        this.renderLog(gs, ctx, sprite, x, y, 0, scene, rollingRight, ox);
+        switch (_map__WEBPACK_IMPORTED_MODULE_1__.map[scene].obsticles) {
+            case _map__WEBPACK_IMPORTED_MODULE_1__.ObsticleType.TWO_ROLLING_LOGS_NEAR:
+                this.renderLog(gs, ctx, sprite, x, y, 16, scene, rollingRight, ox);
+                break;
+            case _map__WEBPACK_IMPORTED_MODULE_1__.ObsticleType.THREE_ROLLING_LOGS:
+                this.renderLog(gs, ctx, sprite, x, y, 64, scene, rollingRight, ox);
+            // fall through to next case to draw the third log
+            case _map__WEBPACK_IMPORTED_MODULE_1__.ObsticleType.TWO_ROLLING_LOGS_FAR:
+                this.renderLog(gs, ctx, sprite, x, y, 32, scene, rollingRight, ox);
+                break;
+        }
     }
 }
 
@@ -1501,6 +1566,7 @@ var Colors;
     Colors[Colors["DARK_GREEN"] = 210] = "DARK_GREEN";
     Colors[Colors["DARK_RED"] = 66] = "DARK_RED";
     Colors[Colors["DARK_YELLOW"] = 20] = "DARK_YELLOW";
+    Colors[Colors["MID_YELLOW"] = 22] = "MID_YELLOW";
     Colors[Colors["LIGHT_YELLOW"] = 24] = "LIGHT_YELLOW";
     Colors[Colors["DARK_BROWN"] = 16] = "DARK_BROWN";
 })(Colors || (Colors = {}));
@@ -1528,7 +1594,7 @@ let ringMask;
 let wallSprite;
 let branchesSprite;
 const charSprites = new Array(256); // color, character
-const pitSprites = new Array(2); // color (0=black, 1=blue), sprite (0=bottom, 1=top)
+const pitSprites = new Array(3); // color(0=black,1=blue,2=yellow),sprite(0=bottom,1=top)
 const VINE_PERIOD = 285;
 const VINE_CX = 70;
 const VINE_CY = 28;
@@ -1794,8 +1860,9 @@ async function init() {
         }
     }
     // pits
-    for (let color = 0; color < 2; ++color) {
-        const pitCol = palette[color === 0 ? Colors.BLACK : Colors.BLUE];
+    const pitColors = [Colors.BLACK, Colors.BLUE, Colors.MID_YELLOW];
+    for (let color = 0; color < pitColors.length; ++color) {
+        const pitCol = palette[pitColors[color]];
         pitSprites[color] = new Array(2);
         for (let sprite = 0; sprite < 2; ++sprite) {
             promises.push(createSprite(64, 5, imageData => {

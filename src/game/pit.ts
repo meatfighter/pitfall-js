@@ -198,9 +198,15 @@ export class Pit {
         const { pit } = map[scene];
         const sprites = pitSprites[(pit === PitType.TAR || pit == PitType.SHIFTING_TAR) ? 0 : 1];
         if (pit === PitType.SHIFTING_TAR || pit === PitType.SHIFTING_QUICKSAND) {
+            if (this.pitState !== PitState.OPENED) {
+                ctx.drawImage(pitSprites[2][0], 40 - ox, 114);
+                ctx.drawImage(pitSprites[2][1], 40 - ox, 119);
+            }
             if (this.pitState !== PitState.CLOSED) {
-                ctx.drawImage(sprites[0], 0, 0, 64, 5 - this.pitOffset, 40 - ox, 114 + this.pitOffset, 64, 5 - this.pitOffset);
-                ctx.drawImage(sprites[1], 0, this.pitOffset, 64, 5 - this.pitOffset, 40 - ox, 119, 64, 5 - this.pitOffset);
+                ctx.drawImage(sprites[0], 0, 0, 64, 5 - this.pitOffset, 40 - ox, 114 + this.pitOffset, 64, 
+                        5 - this.pitOffset);
+                ctx.drawImage(sprites[1], 0, this.pitOffset, 64, 5 - this.pitOffset, 40 - ox, 119, 64, 
+                        5 - this.pitOffset);
             }
         } else {
             ctx.drawImage(sprites[0], 40 - ox, 114);
