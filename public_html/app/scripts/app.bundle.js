@@ -236,17 +236,16 @@ __webpack_require__.r(__webpack_exports__);
 
 
 class SceneState {
-    scorpion;
     treasure;
     enteredLeft = true;
-    constructor(scorpion, treasure) {
-        this.scorpion = scorpion;
+    constructor(treasure) {
         this.treasure = treasure;
     }
 }
 class GameState {
     sceneStates = new Array(_map__WEBPACK_IMPORTED_MODULE_6__.map.length);
     harry = new _harry__WEBPACK_IMPORTED_MODULE_1__.Harry();
+    scorpion = new _scorpion__WEBPACK_IMPORTED_MODULE_2__.Scorpion();
     vine = new _vine__WEBPACK_IMPORTED_MODULE_3__.Vine();
     pit = new _pit__WEBPACK_IMPORTED_MODULE_4__.Pit();
     rollingLog = new _rolling_log__WEBPACK_IMPORTED_MODULE_5__.RollingLog();
@@ -262,7 +261,7 @@ class GameState {
     constructor() {
         for (let i = _map__WEBPACK_IMPORTED_MODULE_6__.map.length - 1; i >= 0; --i) {
             const scene = _map__WEBPACK_IMPORTED_MODULE_6__.map[i];
-            this.sceneStates[i] = new SceneState(scene.scorpion ? new _scorpion__WEBPACK_IMPORTED_MODULE_2__.Scorpion(i) : null, scene.treasure);
+            this.sceneStates[i] = new SceneState(scene.treasure);
         }
     }
     round(value) {
@@ -315,29 +314,21 @@ function resetGame() {
 function saveGame() {
     gs.save();
 }
-function updateScene(scene) {
-    const { scorpion } = gs.sceneStates[scene];
-    if (scorpion) {
-        scorpion.update(gs);
-    }
-}
 function update() {
     (0,_input__WEBPACK_IMPORTED_MODULE_4__.updateInput)();
     gs.harry.teleported = false;
     const scene0 = gs.harry.scene;
     const scene1 = gs.nextScene;
     if (!gs.harry.isInjured()) {
+        gs.scorpion.update(gs);
         gs.vine.update(gs);
         gs.pit.update(gs);
         gs.rollingLog.update(gs);
-        updateScene(gs.harry.scene);
-        updateScene(gs.nextScene);
         if (gs.sceneAlpha < 1) {
             gs.sceneAlpha += SCENE_ALPHA_DELTA;
             if (gs.sceneAlpha > 1) {
                 gs.sceneAlpha = 1;
             }
-            updateScene(gs.lastNextScene);
         }
     }
     gs.harry.update(gs);
@@ -402,8 +393,7 @@ function renderStrips(ctx) {
     ctx.fillRect(0, 142, _graphics__WEBPACK_IMPORTED_MODULE_2__.Resolution.WIDTH, 32);
 }
 function renderBackground(ctx, scene, ox) {
-    const { trees, ladder, holes, wall, vine, pit, obsticles } = _map__WEBPACK_IMPORTED_MODULE_0__.map[scene];
-    const { scorpion } = gs.sceneStates[scene];
+    const { trees, ladder, holes, wall, vine, pit, obsticles, scorpion } = _map__WEBPACK_IMPORTED_MODULE_0__.map[scene];
     const trunks = TRUNKS[trees];
     ctx.fillStyle = _graphics__WEBPACK_IMPORTED_MODULE_2__.colors[_graphics__WEBPACK_IMPORTED_MODULE_2__.Colors.DARK_BROWN];
     for (let i = 3; i >= 0; --i) {
@@ -437,7 +427,7 @@ function renderBackground(ctx, scene, ox) {
             break;
     }
     if (scorpion) {
-        scorpion.render(gs, ctx, ox);
+        gs.scorpion.render(gs, ctx, ox);
     }
     if (vine) {
         gs.vine.render(gs, ctx, ox);
@@ -525,6 +515,7 @@ var MainState;
     MainState[MainState["INJURED"] = 3] = "INJURED";
     MainState[MainState["SWINGING"] = 4] = "SWINGING";
     MainState[MainState["SINKING"] = 5] = "SINKING";
+    MainState[MainState["KNEELING"] = 6] = "KNEELING";
 })(MainState || (MainState = {}));
 class Harry {
     mainState = MainState.STANDING;
@@ -543,8 +534,13 @@ class Harry {
     tunnelSpawning = false;
     releasedVine = false;
     swallow = false;
+    kneelingDelay = false;
     intersects(mask, x, y) {
         return (0,_math__WEBPACK_IMPORTED_MODULE_3__.spritesIntersect)(mask, x, y, _graphics__WEBPACK_IMPORTED_MODULE_0__.harryMasks[this.dir][this.sprite], Math.floor(this.x) - 4, Math.floor(this.y) - 22);
+    }
+    canBeHitByRollingLog() {
+        return this.mainState === MainState.STANDING || this.mainState === MainState.KNEELING
+            || this.mainState === MainState.CLIMBING;
     }
     isFalling() {
         return this.mainState === MainState.FALLING;
@@ -731,6 +727,28 @@ class Harry {
         this.sprite = 5;
         this.updateShift(gs);
     }
+    climbUpward() {
+        if (this.y === 134) {
+            this.climbCounter = 0;
+        }
+        else if (++this.climbCounter >= 8) {
+            this.climbCounter = 0;
+            this.y -= 4;
+            this.dir ^= 1;
+        }
+    }
+    climbDownward() {
+        if (this.y === Y_LOWER_LEVEL) {
+            this.endClimbing(this.x, Y_LOWER_LEVEL, this.dir);
+            return true;
+        }
+        if (++this.climbCounter >= 8) {
+            this.climbCounter = 0;
+            this.y += 4;
+            this.dir ^= 1;
+        }
+        return false;
+    }
     updateClimbing(gs) {
         if (this.y <= 142) {
             if (_input__WEBPACK_IMPORTED_MODULE_1__.rightJustPressed
@@ -751,25 +769,10 @@ class Harry {
             return;
         }
         if (_input__WEBPACK_IMPORTED_MODULE_1__.upPressed) {
-            if (this.y === 134) {
-                this.climbCounter = 0;
-            }
-            else if (++this.climbCounter >= 8) {
-                this.climbCounter = 0;
-                this.y -= 4;
-                this.dir ^= 1;
-            }
+            this.climbUpward();
         }
-        else if (_input__WEBPACK_IMPORTED_MODULE_1__.downPressed) {
-            if (this.y === Y_LOWER_LEVEL) {
-                this.endClimbing(this.x, Y_LOWER_LEVEL, this.dir);
-                return;
-            }
-            if (++this.climbCounter >= 8) {
-                this.climbCounter = 0;
-                this.y += 4;
-                this.dir ^= 1;
-            }
+        else if (_input__WEBPACK_IMPORTED_MODULE_1__.downPressed && this.climbDownward()) {
+            return;
         }
     }
     isInjured() {
@@ -853,6 +856,33 @@ class Harry {
             return;
         }
     }
+    startKnelling() {
+        this.mainState = MainState.KNEELING;
+        this.sprite = 5;
+        this.y = Y_UPPER_LEVEL + 5;
+        this.kneelingDelay = true;
+    }
+    rolled() {
+        switch (this.mainState) {
+            case MainState.STANDING:
+            case MainState.KNEELING:
+                this.startKnelling();
+                break;
+            case MainState.CLIMBING:
+                this.climbDownward();
+                break;
+        }
+    }
+    updateKneeling(gs) {
+        if (this.kneelingDelay) {
+            this.kneelingDelay = false;
+        }
+        else {
+            this.mainState = MainState.STANDING;
+            this.sprite = 0;
+            this.y = Y_UPPER_LEVEL;
+        }
+    }
     update(gs) {
         const state = this.mainState;
         switch (this.mainState) {
@@ -873,6 +903,9 @@ class Harry {
                 break;
             case MainState.SINKING:
                 this.updateSinking(gs);
+                break;
+            case MainState.KNEELING:
+                this.updateKneeling(gs);
                 break;
         }
         this.lastMainState = state;
@@ -1295,12 +1328,41 @@ __webpack_require__.r(__webpack_exports__);
 class RollingLog {
     xCounter = 0;
     spriteCounter = 0;
+    checkRolled(gs, x, y, sprite, offset, rollingRight) {
+        const X = (x + offset) % _graphics__WEBPACK_IMPORTED_MODULE_0__.Resolution.WIDTH;
+        if (this.computeFade(gs, X, offset, gs.harry.scene, rollingRight) === 1
+            && gs.harry.intersects(_graphics__WEBPACK_IMPORTED_MODULE_0__.logMasks[sprite], X, y)) {
+            gs.harry.rolled();
+        }
+    }
     update(gs) {
         this.xCounter += .5;
         if (this.xCounter === _graphics__WEBPACK_IMPORTED_MODULE_0__.Resolution.WIDTH) {
             this.xCounter = 0;
         }
         this.spriteCounter = (this.spriteCounter + 1) & 0xF;
+        const { harry } = gs;
+        const { obsticles } = _map__WEBPACK_IMPORTED_MODULE_1__.map[harry.scene];
+        if (!harry.canBeHitByRollingLog() || obsticles > _map__WEBPACK_IMPORTED_MODULE_1__.ObsticleType.THREE_ROLLING_LOGS) {
+            return;
+        }
+        const rollingRight = gs.sceneStates[harry.scene].enteredLeft;
+        const x = gs.round(rollingRight ? this.xCounter : _graphics__WEBPACK_IMPORTED_MODULE_0__.Resolution.WIDTH - .5 - this.xCounter);
+        const s = this.spriteCounter >> 2;
+        const sprite = s & 1;
+        const y = 111 + ((s === 0) ? 1 : 0);
+        this.checkRolled(gs, x, y, sprite, 0, rollingRight);
+        switch (obsticles) {
+            case _map__WEBPACK_IMPORTED_MODULE_1__.ObsticleType.TWO_ROLLING_LOGS_NEAR:
+                this.checkRolled(gs, x, y, sprite, 16, rollingRight);
+                break;
+            case _map__WEBPACK_IMPORTED_MODULE_1__.ObsticleType.THREE_ROLLING_LOGS:
+                this.checkRolled(gs, x, y, sprite, 64, rollingRight);
+            // fall through to next case to check the third log
+            case _map__WEBPACK_IMPORTED_MODULE_1__.ObsticleType.TWO_ROLLING_LOGS_FAR:
+                this.checkRolled(gs, x, y, sprite, 32, rollingRight);
+                break;
+        }
     }
     fadeLog(gs, scene, rollingRight, offset) {
         if (gs.sceneStates[scene].enteredLeft !== rollingRight) {
@@ -1331,15 +1393,14 @@ class RollingLog {
         }
         return false;
     }
-    renderLog(gs, ctx, sprite, x, y, offset, scene, rollingRight, ox) {
-        const X = (x + offset) % _graphics__WEBPACK_IMPORTED_MODULE_0__.Resolution.WIDTH;
+    computeFade(gs, X, offset, scene, rollingRight) {
         if (X <= 15) {
             let leftScene = scene - (gs.harry.isUnderground() ? 3 : 1);
             if (leftScene < 0) {
                 leftScene += gs.sceneStates.length;
             }
             if (this.fadeLog(gs, leftScene, rollingRight, offset)) {
-                ctx.globalAlpha = (X + 1) / 17;
+                return (X + 1) / 17;
             }
         }
         else if (X >= _graphics__WEBPACK_IMPORTED_MODULE_0__.Resolution.WIDTH - 15) {
@@ -1348,15 +1409,20 @@ class RollingLog {
                 rightScene -= gs.sceneStates.length;
             }
             if (this.fadeLog(gs, rightScene, rollingRight, offset)) {
-                ctx.globalAlpha = (_graphics__WEBPACK_IMPORTED_MODULE_0__.Resolution.WIDTH - X + 1) / 17;
+                return (_graphics__WEBPACK_IMPORTED_MODULE_0__.Resolution.WIDTH - X + 1) / 17;
             }
         }
+        return 1;
+    }
+    renderLog(gs, ctx, sprite, x, y, offset, scene, rollingRight, ox) {
+        const X = (x + offset) % _graphics__WEBPACK_IMPORTED_MODULE_0__.Resolution.WIDTH;
+        ctx.globalAlpha = this.computeFade(gs, X, offset, scene, rollingRight);
         ctx.drawImage(_graphics__WEBPACK_IMPORTED_MODULE_0__.logSprites[sprite], X - 4 - ox, y);
         ctx.globalAlpha = 1;
     }
     render(gs, ctx, scene, ox) {
         const rollingRight = gs.sceneStates[scene].enteredLeft;
-        let x = gs.round(rollingRight ? this.xCounter : _graphics__WEBPACK_IMPORTED_MODULE_0__.Resolution.WIDTH - .5 - this.xCounter);
+        const x = gs.round(rollingRight ? this.xCounter : _graphics__WEBPACK_IMPORTED_MODULE_0__.Resolution.WIDTH - .5 - this.xCounter);
         const s = this.spriteCounter >> 2;
         const sprite = s & 1;
         const y = 111 + ((s === 0) ? 1 : 0);
@@ -1389,6 +1455,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   Scorpion: () => (/* binding */ Scorpion)
 /* harmony export */ });
 /* harmony import */ var _graphics__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @/graphics */ "./src/graphics.ts");
+/* harmony import */ var _map__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./map */ "./src/game/map.ts");
+
 
 const X_START = _graphics__WEBPACK_IMPORTED_MODULE_0__.Resolution.WIDTH / 2;
 const X_MIN = 4;
@@ -1396,17 +1464,13 @@ const X_MAX = _graphics__WEBPACK_IMPORTED_MODULE_0__.Resolution.WIDTH - 4;
 const X_MARGIN = _graphics__WEBPACK_IMPORTED_MODULE_0__.Resolution.WIDTH / 8;
 const FRAMES_PER_UPDATE = 8;
 class Scorpion {
-    scene;
     x = X_START;
     X = this.x;
     dir = 0;
     sprite = 0;
     updateCounter = FRAMES_PER_UPDATE;
-    constructor(scene) {
-        this.scene = scene;
-    }
     update(gs) {
-        const harryNearby = gs.harry.scene === this.scene && gs.harry.isUnderground();
+        const harryNearby = _map__WEBPACK_IMPORTED_MODULE_1__.map[gs.harry.scene].scorpion && gs.harry.isUnderground();
         if (harryNearby && gs.harry.intersects(_graphics__WEBPACK_IMPORTED_MODULE_0__.scorpionMasks[this.dir][this.sprite], gs.round(this.x) - 4, 158)) {
             gs.harry.injure();
             return;

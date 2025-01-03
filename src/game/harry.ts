@@ -52,10 +52,16 @@ export class Harry {
     tunnelSpawning = false;
     releasedVine = false;
     swallow = false;
+    kneelingDelay = false;
 
     intersects(mask: Mask, x: number, y: number): boolean {
         return spritesIntersect(mask, x, y, harryMasks[this.dir][this.sprite], Math.floor(this.x) - 4, 
                 Math.floor(this.y) - 22);
+    }
+
+    canBeHitByRollingLog() {
+        return this.mainState === MainState.STANDING || this.mainState === MainState.KNEELING 
+                || this.mainState === MainState.CLIMBING;
     }
 
     isFalling() {
@@ -258,6 +264,29 @@ export class Harry {
         this.updateShift(gs);
     }
 
+    private climbUpward() {
+        if (this.y === 134) {
+            this.climbCounter = 0;                    
+        } else if (++this.climbCounter >= 8) {
+            this.climbCounter = 0;
+            this.y -= 4;
+            this.dir ^= 1;
+        }
+    }
+
+    private climbDownward(): boolean {
+        if (this.y === Y_LOWER_LEVEL) {
+            this.endClimbing(this.x, Y_LOWER_LEVEL, this.dir);
+            return true;
+        } 
+        if (++this.climbCounter >= 8) {
+            this.climbCounter = 0;
+            this.y += 4;
+            this.dir ^= 1;
+        }
+        return false;
+    }
+
     private updateClimbing(gs: GameState) {
         if (this.y <= 142) {
             if (rightJustPressed
@@ -280,23 +309,9 @@ export class Harry {
         }
 
         if (upPressed) {
-            if (this.y === 134) {
-                this.climbCounter = 0;                    
-            } else if (++this.climbCounter >= 8) {
-                this.climbCounter = 0;
-                this.y -= 4;
-                this.dir ^= 1;
-            }
-        } else if (downPressed) {
-            if (this.y === Y_LOWER_LEVEL) {
-                this.endClimbing(this.x, Y_LOWER_LEVEL, this.dir);
-                return;
-            } 
-            if (++this.climbCounter >= 8) {
-                this.climbCounter = 0;
-                this.y += 4;
-                this.dir ^= 1;
-            }
+            this.climbUpward();
+        } else if (downPressed && this.climbDownward()) {
+            return;
         } 
     }
 
@@ -391,16 +406,33 @@ export class Harry {
         }
     }
 
-    kneel() {
+    private startKnelling() {
         this.mainState = MainState.KNEELING;
         this.sprite = 5;
         this.y = Y_UPPER_LEVEL + 5;
+        this.kneelingDelay = true;
+    }
+
+    rolled() {
+        switch (this.mainState) {
+            case MainState.STANDING:
+            case MainState.KNEELING:    
+                this.startKnelling();
+                break;
+            case MainState.CLIMBING:
+                this.climbDownward();
+                break;    
+        }
     }
 
     private updateKneeling(gs: GameState) {
-        this.mainState = MainState.STANDING;
-        this.sprite = 0;
-        this.y = Y_UPPER_LEVEL;
+        if (this.kneelingDelay) {
+            this.kneelingDelay = false;
+        } else {
+            this.mainState = MainState.STANDING;
+            this.sprite = 0;
+            this.y = Y_UPPER_LEVEL;
+        }
     }
 
     update(gs: GameState) {

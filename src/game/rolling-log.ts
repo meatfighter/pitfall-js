@@ -7,6 +7,14 @@ export class RollingLog {
     xCounter = 0;
     spriteCounter = 0;
 
+    checkRolled(gs: GameState, x: number, y: number, sprite: number, offset: number, rollingRight: boolean) {
+        const X = (x + offset) % Resolution.WIDTH;
+        if (this.computeFade(gs, X, offset, gs.harry.scene, rollingRight) === 1 
+                && gs.harry.intersects(logMasks[sprite], X, y)) {
+            gs.harry.rolled();
+        }
+    }
+
     update(gs: GameState) {
         this.xCounter += .5;
         if (this.xCounter === Resolution.WIDTH) {
@@ -15,28 +23,30 @@ export class RollingLog {
 
         this.spriteCounter = (this.spriteCounter + 1) & 0xF;
 
-        // const { harry } = gs;
-        // if (harry.i)
+        const { harry } = gs;
+        const { obsticles } = map[harry.scene];
+        if (!harry.canBeHitByRollingLog() || obsticles > ObsticleType.THREE_ROLLING_LOGS) {
+            return;
+        }
 
-        // const rollingRight = gs.sceneStates[scene].enteredLeft;
+        const rollingRight = gs.sceneStates[harry.scene].enteredLeft;
+        const x = gs.round(rollingRight ? this.xCounter : Resolution.WIDTH - .5 - this.xCounter);
+        const s = this.spriteCounter >> 2;
+        const sprite = s & 1;
+        const y = 111 + ((s === 0) ? 1 : 0);
 
-        // let x = gs.round(rollingRight ? this.xCounter : Resolution.WIDTH - .5 - this.xCounter);
-        // const s = this.spriteCounter >> 2;
-        // const sprite = s & 1;
-        // const y = 111 + ((s === 0) ? 1 : 0);
-
-        // this.renderLog(gs, ctx, sprite, x, y, 0, scene, rollingRight, ox);
-        // switch (map[scene].obsticles) {
-        //     case ObsticleType.TWO_ROLLING_LOGS_NEAR:
-        //         this.renderLog(gs, ctx, sprite, x, y, 16, scene, rollingRight, ox);
-        //         break;
-        //     case ObsticleType.THREE_ROLLING_LOGS:
-        //         this.renderLog(gs, ctx, sprite, x, y, 64, scene, rollingRight, ox);
-        //         // fall through to next case to draw the third log
-        //     case ObsticleType.TWO_ROLLING_LOGS_FAR:
-        //         this.renderLog(gs, ctx, sprite, x, y, 32, scene, rollingRight, ox);
-        //         break;                    
-        // }
+        this.checkRolled(gs, x, y, sprite, 0, rollingRight);
+        switch (obsticles) {
+            case ObsticleType.TWO_ROLLING_LOGS_NEAR:
+                this.checkRolled(gs, x, y, sprite, 16, rollingRight);
+                break;
+            case ObsticleType.THREE_ROLLING_LOGS:
+                this.checkRolled(gs, x, y, sprite, 64, rollingRight);
+                // fall through to next case to check the third log
+            case ObsticleType.TWO_ROLLING_LOGS_FAR:
+                this.checkRolled(gs, x, y, sprite, 32, rollingRight);
+                break;                    
+        }
     }
 
     fadeLog(gs: GameState, scene: number, rollingRight: boolean, offset: number): boolean {
@@ -69,17 +79,14 @@ export class RollingLog {
         return false;
     }
 
-    renderLog(gs: GameState, ctx: OffscreenCanvasRenderingContext2D, sprite: number, x: number, y: number, 
-            offset: number, scene: number, rollingRight: boolean, ox: number) {
-
-        const X = (x + offset) % Resolution.WIDTH;
+    computeFade(gs: GameState, X: number, offset: number, scene: number, rollingRight: boolean): number {        
         if (X <= 15) {
             let leftScene = scene - (gs.harry.isUnderground() ? 3 : 1);
             if (leftScene < 0) {
                 leftScene += gs.sceneStates.length;
             }
             if (this.fadeLog(gs, leftScene, rollingRight, offset)) {
-                ctx.globalAlpha = (X + 1) / 17;
+                return (X + 1) / 17;
             }            
         } else if (X >= Resolution.WIDTH - 15) {
             let rightScene = scene + (gs.harry.isUnderground() ? 3 : 1);
@@ -87,17 +94,23 @@ export class RollingLog {
                 rightScene -= gs.sceneStates.length;
             }
             if (this.fadeLog(gs, rightScene, rollingRight, offset)) {
-                ctx.globalAlpha = (Resolution.WIDTH - X + 1) / 17;
+                return (Resolution.WIDTH - X + 1) / 17;
             }
         }
+        return 1;        
+    }
+
+    renderLog(gs: GameState, ctx: OffscreenCanvasRenderingContext2D, sprite: number, x: number, y: number, 
+            offset: number, scene: number, rollingRight: boolean, ox: number) {
+        const X = (x + offset) % Resolution.WIDTH;
+        ctx.globalAlpha = this.computeFade(gs, X, offset, scene, rollingRight);
         ctx.drawImage(logSprites[sprite], X - 4 - ox, y);
         ctx.globalAlpha = 1;
     }
 
     render(gs: GameState, ctx: OffscreenCanvasRenderingContext2D, scene: number, ox: number) {
         const rollingRight = gs.sceneStates[scene].enteredLeft;
-
-        let x = gs.round(rollingRight ? this.xCounter : Resolution.WIDTH - .5 - this.xCounter);
+        const x = gs.round(rollingRight ? this.xCounter : Resolution.WIDTH - .5 - this.xCounter);
         const s = this.spriteCounter >> 2;
         const sprite = s & 1;
         const y = 111 + ((s === 0) ? 1 : 0);
