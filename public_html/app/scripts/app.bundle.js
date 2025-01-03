@@ -456,32 +456,25 @@ function update() {
         gs.sceneAlpha = (0,_math__WEBPACK_IMPORTED_MODULE_3__.clamp)(1 - gs.sceneAlpha, 0, 1);
     }
     // TODO LOGS VIBRATE WHEN HARRY STARTS CLIMBING :(
-    if (gs.harry.absoluteX < gs.harry.lastAbsoluteX) {
-        gs.roundBias = .5;
-    }
-    else if (gs.harry.absoluteX > gs.harry.lastAbsoluteX) {
-        gs.roundBias = -.5;
-    }
-    gs.harry.lastAbsoluteX = gs.harry.absoluteX;
     const targetScrollX = Math.floor(gs.harry.absoluteX);
     gs.roundBias = 0;
     if (targetScrollX < gs.scrollX - SCROLL_MARGIN) {
-        //gs.roundBias = -.5;
         if (gs.lastScrollX === targetScrollX || gs.harry.teleported) {
-            gs.scrollX -= MIN_SCROLL_DELTA;
+            gs.roundBias = -MIN_SCROLL_DELTA;
         }
         else {
-            gs.scrollX -= Math.max(MIN_SCROLL_DELTA, gs.lastScrollX - targetScrollX);
+            gs.roundBias = -Math.max(MIN_SCROLL_DELTA, gs.lastScrollX - targetScrollX);
         }
+        gs.scrollX += gs.roundBias;
     }
     else if (targetScrollX > gs.scrollX + SCROLL_MARGIN) {
-        //gs.roundBias = .5;
         if (gs.lastScrollX === targetScrollX || gs.harry.teleported) {
-            gs.scrollX += MIN_SCROLL_DELTA;
+            gs.roundBias = MIN_SCROLL_DELTA;
         }
         else {
-            gs.scrollX += Math.max(MIN_SCROLL_DELTA, targetScrollX - gs.lastScrollX);
+            gs.roundBias = Math.max(MIN_SCROLL_DELTA, targetScrollX - gs.lastScrollX);
         }
+        gs.scrollX += gs.roundBias;
     }
     gs.lastScrollX = targetScrollX;
     gs.ox = Math.floor(gs.harry.x) - 76 + Math.floor(gs.scrollX) - targetScrollX;
@@ -665,7 +658,6 @@ class Harry {
     lastMainState = MainState.STANDING;
     scene = 14; // TODO 0;
     absoluteX = 12;
-    lastAbsoluteX = this.absoluteX;
     x = this.absoluteX;
     y = Y_UPPER_LEVEL;
     vy = 0;
