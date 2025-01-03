@@ -4,6 +4,8 @@ import { Scorpion } from './scorpion';
 import { Vine } from './vine';
 import { Pit } from './pit';
 import { RollingLog } from './rolling-log';
+import { Rattle } from './rattle';
+import { CobraAndFire } from './cobra-and-fire';
 import { Clock } from './clock';
 import { map, TreasureType } from './map';
 
@@ -11,8 +13,7 @@ export class SceneState {
 
     enteredLeft = true;
 
-    constructor(public treasure: TreasureType
-    ) {
+    constructor(public treasure: TreasureType) {
     }
 }
 
@@ -24,6 +25,8 @@ export class GameState {
     vine = new Vine();
     pit = new Pit();
     rollingLog = new RollingLog();
+    rattle = new Rattle();
+    cobraAndFire = new CobraAndFire();
     clock = new Clock();
     scrollX = Math.floor(this.harry.absoluteX);
     lastScrollX = this.scrollX;

@@ -38,7 +38,7 @@ enum MainState {
 export class Harry {   
     mainState = MainState.STANDING;
     lastMainState = MainState.STANDING;
-    scene = 0;
+    scene = 14 // TODO 0;
     absoluteX = 12;
     x = this.absoluteX;
     y = Y_UPPER_LEVEL;
@@ -371,6 +371,8 @@ export class Harry {
         if (--this.injuredCounter === 0) {
             if (this.isUnderground()) {
                 this.startTunnelSpawn(gs);
+            } else {
+                this.startTreeSpawn(gs);
             }
             return;
         }

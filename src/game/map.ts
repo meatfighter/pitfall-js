@@ -25,7 +25,7 @@ export enum ObsticleType {
     ONE_STATIONARY_LOG = 4,
     THREE_STATIONARY_LOGS = 5,
     FIRE = 6,
-    RATTLESNAKE = 7,
+    COBRA = 7,
     NONE = 8,
 }
 

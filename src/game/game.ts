@@ -47,6 +47,8 @@ export function update() {
 
     if (!gs.harry.isInjured()) {
         gs.clock.update();
+        gs.rattle.update();
+        gs.cobraAndFire.update(gs);
         gs.scorpion.update(gs);
         gs.vine.update(gs);
         gs.pit.update(gs);
@@ -68,6 +70,7 @@ export function update() {
         gs.sceneAlpha = clamp(1 - gs.sceneAlpha, 0, 1);
     }
 
+    // TODO LOGS VIBRATE WHEN HARRY STARTS CLIMBING :(
     const targetScrollX = Math.floor(gs.harry.absoluteX);
     gs.roundBias = 0;
     if (targetScrollX < gs.scrollX - SCROLL_MARGIN) {
@@ -75,14 +78,14 @@ export function update() {
         if (gs.lastScrollX === targetScrollX || gs.harry.teleported) {
             gs.scrollX -= MIN_SCROLL_DELTA;
         } else {
-            gs.scrollX -= Math.max(MIN_SCROLL_DELTA, gs.lastScrollX - targetScrollX);            
+            gs.scrollX -= Math.max(MIN_SCROLL_DELTA, gs.lastScrollX - targetScrollX);
         }
     } else if (targetScrollX > gs.scrollX + SCROLL_MARGIN) {
         gs.roundBias = .5;
         if (gs.lastScrollX === targetScrollX || gs.harry.teleported) {
             gs.scrollX += MIN_SCROLL_DELTA;
         } else {
-            gs.scrollX += Math.max(MIN_SCROLL_DELTA, targetScrollX - gs.lastScrollX);            
+            gs.scrollX += Math.max(MIN_SCROLL_DELTA, targetScrollX - gs.lastScrollX);
         }
     }
     gs.lastScrollX = targetScrollX;
@@ -171,8 +174,18 @@ function renderBackground(ctx: OffscreenCanvasRenderingContext2D, scene: number,
         gs.pit.render(gs, ctx, scene, ox);
     }
 
-    if (obsticles <= ObsticleType.THREE_ROLLING_LOGS) {
-        gs.rollingLog.render(gs, ctx, scene, ox);
+    switch (obsticles) {
+        case ObsticleType.ONE_ROLLING_LOG:
+        case ObsticleType.TWO_ROLLING_LOGS_NEAR:
+        case ObsticleType.TWO_ROLLING_LOGS_FAR:
+        case ObsticleType.THREE_ROLLING_LOGS:
+            gs.rollingLog.render(gs, ctx, scene, ox);
+            break;            
+
+        case ObsticleType.COBRA:
+        case ObsticleType.FIRE:
+            gs.cobraAndFire.render(gs, ctx, scene, ox);
+            break;    
     }
 }
 
