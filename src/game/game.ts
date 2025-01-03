@@ -1,8 +1,9 @@
 import { map, WallType, PitType, ObsticleType } from './map';
 import { GameState } from './game-state';
-import { colors, Colors, Resolution, leavesSprites, branchesSprite, wallSprite } from '@/graphics';
+import { colors, Colors, Resolution, leavesSprites, branchesSprite, wallSprite, printNumber } from '@/graphics';
 import { clamp } from '@/math';
-import { updateInput } from '@/input';
+import { updateInput, upJustPressed, downJustPressed, leftJustPressed, rightJustPressed, jumpJustPressed } 
+    from '@/input';
 
 const SCENE_ALPHA_DELTA = 1 / 30;
 
@@ -29,12 +30,23 @@ export function saveGame() {
 export function update() {
     updateInput();
 
+    if (gs.gameOver) {
+        if (gs.gameOverDelay > 0) {
+            --gs.gameOverDelay;
+            return;
+        }
+        if (upJustPressed || downJustPressed || leftJustPressed || rightJustPressed || jumpJustPressed) {
+            resetGame();
+        }
+    }
+
     gs.harry.teleported = false;
 
     const scene0 = gs.harry.scene;
     const scene1 = gs.nextScene;
 
     if (!gs.harry.isInjured()) {
+        gs.clock.update();
         gs.scorpion.update(gs);
         gs.vine.update(gs);
         gs.pit.update(gs);
@@ -59,18 +71,18 @@ export function update() {
     const targetScrollX = Math.floor(gs.harry.absoluteX);
     gs.roundBias = 0;
     if (targetScrollX < gs.scrollX - SCROLL_MARGIN) {
+        gs.roundBias = -.5;
         if (gs.lastScrollX === targetScrollX || gs.harry.teleported) {
             gs.scrollX -= MIN_SCROLL_DELTA;
         } else {
-            gs.scrollX -= Math.max(MIN_SCROLL_DELTA, gs.lastScrollX - targetScrollX);
-            gs.roundBias = -.5;
+            gs.scrollX -= Math.max(MIN_SCROLL_DELTA, gs.lastScrollX - targetScrollX);            
         }
     } else if (targetScrollX > gs.scrollX + SCROLL_MARGIN) {
+        gs.roundBias = .5;
         if (gs.lastScrollX === targetScrollX || gs.harry.teleported) {
             gs.scrollX += MIN_SCROLL_DELTA;
         } else {
-            gs.scrollX += Math.max(MIN_SCROLL_DELTA, targetScrollX - gs.lastScrollX);
-            gs.roundBias = .5;
+            gs.scrollX += Math.max(MIN_SCROLL_DELTA, targetScrollX - gs.lastScrollX);            
         }
     }
     gs.lastScrollX = targetScrollX;
@@ -175,6 +187,15 @@ function renderLeaves(ctx: OffscreenCanvasRenderingContext2D, scene: number, ox:
     ctx.drawImage(leavesSprites[0][trees], 0, 0, 4, 4, 136 - ox, 51, 16, 8);
 }
 
+function renderHUD(ctx: OffscreenCanvasRenderingContext2D) {
+    printNumber(ctx, gs.score, 53, 3, Colors.OFF_WHITE);
+    gs.clock.render(ctx);
+    ctx.fillStyle = colors[Colors.OFF_WHITE];
+    for (let i = gs.extraLives - 1, x = 13; i >= 0; --i, x += 2) {
+        ctx.fillRect(x, 16, 1, 8);
+    }
+}
+
 export function renderScreen(ctx: OffscreenCanvasRenderingContext2D) {
     
     renderStrips(ctx);
@@ -202,4 +223,6 @@ export function renderScreen(ctx: OffscreenCanvasRenderingContext2D) {
         renderLeaves(ctx, gs.nextScene, gs.nextOx);
         ctx.globalAlpha = 1;
     }
+
+    renderHUD(ctx);
 }

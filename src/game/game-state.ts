@@ -4,6 +4,7 @@ import { Scorpion } from './scorpion';
 import { Vine } from './vine';
 import { Pit } from './pit';
 import { RollingLog } from './rolling-log';
+import { Clock } from './clock';
 import { map, TreasureType } from './map';
 
 export class SceneState {
@@ -23,6 +24,7 @@ export class GameState {
     vine = new Vine();
     pit = new Pit();
     rollingLog = new RollingLog();
+    clock = new Clock();
     scrollX = Math.floor(this.harry.absoluteX);
     lastScrollX = this.scrollX;
     roundBias = this.scrollX - this.harry.absoluteX;
@@ -31,7 +33,11 @@ export class GameState {
     nextScene = 0;
     lastNextScene = 0;
     lastHarryUnderground = false;
-    sceneAlpha = 1;    
+    sceneAlpha = 1;
+    score = 2000;
+    extraLives = 4;
+    gameOver = false;
+    gameOverDelay = 180;
 
     constructor() {
         for (let i = map.length - 1; i >= 0; --i) {

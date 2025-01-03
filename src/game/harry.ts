@@ -32,7 +32,7 @@ enum MainState {
     INJURED,
     SWINGING,
     SINKING,
-    KNEELING,
+    KNEELING,    
 }
 
 export class Harry {   
@@ -197,6 +197,7 @@ export class Harry {
 
         if (holes && this.y === Y_UPPER_LEVEL && ((this.x >= 40 && this.x <= 51) || (this.x >= 92 && this.x <= 103))) {
             this.startFalling(gs, G);
+            gs.score = Math.max(0, gs.score - 100);
             return;
         }
 
@@ -324,7 +325,13 @@ export class Harry {
         this.injuredCounter = INJURED_DELAY;
     }
 
-    private startTunnelSpawn() {
+    private startTunnelSpawn(gs: GameState) {
+        if (gs.extraLives === 0) {
+            gs.gameOver = true;
+            return;
+        }
+        --gs.extraLives;
+
         this.mainState = MainState.FALLING;
         this.tunnelSpawning = true;
         let spawnX: number;
@@ -345,7 +352,13 @@ export class Harry {
         this.sprite = 2;
     }
 
-    private startTreeSpawn() {
+    private startTreeSpawn(gs: GameState) {
+        if (gs.extraLives === 0) {
+            gs.gameOver = true;
+            return;
+        }
+        --gs.extraLives;
+
         this.mainState = MainState.FALLING;
         this.teleport((this.dir === 0) ? 16 : 135);
         this.y = 51;
@@ -357,7 +370,7 @@ export class Harry {
     private updateInjured(gs: GameState) {
         if (--this.injuredCounter === 0) {
             if (this.isUnderground()) {
-                this.startTunnelSpawn();
+                this.startTunnelSpawn(gs);
             }
             return;
         }
@@ -401,7 +414,7 @@ export class Harry {
 
     private updateSinking(gs: GameState) {
         if (++this.y > 143 + INJURED_DELAY) {
-            this.startTreeSpawn();
+            this.startTreeSpawn(gs);
             return;
         }
     }

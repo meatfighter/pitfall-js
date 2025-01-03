@@ -210,6 +210,48 @@ async function download(url, progressListener) {
 
 /***/ }),
 
+/***/ "./src/game/clock.ts":
+/*!***************************!*\
+  !*** ./src/game/clock.ts ***!
+  \***************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   Clock: () => (/* binding */ Clock)
+/* harmony export */ });
+/* harmony import */ var _graphics__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @/graphics */ "./src/graphics.ts");
+
+class Clock {
+    minutes = 20;
+    seconds = 0;
+    frames = 0;
+    timeUp = false;
+    update() {
+        if (this.minutes === 0 && this.seconds === 0 && this.frames === 0) {
+            this.timeUp = true;
+            return;
+        }
+        if (--this.frames >= 0) {
+            return;
+        }
+        this.frames = 59;
+        if (--this.seconds >= 0) {
+            return;
+        }
+        this.seconds = 59;
+        --this.minutes;
+    }
+    render(ctx) {
+        (0,_graphics__WEBPACK_IMPORTED_MODULE_0__.printNumber)(ctx, this.minutes, 29, 16, _graphics__WEBPACK_IMPORTED_MODULE_0__.Colors.OFF_WHITE);
+        ctx.drawImage(_graphics__WEBPACK_IMPORTED_MODULE_0__.charSprites[_graphics__WEBPACK_IMPORTED_MODULE_0__.Colors.OFF_WHITE][10], 37, 16);
+        (0,_graphics__WEBPACK_IMPORTED_MODULE_0__.printNumber)(ctx, this.seconds, 53, 16, _graphics__WEBPACK_IMPORTED_MODULE_0__.Colors.OFF_WHITE, 2);
+    }
+}
+
+
+/***/ }),
+
 /***/ "./src/game/game-state.ts":
 /*!********************************!*\
   !*** ./src/game/game-state.ts ***!
@@ -227,7 +269,9 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _vine__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./vine */ "./src/game/vine.ts");
 /* harmony import */ var _pit__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./pit */ "./src/game/pit.ts");
 /* harmony import */ var _rolling_log__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./rolling-log */ "./src/game/rolling-log.ts");
-/* harmony import */ var _map__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./map */ "./src/game/map.ts");
+/* harmony import */ var _clock__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./clock */ "./src/game/clock.ts");
+/* harmony import */ var _map__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./map */ "./src/game/map.ts");
+
 
 
 
@@ -243,12 +287,13 @@ class SceneState {
     }
 }
 class GameState {
-    sceneStates = new Array(_map__WEBPACK_IMPORTED_MODULE_6__.map.length);
+    sceneStates = new Array(_map__WEBPACK_IMPORTED_MODULE_7__.map.length);
     harry = new _harry__WEBPACK_IMPORTED_MODULE_1__.Harry();
     scorpion = new _scorpion__WEBPACK_IMPORTED_MODULE_2__.Scorpion();
     vine = new _vine__WEBPACK_IMPORTED_MODULE_3__.Vine();
     pit = new _pit__WEBPACK_IMPORTED_MODULE_4__.Pit();
     rollingLog = new _rolling_log__WEBPACK_IMPORTED_MODULE_5__.RollingLog();
+    clock = new _clock__WEBPACK_IMPORTED_MODULE_6__.Clock();
     scrollX = Math.floor(this.harry.absoluteX);
     lastScrollX = this.scrollX;
     roundBias = this.scrollX - this.harry.absoluteX;
@@ -258,9 +303,13 @@ class GameState {
     lastNextScene = 0;
     lastHarryUnderground = false;
     sceneAlpha = 1;
+    score = 2000;
+    extraLives = 4;
+    gameOver = false;
+    gameOverDelay = 180;
     constructor() {
-        for (let i = _map__WEBPACK_IMPORTED_MODULE_6__.map.length - 1; i >= 0; --i) {
-            const scene = _map__WEBPACK_IMPORTED_MODULE_6__.map[i];
+        for (let i = _map__WEBPACK_IMPORTED_MODULE_7__.map.length - 1; i >= 0; --i) {
+            const scene = _map__WEBPACK_IMPORTED_MODULE_7__.map[i];
             this.sceneStates[i] = new SceneState(scene.treasure);
         }
     }
@@ -316,10 +365,20 @@ function saveGame() {
 }
 function update() {
     (0,_input__WEBPACK_IMPORTED_MODULE_4__.updateInput)();
+    if (gs.gameOver) {
+        if (gs.gameOverDelay > 0) {
+            --gs.gameOverDelay;
+            return;
+        }
+        if (_input__WEBPACK_IMPORTED_MODULE_4__.upJustPressed || _input__WEBPACK_IMPORTED_MODULE_4__.downJustPressed || _input__WEBPACK_IMPORTED_MODULE_4__.leftJustPressed || _input__WEBPACK_IMPORTED_MODULE_4__.rightJustPressed || _input__WEBPACK_IMPORTED_MODULE_4__.jumpJustPressed) {
+            resetGame();
+        }
+    }
     gs.harry.teleported = false;
     const scene0 = gs.harry.scene;
     const scene1 = gs.nextScene;
     if (!gs.harry.isInjured()) {
+        gs.clock.update();
         gs.scorpion.update(gs);
         gs.vine.update(gs);
         gs.pit.update(gs);
@@ -341,21 +400,21 @@ function update() {
     const targetScrollX = Math.floor(gs.harry.absoluteX);
     gs.roundBias = 0;
     if (targetScrollX < gs.scrollX - SCROLL_MARGIN) {
+        gs.roundBias = -.5;
         if (gs.lastScrollX === targetScrollX || gs.harry.teleported) {
             gs.scrollX -= MIN_SCROLL_DELTA;
         }
         else {
             gs.scrollX -= Math.max(MIN_SCROLL_DELTA, gs.lastScrollX - targetScrollX);
-            gs.roundBias = -.5;
         }
     }
     else if (targetScrollX > gs.scrollX + SCROLL_MARGIN) {
+        gs.roundBias = .5;
         if (gs.lastScrollX === targetScrollX || gs.harry.teleported) {
             gs.scrollX += MIN_SCROLL_DELTA;
         }
         else {
             gs.scrollX += Math.max(MIN_SCROLL_DELTA, targetScrollX - gs.lastScrollX);
-            gs.roundBias = .5;
         }
     }
     gs.lastScrollX = targetScrollX;
@@ -449,6 +508,14 @@ function renderLeaves(ctx, scene, ox) {
     }
     ctx.drawImage(_graphics__WEBPACK_IMPORTED_MODULE_2__.leavesSprites[0][trees], 0, 0, 4, 4, 136 - ox, 51, 16, 8);
 }
+function renderHUD(ctx) {
+    (0,_graphics__WEBPACK_IMPORTED_MODULE_2__.printNumber)(ctx, gs.score, 53, 3, _graphics__WEBPACK_IMPORTED_MODULE_2__.Colors.OFF_WHITE);
+    gs.clock.render(ctx);
+    ctx.fillStyle = _graphics__WEBPACK_IMPORTED_MODULE_2__.colors[_graphics__WEBPACK_IMPORTED_MODULE_2__.Colors.OFF_WHITE];
+    for (let i = gs.extraLives - 1, x = 13; i >= 0; --i, x += 2) {
+        ctx.fillRect(x, 16, 1, 8);
+    }
+}
 function renderScreen(ctx) {
     renderStrips(ctx);
     renderBackground(ctx, gs.harry.scene, gs.ox);
@@ -474,6 +541,7 @@ function renderScreen(ctx) {
         renderLeaves(ctx, gs.nextScene, gs.nextOx);
         ctx.globalAlpha = 1;
     }
+    renderHUD(ctx);
 }
 
 
@@ -670,6 +738,7 @@ class Harry {
         const { ladder, holes } = _map__WEBPACK_IMPORTED_MODULE_2__.map[this.scene];
         if (holes && this.y === Y_UPPER_LEVEL && ((this.x >= 40 && this.x <= 51) || (this.x >= 92 && this.x <= 103))) {
             this.startFalling(gs, G);
+            gs.score = Math.max(0, gs.score - 100);
             return;
         }
         if (_input__WEBPACK_IMPORTED_MODULE_1__.jumpPressed) {
@@ -782,7 +851,12 @@ class Harry {
         this.mainState = MainState.INJURED;
         this.injuredCounter = INJURED_DELAY;
     }
-    startTunnelSpawn() {
+    startTunnelSpawn(gs) {
+        if (gs.extraLives === 0) {
+            gs.gameOver = true;
+            return;
+        }
+        --gs.extraLives;
         this.mainState = MainState.FALLING;
         this.tunnelSpawning = true;
         let spawnX;
@@ -803,7 +877,12 @@ class Harry {
         this.vy = 0;
         this.sprite = 2;
     }
-    startTreeSpawn() {
+    startTreeSpawn(gs) {
+        if (gs.extraLives === 0) {
+            gs.gameOver = true;
+            return;
+        }
+        --gs.extraLives;
         this.mainState = MainState.FALLING;
         this.teleport((this.dir === 0) ? 16 : 135);
         this.y = 51;
@@ -814,7 +893,7 @@ class Harry {
     updateInjured(gs) {
         if (--this.injuredCounter === 0) {
             if (this.isUnderground()) {
-                this.startTunnelSpawn();
+                this.startTunnelSpawn(gs);
             }
             return;
         }
@@ -852,7 +931,7 @@ class Harry {
     }
     updateSinking(gs) {
         if (++this.y > 143 + INJURED_DELAY) {
-            this.startTreeSpawn();
+            this.startTreeSpawn(gs);
             return;
         }
     }
@@ -1333,6 +1412,9 @@ class RollingLog {
         if (this.computeFade(gs, X, offset, gs.harry.scene, rollingRight) === 1
             && gs.harry.intersects(_graphics__WEBPACK_IMPORTED_MODULE_0__.logMasks[sprite], X, y)) {
             gs.harry.rolled();
+            if (gs.score > 0) {
+                --gs.score;
+            }
         }
     }
     update(gs) {
@@ -1579,6 +1661,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   moneyMask: () => (/* binding */ moneyMask),
 /* harmony export */   moneySprite: () => (/* binding */ moneySprite),
 /* harmony export */   pitSprites: () => (/* binding */ pitSprites),
+/* harmony export */   printNumber: () => (/* binding */ printNumber),
 /* harmony export */   ringMask: () => (/* binding */ ringMask),
 /* harmony export */   ringSprite: () => (/* binding */ ringSprite),
 /* harmony export */   scorpionMasks: () => (/* binding */ scorpionMasks),
@@ -1626,6 +1709,7 @@ var Colors;
     Colors[Colors["PINK"] = 74] = "PINK";
     Colors[Colors["BLACK"] = 0] = "BLACK";
     Colors[Colors["GREY"] = 6] = "GREY";
+    Colors[Colors["OFF_WHITE"] = 12] = "OFF_WHITE";
     Colors[Colors["WHITE"] = 14] = "WHITE";
     Colors[Colors["DARK_GREEN"] = 210] = "DARK_GREEN";
     Colors[Colors["DARK_RED"] = 66] = "DARK_RED";
@@ -1949,6 +2033,15 @@ async function init() {
     // vines
     createVineSprites(palette, promises);
     await Promise.all(promises);
+}
+function printNumber(ctx, value, x, y, color, minDigits = 1) {
+    const sprites = charSprites[color];
+    while (value > 0 || minDigits > 0) {
+        ctx.drawImage(sprites[value % 10], x, y);
+        value = Math.floor(value / 10);
+        --minDigits;
+        x -= 8;
+    }
 }
 
 

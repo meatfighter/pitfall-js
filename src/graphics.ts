@@ -30,6 +30,7 @@ export enum Colors {
     PINK = 0x4a,
     BLACK = 0x00,
     GREY = 0x06,
+    OFF_WHITE = 0x0c,
     WHITE = 0x0e,
     DARK_GREEN = 0xd2,
     DARK_RED = 0x42,
@@ -427,4 +428,16 @@ export async function init() {
     createVineSprites(palette, promises);
         
     await Promise.all(promises);
+}
+
+export function printNumber(ctx: OffscreenCanvasRenderingContext2D, value: number, x: number, y: number, color: number, 
+        minDigits = 1) {
+
+    const sprites = charSprites[color];
+    while (value > 0 || minDigits > 0) {
+        ctx.drawImage(sprites[value % 10], x, y);
+        value = Math.floor(value / 10);
+        --minDigits;
+        x -= 8;
+    }
 }

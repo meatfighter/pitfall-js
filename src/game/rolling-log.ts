@@ -12,6 +12,9 @@ export class RollingLog {
         if (this.computeFade(gs, X, offset, gs.harry.scene, rollingRight) === 1 
                 && gs.harry.intersects(logMasks[sprite], X, y)) {
             gs.harry.rolled();
+            if (gs.score > 0) {
+                --gs.score;
+            }
         }
     }
 
