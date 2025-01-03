@@ -26,13 +26,6 @@ export function saveGame() {
     gs.save();    
 }
 
-function updateScene(scene: number) {
-    const { scorpion } = gs.sceneStates[scene];
-    if (scorpion) {
-        scorpion.update(gs);
-    }
-}
-
 export function update() {
     updateInput();
 
@@ -42,17 +35,15 @@ export function update() {
     const scene1 = gs.nextScene;
 
     if (!gs.harry.isInjured()) {
+        gs.scorpion.update(gs);
         gs.vine.update(gs);
         gs.pit.update(gs);
         gs.rollingLog.update(gs);
-        updateScene(gs.harry.scene);
-        updateScene(gs.nextScene);
         if (gs.sceneAlpha < 1) {
             gs.sceneAlpha += SCENE_ALPHA_DELTA;
             if (gs.sceneAlpha > 1) {
                 gs.sceneAlpha = 1;
             }
-            updateScene(gs.lastNextScene);
         }
     } 
    
@@ -119,8 +110,7 @@ function renderStrips(ctx: OffscreenCanvasRenderingContext2D) {
 }
 
 function renderBackground(ctx: OffscreenCanvasRenderingContext2D, scene: number, ox: number) {
-    const { trees, ladder, holes, wall, vine, pit, obsticles } = map[scene];
-    const { scorpion } = gs.sceneStates[scene];
+    const { trees, ladder, holes, wall, vine, pit, obsticles, scorpion } = map[scene];
     const trunks = TRUNKS[trees];
     ctx.fillStyle = colors[Colors.DARK_BROWN];
     for (let i = 3; i >= 0; --i) {
@@ -158,7 +148,7 @@ function renderBackground(ctx: OffscreenCanvasRenderingContext2D, scene: number,
     }
 
     if (scorpion) {
-        scorpion.render(gs, ctx, ox);
+        gs.scorpion.render(gs, ctx, ox);
     }
 
     if (vine) {

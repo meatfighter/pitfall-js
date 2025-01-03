@@ -10,8 +10,7 @@ export class SceneState {
 
     enteredLeft = true;
 
-    constructor(public readonly scorpion: Scorpion | null,
-                public treasure: TreasureType
+    constructor(public treasure: TreasureType
     ) {
     }
 }
@@ -20,6 +19,7 @@ export class GameState {
 
     sceneStates: SceneState[] = new Array<SceneState>(map.length);
     harry = new Harry();
+    scorpion = new Scorpion();
     vine = new Vine();
     pit = new Pit();
     rollingLog = new RollingLog();
@@ -36,7 +36,7 @@ export class GameState {
     constructor() {
         for (let i = map.length - 1; i >= 0; --i) {
             const scene = map[i];
-            this.sceneStates[i] = new SceneState(scene.scorpion ? new Scorpion(i) : null, scene.treasure);
+            this.sceneStates[i] = new SceneState(scene.treasure);
         }
     }
 

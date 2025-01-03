@@ -15,28 +15,28 @@ export class RollingLog {
 
         this.spriteCounter = (this.spriteCounter + 1) & 0xF;
 
-        const { harry } = gs;
-        if (harry.i)
+        // const { harry } = gs;
+        // if (harry.i)
 
-        const rollingRight = gs.sceneStates[scene].enteredLeft;
+        // const rollingRight = gs.sceneStates[scene].enteredLeft;
 
-        let x = gs.round(rollingRight ? this.xCounter : Resolution.WIDTH - .5 - this.xCounter);
-        const s = this.spriteCounter >> 2;
-        const sprite = s & 1;
-        const y = 111 + ((s === 0) ? 1 : 0);
+        // let x = gs.round(rollingRight ? this.xCounter : Resolution.WIDTH - .5 - this.xCounter);
+        // const s = this.spriteCounter >> 2;
+        // const sprite = s & 1;
+        // const y = 111 + ((s === 0) ? 1 : 0);
 
-        this.renderLog(gs, ctx, sprite, x, y, 0, scene, rollingRight, ox);
-        switch (map[scene].obsticles) {
-            case ObsticleType.TWO_ROLLING_LOGS_NEAR:
-                this.renderLog(gs, ctx, sprite, x, y, 16, scene, rollingRight, ox);
-                break;
-            case ObsticleType.THREE_ROLLING_LOGS:
-                this.renderLog(gs, ctx, sprite, x, y, 64, scene, rollingRight, ox);
-                // fall through to next case to draw the third log
-            case ObsticleType.TWO_ROLLING_LOGS_FAR:
-                this.renderLog(gs, ctx, sprite, x, y, 32, scene, rollingRight, ox);
-                break;                    
-        }
+        // this.renderLog(gs, ctx, sprite, x, y, 0, scene, rollingRight, ox);
+        // switch (map[scene].obsticles) {
+        //     case ObsticleType.TWO_ROLLING_LOGS_NEAR:
+        //         this.renderLog(gs, ctx, sprite, x, y, 16, scene, rollingRight, ox);
+        //         break;
+        //     case ObsticleType.THREE_ROLLING_LOGS:
+        //         this.renderLog(gs, ctx, sprite, x, y, 64, scene, rollingRight, ox);
+        //         // fall through to next case to draw the third log
+        //     case ObsticleType.TWO_ROLLING_LOGS_FAR:
+        //         this.renderLog(gs, ctx, sprite, x, y, 32, scene, rollingRight, ox);
+        //         break;                    
+        // }
     }
 
     fadeLog(gs: GameState, scene: number, rollingRight: boolean, offset: number): boolean {

@@ -1,5 +1,6 @@
 import { scorpionMasks, sorpionSprites, Resolution } from '@/graphics';
 import { GameState } from './game-state';
+import { map } from './map';
 
 const X_START = Resolution.WIDTH / 2;
 const X_MIN = 4;
@@ -14,11 +15,8 @@ export class Scorpion {
     sprite = 0;
     updateCounter = FRAMES_PER_UPDATE;
 
-    constructor(public scene: number) {        
-    }
-
     update(gs: GameState) {
-        const harryNearby = gs.harry.scene === this.scene && gs.harry.isUnderground();
+        const harryNearby = map[gs.harry.scene].scorpion && gs.harry.isUnderground();
         if (harryNearby && gs.harry.intersects(scorpionMasks[this.dir][this.sprite], gs.round(this.x) - 4, 158)) {
             gs.harry.injure();
             return;
