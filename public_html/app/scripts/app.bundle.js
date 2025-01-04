@@ -456,7 +456,7 @@ function update() {
         gs.sceneAlpha = (0,_math__WEBPACK_IMPORTED_MODULE_3__.clamp)(1 - gs.sceneAlpha, 0, 1);
     }
     // TODO LOGS VIBRATE WHEN HARRY STARTS CLIMBING :(
-    const targetScrollX = Math.floor(gs.harry.absoluteX);
+    const targetScrollX = gs.harry.absoluteX;
     gs.roundBias = 0;
     if (targetScrollX < gs.scrollX - SCROLL_MARGIN) {
         gs.roundBias = -.5;
@@ -477,7 +477,7 @@ function update() {
         }
     }
     gs.lastScrollX = targetScrollX;
-    gs.ox = Math.floor(gs.harry.x) - 76 + Math.floor(gs.scrollX) - targetScrollX;
+    gs.ox = Math.floor(gs.harry.x) - 76 + Math.floor(gs.scrollX) - Math.floor(gs.harry.absoluteX);
     if (gs.ox < 0) {
         gs.nextOx = gs.ox + _graphics__WEBPACK_IMPORTED_MODULE_2__.Resolution.WIDTH;
         gs.nextScene = gs.harry.scene - (underground ? 3 : 1);

@@ -71,13 +71,14 @@ export function update() {
     }
 
     // TODO LOGS VIBRATE WHEN HARRY STARTS CLIMBING :(
+    // TODO BIAS IS BEING SET EVERY OTHER FRAME!
     const targetScrollX = Math.floor(gs.harry.absoluteX);
     gs.roundBias = 0;
     if (targetScrollX < gs.scrollX - SCROLL_MARGIN) {
         gs.roundBias = -.5;
         if (gs.lastScrollX === targetScrollX || gs.harry.teleported) {
             gs.scrollX -= MIN_SCROLL_DELTA;
-        } else {
+        } else {            
             gs.scrollX -= Math.max(MIN_SCROLL_DELTA, gs.lastScrollX - targetScrollX);
         }
     } else if (targetScrollX > gs.scrollX + SCROLL_MARGIN) {
@@ -87,9 +88,9 @@ export function update() {
         } else {
             gs.scrollX += Math.max(MIN_SCROLL_DELTA, targetScrollX - gs.lastScrollX);
         }
-    }
+    }    
     gs.lastScrollX = targetScrollX;
-    gs.ox = Math.floor(gs.harry.x) - 76 + Math.floor(gs.scrollX) - targetScrollX;    
+    gs.ox = Math.floor(gs.harry.x) - 76 + Math.floor(gs.scrollX) - targetScrollX;
 
     if (gs.ox < 0) {
         gs.nextOx = gs.ox + Resolution.WIDTH;        
