@@ -38,7 +38,7 @@ enum MainState {
 export class Harry {   
     mainState = MainState.STANDING;
     lastMainState = MainState.STANDING;
-    scene = 14 // TODO 0;
+    scene = 1; // TODO 0;
     absoluteX = 12;
     x = this.absoluteX;
     y = Y_UPPER_LEVEL;
@@ -150,15 +150,16 @@ export class Harry {
         let shifting = false;
         if (rightPressed) {
             let moveRight = true;
-            if (this.y >= 120 && ((wall === WallType.RIGHT && this.x === 127) || (wall === WallType.LEFT && this.x === 9))) {
+            if (this.y >= 120 && ((wall === WallType.RIGHT && this.x === 127) 
+                    || (wall === WallType.LEFT && this.x === 9))) {
                 moveRight = false;
             } else if (this.y > Y_UPPER_LEVEL && this.y <= Y_HOLE_BOTTOM) {
-                if (this.x >= 40 && this.x <= 51) {
-                    if (this.x > 50.5) {
+                if (this.x >= 40 && this.x <= 52) {
+                    if (this.x > 51.5) {
                         moveRight = false;
                     }
-                } else if (this.x >= 92 && this.x <= 103) {
-                    if (this.x > 102.5) {
+                } else if (this.x >= 92 && this.x <= 104) {
+                    if (this.x > 103.5) {
                         moveRight = false;
                     }
                 }                
@@ -170,7 +171,8 @@ export class Harry {
             }
         } else if (leftPressed) {
             let moveLeft = true;
-            if (this.y >= 120 && ((wall === WallType.LEFT && this.x === 18) || (wall === WallType.RIGHT && this.x === 136))) {
+            if (this.y >= 120 && ((wall === WallType.LEFT && this.x === 18) 
+                    || (wall === WallType.RIGHT && this.x === 136))) {
                 moveLeft = false;
             } else if (this.y > Y_UPPER_LEVEL && this.y <= Y_HOLE_BOTTOM) {
                 if (this.x >= 40 && this.x <= 51) {
@@ -195,7 +197,7 @@ export class Harry {
     private updateStanding(gs: GameState) {
         const { ladder, holes } = map[this.scene];
 
-        if (holes && this.y === Y_UPPER_LEVEL && ((this.x >= 40 && this.x <= 51) || (this.x >= 92 && this.x <= 103))) {
+        if (holes && this.y === Y_UPPER_LEVEL && ((this.x >= 40 && this.x <= 52) || (this.x >= 92 && this.x <= 104))) {
             this.startFalling(gs, G);
             gs.score = Math.max(0, gs.score - 100);
             return;

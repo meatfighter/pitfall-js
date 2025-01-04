@@ -459,22 +459,22 @@ function update() {
     const targetScrollX = Math.floor(gs.harry.absoluteX);
     gs.roundBias = 0;
     if (targetScrollX < gs.scrollX - SCROLL_MARGIN) {
+        gs.roundBias = -.5;
         if (gs.lastScrollX === targetScrollX || gs.harry.teleported) {
-            gs.roundBias = -MIN_SCROLL_DELTA;
+            gs.scrollX -= MIN_SCROLL_DELTA;
         }
         else {
-            gs.roundBias = -Math.max(MIN_SCROLL_DELTA, gs.lastScrollX - targetScrollX);
+            gs.scrollX -= Math.max(MIN_SCROLL_DELTA, gs.lastScrollX - targetScrollX);
         }
-        gs.scrollX += gs.roundBias;
     }
     else if (targetScrollX > gs.scrollX + SCROLL_MARGIN) {
+        gs.roundBias = .5;
         if (gs.lastScrollX === targetScrollX || gs.harry.teleported) {
-            gs.roundBias = MIN_SCROLL_DELTA;
+            gs.scrollX += MIN_SCROLL_DELTA;
         }
         else {
-            gs.roundBias = Math.max(MIN_SCROLL_DELTA, targetScrollX - gs.lastScrollX);
+            gs.scrollX += Math.max(MIN_SCROLL_DELTA, targetScrollX - gs.lastScrollX);
         }
-        gs.scrollX += gs.roundBias;
     }
     gs.lastScrollX = targetScrollX;
     gs.ox = Math.floor(gs.harry.x) - 76 + Math.floor(gs.scrollX) - targetScrollX;
@@ -656,7 +656,7 @@ var MainState;
 class Harry {
     mainState = MainState.STANDING;
     lastMainState = MainState.STANDING;
-    scene = 14; // TODO 0;
+    scene = 1; // TODO 0;
     absoluteX = 12;
     x = this.absoluteX;
     y = Y_UPPER_LEVEL;
@@ -756,17 +756,18 @@ class Harry {
         let shifting = false;
         if (_input__WEBPACK_IMPORTED_MODULE_1__.rightPressed) {
             let moveRight = true;
-            if (this.y >= 120 && ((wall === _map__WEBPACK_IMPORTED_MODULE_2__.WallType.RIGHT && this.x === 127) || (wall === _map__WEBPACK_IMPORTED_MODULE_2__.WallType.LEFT && this.x === 9))) {
+            if (this.y >= 120 && ((wall === _map__WEBPACK_IMPORTED_MODULE_2__.WallType.RIGHT && this.x === 127)
+                || (wall === _map__WEBPACK_IMPORTED_MODULE_2__.WallType.LEFT && this.x === 9))) {
                 moveRight = false;
             }
             else if (this.y > Y_UPPER_LEVEL && this.y <= Y_HOLE_BOTTOM) {
-                if (this.x >= 40 && this.x <= 51) {
-                    if (this.x > 50.5) {
+                if (this.x >= 40 && this.x <= 52) {
+                    if (this.x > 51.5) {
                         moveRight = false;
                     }
                 }
-                else if (this.x >= 92 && this.x <= 103) {
-                    if (this.x > 102.5) {
+                else if (this.x >= 92 && this.x <= 104) {
+                    if (this.x > 103.5) {
                         moveRight = false;
                     }
                 }
@@ -779,7 +780,8 @@ class Harry {
         }
         else if (_input__WEBPACK_IMPORTED_MODULE_1__.leftPressed) {
             let moveLeft = true;
-            if (this.y >= 120 && ((wall === _map__WEBPACK_IMPORTED_MODULE_2__.WallType.LEFT && this.x === 18) || (wall === _map__WEBPACK_IMPORTED_MODULE_2__.WallType.RIGHT && this.x === 136))) {
+            if (this.y >= 120 && ((wall === _map__WEBPACK_IMPORTED_MODULE_2__.WallType.LEFT && this.x === 18)
+                || (wall === _map__WEBPACK_IMPORTED_MODULE_2__.WallType.RIGHT && this.x === 136))) {
                 moveLeft = false;
             }
             else if (this.y > Y_UPPER_LEVEL && this.y <= Y_HOLE_BOTTOM) {
@@ -804,7 +806,7 @@ class Harry {
     }
     updateStanding(gs) {
         const { ladder, holes } = _map__WEBPACK_IMPORTED_MODULE_2__.map[this.scene];
-        if (holes && this.y === Y_UPPER_LEVEL && ((this.x >= 40 && this.x <= 51) || (this.x >= 92 && this.x <= 103))) {
+        if (holes && this.y === Y_UPPER_LEVEL && ((this.x >= 40 && this.x <= 52) || (this.x >= 92 && this.x <= 104))) {
             this.startFalling(gs, G);
             gs.score = Math.max(0, gs.score - 100);
             return;
