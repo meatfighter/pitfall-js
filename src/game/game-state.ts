@@ -30,8 +30,8 @@ export class GameState {
     clock = new Clock();
     scrollX = Math.floor(this.harry.absoluteX);
     lastScrollX = this.scrollX;
-    roundBias = this.scrollX - this.harry.absoluteX;
     ox = 0;
+    lastOx = 0;
     nextOx = 0;
     nextScene = 0;
     lastNextScene = 0;
@@ -47,10 +47,6 @@ export class GameState {
             const scene = map[i];
             this.sceneStates[i] = new SceneState(scene.treasure);
         }
-    }
-
-    round(value: number): number {
-        return Math.floor(value + this.roundBias);
     }
 
     save() {

@@ -17,7 +17,7 @@ export class Scorpion {
 
     update(gs: GameState) {
         const harryNearby = map[gs.harry.scene].scorpion && gs.harry.isUnderground();
-        if (harryNearby && gs.harry.intersects(scorpionMasks[this.dir][this.sprite], gs.round(this.x) - 4, 158)) {
+        if (harryNearby && gs.harry.intersects(scorpionMasks[this.dir][this.sprite], Math.floor(this.x) - 4, 158)) {
             gs.harry.injure();
             return;
         }        
@@ -53,6 +53,6 @@ export class Scorpion {
     }
 
     render(gs: GameState, ctx: OffscreenCanvasRenderingContext2D, ox: number) {
-        ctx.drawImage(sorpionSprites[this.dir][this.sprite], gs.round(this.x) - 4 - ox, 158);
+        ctx.drawImage(sorpionSprites[this.dir][this.sprite], Math.floor(this.x) - 4 - ox, 158);
     }
 }

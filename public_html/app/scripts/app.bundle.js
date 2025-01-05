@@ -352,8 +352,8 @@ class GameState {
     clock = new _clock__WEBPACK_IMPORTED_MODULE_8__.Clock();
     scrollX = Math.floor(this.harry.absoluteX);
     lastScrollX = this.scrollX;
-    roundBias = this.scrollX - this.harry.absoluteX;
     ox = 0;
+    lastOx = 0;
     nextOx = 0;
     nextScene = 0;
     lastNextScene = 0;
@@ -368,9 +368,6 @@ class GameState {
             const scene = _map__WEBPACK_IMPORTED_MODULE_9__.map[i];
             this.sceneStates[i] = new SceneState(scene.treasure);
         }
-    }
-    round(value) {
-        return Math.floor(value + this.roundBias);
     }
     save() {
         (0,_store__WEBPACK_IMPORTED_MODULE_0__.saveStore)();
@@ -455,11 +452,8 @@ function update() {
         gs.lastNextScene = gs.nextScene;
         gs.sceneAlpha = (0,_math__WEBPACK_IMPORTED_MODULE_3__.clamp)(1 - gs.sceneAlpha, 0, 1);
     }
-    // TODO LOGS VIBRATE WHEN HARRY STARTS CLIMBING :(
-    const targetScrollX = gs.harry.absoluteX;
-    gs.roundBias = 0;
+    const targetScrollX = Math.floor(gs.harry.absoluteX);
     if (targetScrollX < gs.scrollX - SCROLL_MARGIN) {
-        gs.roundBias = -.5;
         if (gs.lastScrollX === targetScrollX || gs.harry.teleported) {
             gs.scrollX -= MIN_SCROLL_DELTA;
         }
@@ -468,7 +462,6 @@ function update() {
         }
     }
     else if (targetScrollX > gs.scrollX + SCROLL_MARGIN) {
-        gs.roundBias = .5;
         if (gs.lastScrollX === targetScrollX || gs.harry.teleported) {
             gs.scrollX += MIN_SCROLL_DELTA;
         }
@@ -477,7 +470,11 @@ function update() {
         }
     }
     gs.lastScrollX = targetScrollX;
-    gs.ox = Math.floor(gs.harry.x) - 76 + Math.floor(gs.scrollX) - Math.floor(gs.harry.absoluteX);
+    gs.ox = Math.floor(gs.harry.x) - 76 + Math.floor(gs.scrollX) - targetScrollX;
+    if (gs.lastOx !== gs.ox) {
+        gs.rollingLog.sync();
+        gs.lastOx = gs.ox;
+    }
     if (gs.ox < 0) {
         gs.nextOx = gs.ox + _graphics__WEBPACK_IMPORTED_MODULE_2__.Resolution.WIDTH;
         gs.nextScene = gs.harry.scene - (underground ? 3 : 1);
@@ -1507,6 +1504,11 @@ __webpack_require__.r(__webpack_exports__);
 class RollingLog {
     xCounter = 0;
     spriteCounter = 0;
+    // When the scroll position changes, floor the rolling logs counter to prevent jittering. Jittering occurs when the 
+    // scroll position and the rolling logs change on alternate frames.
+    sync() {
+        this.xCounter = Math.floor(this.xCounter);
+    }
     checkRolled(gs, x, y, sprite, offset, rollingRight) {
         const X = (x + offset) % _graphics__WEBPACK_IMPORTED_MODULE_0__.Resolution.WIDTH;
         if (this.computeFade(gs, X, offset, gs.harry.scene, rollingRight) === 1
@@ -1529,7 +1531,7 @@ class RollingLog {
             return;
         }
         const rollingRight = gs.sceneStates[harry.scene].enteredLeft;
-        const x = gs.round(rollingRight ? this.xCounter : _graphics__WEBPACK_IMPORTED_MODULE_0__.Resolution.WIDTH - .5 - this.xCounter);
+        const x = Math.floor(rollingRight ? this.xCounter : _graphics__WEBPACK_IMPORTED_MODULE_0__.Resolution.WIDTH - .5 - this.xCounter);
         const s = this.spriteCounter >> 2;
         const sprite = s & 1;
         const y = 111 + ((s === 0) ? 1 : 0);
@@ -1604,7 +1606,7 @@ class RollingLog {
     }
     render(gs, ctx, scene, ox) {
         const rollingRight = gs.sceneStates[scene].enteredLeft;
-        const x = gs.round(rollingRight ? this.xCounter : _graphics__WEBPACK_IMPORTED_MODULE_0__.Resolution.WIDTH - .5 - this.xCounter);
+        const x = Math.floor(rollingRight ? this.xCounter : _graphics__WEBPACK_IMPORTED_MODULE_0__.Resolution.WIDTH - .5 - this.xCounter);
         const s = this.spriteCounter >> 2;
         const sprite = s & 1;
         const y = 111 + ((s === 0) ? 1 : 0);
@@ -1653,7 +1655,7 @@ class Scorpion {
     updateCounter = FRAMES_PER_UPDATE;
     update(gs) {
         const harryNearby = _map__WEBPACK_IMPORTED_MODULE_1__.map[gs.harry.scene].scorpion && gs.harry.isUnderground();
-        if (harryNearby && gs.harry.intersects(_graphics__WEBPACK_IMPORTED_MODULE_0__.scorpionMasks[this.dir][this.sprite], gs.round(this.x) - 4, 158)) {
+        if (harryNearby && gs.harry.intersects(_graphics__WEBPACK_IMPORTED_MODULE_0__.scorpionMasks[this.dir][this.sprite], Math.floor(this.x) - 4, 158)) {
             gs.harry.injure();
             return;
         }
@@ -1687,7 +1689,7 @@ class Scorpion {
         }
     }
     render(gs, ctx, ox) {
-        ctx.drawImage(_graphics__WEBPACK_IMPORTED_MODULE_0__.sorpionSprites[this.dir][this.sprite], gs.round(this.x) - 4 - ox, 158);
+        ctx.drawImage(_graphics__WEBPACK_IMPORTED_MODULE_0__.sorpionSprites[this.dir][this.sprite], Math.floor(this.x) - 4 - ox, 158);
     }
 }
 

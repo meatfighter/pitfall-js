@@ -7,6 +7,12 @@ export class RollingLog {
     xCounter = 0;
     spriteCounter = 0;
 
+    // When the scroll position changes, floor the rolling logs counter to prevent jittering. Jittering occurs when the 
+    // scroll position and the rolling logs change on alternate frames.
+    sync() {
+        this.xCounter = Math.floor(this.xCounter);
+    }
+
     checkRolled(gs: GameState, x: number, y: number, sprite: number, offset: number, rollingRight: boolean) {
         const X = (x + offset) % Resolution.WIDTH;
         if (this.computeFade(gs, X, offset, gs.harry.scene, rollingRight) === 1 
@@ -33,7 +39,7 @@ export class RollingLog {
         }
 
         const rollingRight = gs.sceneStates[harry.scene].enteredLeft;
-        const x = gs.round(rollingRight ? this.xCounter : Resolution.WIDTH - .5 - this.xCounter);
+        const x = Math.floor(rollingRight ? this.xCounter : Resolution.WIDTH - .5 - this.xCounter);
         const s = this.spriteCounter >> 2;
         const sprite = s & 1;
         const y = 111 + ((s === 0) ? 1 : 0);
@@ -113,7 +119,7 @@ export class RollingLog {
 
     render(gs: GameState, ctx: OffscreenCanvasRenderingContext2D, scene: number, ox: number) {
         const rollingRight = gs.sceneStates[scene].enteredLeft;
-        const x = gs.round(rollingRight ? this.xCounter : Resolution.WIDTH - .5 - this.xCounter);
+        const x = Math.floor(rollingRight ? this.xCounter : Resolution.WIDTH - .5 - this.xCounter);
         const s = this.spriteCounter >> 2;
         const sprite = s & 1;
         const y = 111 + ((s === 0) ? 1 : 0);
