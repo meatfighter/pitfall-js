@@ -32,13 +32,14 @@ enum MainState {
     INJURED,
     SWINGING,
     SINKING,
-    KNEELING,    
+    KNEELING,
+    SKIDDING,   
 }
 
 export class Harry {   
     mainState = MainState.STANDING;
     lastMainState = MainState.STANDING;
-    scene = 1; // TODO 0;
+    scene = 26; // TODO 0;
     absoluteX = 12;
     x = this.absoluteX;
     y = Y_UPPER_LEVEL;
@@ -52,6 +53,7 @@ export class Harry {
     tunnelSpawning = false;
     releasedVine = false;
     swallow = false;
+    kneeling = false;
     kneelingDelay = false;
 
     intersects(mask: Mask, x: number, y: number): boolean {
@@ -69,6 +71,13 @@ export class Harry {
     }
 
     isUnderground() {
+        switch (this.mainState) {
+            case MainState.SINKING:
+            case MainState.SWINGING:
+            case MainState.SKIDDING:
+            case MainState.KNEELING:
+                return false;            
+        }
         return this.y > 146;
     }
 
@@ -113,6 +122,7 @@ export class Harry {
         this.y += v0;
         this.vy = G + v0;
         this.sprite = 2;
+        this.kneeling = false;
         this.updateShift(gs)
     }
 
@@ -132,6 +142,7 @@ export class Harry {
         this.teleport(72);
         this.y = y;
         this.sprite = 7;
+        this.kneeling = false;
         this.climbCounter = 0;        
     }
 
@@ -426,7 +437,7 @@ export class Harry {
     private startKnelling() {
         this.mainState = MainState.KNEELING;
         this.sprite = 5;
-        this.y = Y_UPPER_LEVEL + 5;
+        this.kneeling = true;
         this.kneelingDelay = true;
     }
 
@@ -442,15 +453,32 @@ export class Harry {
         }
     }
 
+    skidded() {
+        switch (this.mainState) {
+            case MainState.STANDING:
+            case MainState.SKIDDING:    
+                this.mainState = MainState.SKIDDING;
+                this.sprite = 5;
+                this.kneeling = true;
+                this.kneelingDelay = true;
+                break;
+        }        
+    }
+
     private updateKneeling(gs: GameState) {
         if (this.kneelingDelay) {
             this.kneelingDelay = false;
         } else {
             this.mainState = MainState.STANDING;
             this.sprite = 0;
-            this.y = Y_UPPER_LEVEL;
+            this.kneeling = false;
         }
     }
+
+    private updateSkidding(gs: GameState) {
+        this.updateKneeling(gs);
+        this.updateStanding(gs);
+    }    
 
     update(gs: GameState) {
         const state = this.mainState;
@@ -475,15 +503,18 @@ export class Harry {
                 break;
             case MainState.KNEELING:
                 this.updateKneeling(gs);
-                break;    
+                break;
+            case MainState.SKIDDING:
+                this.updateSkidding(gs);
+                break;        
         }
         this.lastMainState = state;
     }
 
     render(gs: GameState, ctx: OffscreenCanvasRenderingContext2D, ox: number) {
-        const sprite = harrySprites[this.dir][this.sprite];
+        const sprite = harrySprites[this.dir][this.kneeling ? 5 : this.sprite];
         const X = Math.floor(this.x) - 4 - ox;
-        const Y = Math.floor(this.y) - 22;
+        const Y = this.kneeling ? Y_UPPER_LEVEL - 17 : Math.floor(this.y) - 22;
         if (this.mainState === MainState.SINKING) {
             if (this.swallow) {
                 if (Y < 121) {

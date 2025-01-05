@@ -53,6 +53,7 @@ export function update() {
         gs.vine.update(gs);
         gs.pit.update(gs);
         gs.rollingLog.update(gs);
+        gs.stationaryLog.update(gs);
         if (gs.sceneAlpha < 1) {
             gs.sceneAlpha += SCENE_ALPHA_DELTA;
             if (gs.sceneAlpha > 1) {
@@ -181,7 +182,12 @@ function renderBackground(ctx: OffscreenCanvasRenderingContext2D, scene: number,
         case ObsticleType.TWO_ROLLING_LOGS_FAR:
         case ObsticleType.THREE_ROLLING_LOGS:
             gs.rollingLog.render(gs, ctx, scene, ox);
-            break;            
+            break;
+            
+        case ObsticleType.ONE_STATIONARY_LOG:
+        case ObsticleType.THREE_STATIONARY_LOGS:
+            gs.stationaryLog.render(gs, ctx, scene, ox);
+            break;        
 
         case ObsticleType.COBRA:
         case ObsticleType.FIRE:

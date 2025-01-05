@@ -319,10 +319,12 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _vine__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./vine */ "./src/game/vine.ts");
 /* harmony import */ var _pit__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./pit */ "./src/game/pit.ts");
 /* harmony import */ var _rolling_log__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./rolling-log */ "./src/game/rolling-log.ts");
-/* harmony import */ var _rattle__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./rattle */ "./src/game/rattle.ts");
-/* harmony import */ var _cobra_and_fire__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./cobra-and-fire */ "./src/game/cobra-and-fire.ts");
-/* harmony import */ var _clock__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./clock */ "./src/game/clock.ts");
-/* harmony import */ var _map__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ./map */ "./src/game/map.ts");
+/* harmony import */ var _stationary_log__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./stationary-log */ "./src/game/stationary-log.ts");
+/* harmony import */ var _rattle__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./rattle */ "./src/game/rattle.ts");
+/* harmony import */ var _cobra_and_fire__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./cobra-and-fire */ "./src/game/cobra-and-fire.ts");
+/* harmony import */ var _clock__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ./clock */ "./src/game/clock.ts");
+/* harmony import */ var _map__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ./map */ "./src/game/map.ts");
+
 
 
 
@@ -341,15 +343,16 @@ class SceneState {
     }
 }
 class GameState {
-    sceneStates = new Array(_map__WEBPACK_IMPORTED_MODULE_9__.map.length);
+    sceneStates = new Array(_map__WEBPACK_IMPORTED_MODULE_10__.map.length);
     harry = new _harry__WEBPACK_IMPORTED_MODULE_1__.Harry();
     scorpion = new _scorpion__WEBPACK_IMPORTED_MODULE_2__.Scorpion();
     vine = new _vine__WEBPACK_IMPORTED_MODULE_3__.Vine();
     pit = new _pit__WEBPACK_IMPORTED_MODULE_4__.Pit();
     rollingLog = new _rolling_log__WEBPACK_IMPORTED_MODULE_5__.RollingLog();
-    rattle = new _rattle__WEBPACK_IMPORTED_MODULE_6__.Rattle();
-    cobraAndFire = new _cobra_and_fire__WEBPACK_IMPORTED_MODULE_7__.CobraAndFire();
-    clock = new _clock__WEBPACK_IMPORTED_MODULE_8__.Clock();
+    stationaryLog = new _stationary_log__WEBPACK_IMPORTED_MODULE_6__.StationaryLog();
+    rattle = new _rattle__WEBPACK_IMPORTED_MODULE_7__.Rattle();
+    cobraAndFire = new _cobra_and_fire__WEBPACK_IMPORTED_MODULE_8__.CobraAndFire();
+    clock = new _clock__WEBPACK_IMPORTED_MODULE_9__.Clock();
     scrollX = Math.floor(this.harry.absoluteX);
     lastScrollX = this.scrollX;
     ox = 0;
@@ -364,8 +367,8 @@ class GameState {
     gameOver = false;
     gameOverDelay = 180;
     constructor() {
-        for (let i = _map__WEBPACK_IMPORTED_MODULE_9__.map.length - 1; i >= 0; --i) {
-            const scene = _map__WEBPACK_IMPORTED_MODULE_9__.map[i];
+        for (let i = _map__WEBPACK_IMPORTED_MODULE_10__.map.length - 1; i >= 0; --i) {
+            const scene = _map__WEBPACK_IMPORTED_MODULE_10__.map[i];
             this.sceneStates[i] = new SceneState(scene.treasure);
         }
     }
@@ -438,6 +441,7 @@ function update() {
         gs.vine.update(gs);
         gs.pit.update(gs);
         gs.rollingLog.update(gs);
+        gs.stationaryLog.update(gs);
         if (gs.sceneAlpha < 1) {
             gs.sceneAlpha += SCENE_ALPHA_DELTA;
             if (gs.sceneAlpha > 1) {
@@ -557,6 +561,10 @@ function renderBackground(ctx, scene, ox) {
         case _map__WEBPACK_IMPORTED_MODULE_0__.ObsticleType.THREE_ROLLING_LOGS:
             gs.rollingLog.render(gs, ctx, scene, ox);
             break;
+        case _map__WEBPACK_IMPORTED_MODULE_0__.ObsticleType.ONE_STATIONARY_LOG:
+        case _map__WEBPACK_IMPORTED_MODULE_0__.ObsticleType.THREE_STATIONARY_LOGS:
+            gs.stationaryLog.render(gs, ctx, scene, ox);
+            break;
         case _map__WEBPACK_IMPORTED_MODULE_0__.ObsticleType.COBRA:
         case _map__WEBPACK_IMPORTED_MODULE_0__.ObsticleType.FIRE:
             gs.cobraAndFire.render(gs, ctx, scene, ox);
@@ -649,11 +657,12 @@ var MainState;
     MainState[MainState["SWINGING"] = 4] = "SWINGING";
     MainState[MainState["SINKING"] = 5] = "SINKING";
     MainState[MainState["KNEELING"] = 6] = "KNEELING";
+    MainState[MainState["SKIDDING"] = 7] = "SKIDDING";
 })(MainState || (MainState = {}));
 class Harry {
     mainState = MainState.STANDING;
     lastMainState = MainState.STANDING;
-    scene = 1; // TODO 0;
+    scene = 26; // TODO 0;
     absoluteX = 12;
     x = this.absoluteX;
     y = Y_UPPER_LEVEL;
@@ -667,6 +676,7 @@ class Harry {
     tunnelSpawning = false;
     releasedVine = false;
     swallow = false;
+    kneeling = false;
     kneelingDelay = false;
     intersects(mask, x, y) {
         return (0,_math__WEBPACK_IMPORTED_MODULE_3__.spritesIntersect)(mask, x, y, _graphics__WEBPACK_IMPORTED_MODULE_0__.harryMasks[this.dir][this.sprite], Math.floor(this.x) - 4, Math.floor(this.y) - 22);
@@ -679,6 +689,13 @@ class Harry {
         return this.mainState === MainState.FALLING;
     }
     isUnderground() {
+        switch (this.mainState) {
+            case MainState.SINKING:
+            case MainState.SWINGING:
+            case MainState.SKIDDING:
+            case MainState.KNEELING:
+                return false;
+        }
         return this.y > 146;
     }
     teleport(x) {
@@ -721,6 +738,7 @@ class Harry {
         this.y += v0;
         this.vy = G + v0;
         this.sprite = 2;
+        this.kneeling = false;
         this.updateShift(gs);
     }
     endFalling(gs, y) {
@@ -738,6 +756,7 @@ class Harry {
         this.teleport(72);
         this.y = y;
         this.sprite = 7;
+        this.kneeling = false;
         this.climbCounter = 0;
     }
     endClimbing(x, y, dir) {
@@ -1008,7 +1027,7 @@ class Harry {
     startKnelling() {
         this.mainState = MainState.KNEELING;
         this.sprite = 5;
-        this.y = Y_UPPER_LEVEL + 5;
+        this.kneeling = true;
         this.kneelingDelay = true;
     }
     rolled() {
@@ -1022,6 +1041,17 @@ class Harry {
                 break;
         }
     }
+    skidded() {
+        switch (this.mainState) {
+            case MainState.STANDING:
+            case MainState.SKIDDING:
+                this.mainState = MainState.SKIDDING;
+                this.sprite = 5;
+                this.kneeling = true;
+                this.kneelingDelay = true;
+                break;
+        }
+    }
     updateKneeling(gs) {
         if (this.kneelingDelay) {
             this.kneelingDelay = false;
@@ -1029,8 +1059,12 @@ class Harry {
         else {
             this.mainState = MainState.STANDING;
             this.sprite = 0;
-            this.y = Y_UPPER_LEVEL;
+            this.kneeling = false;
         }
+    }
+    updateSkidding(gs) {
+        this.updateKneeling(gs);
+        this.updateStanding(gs);
     }
     update(gs) {
         const state = this.mainState;
@@ -1056,13 +1090,16 @@ class Harry {
             case MainState.KNEELING:
                 this.updateKneeling(gs);
                 break;
+            case MainState.SKIDDING:
+                this.updateSkidding(gs);
+                break;
         }
         this.lastMainState = state;
     }
     render(gs, ctx, ox) {
-        const sprite = _graphics__WEBPACK_IMPORTED_MODULE_0__.harrySprites[this.dir][this.sprite];
+        const sprite = _graphics__WEBPACK_IMPORTED_MODULE_0__.harrySprites[this.dir][this.kneeling ? 5 : this.sprite];
         const X = Math.floor(this.x) - 4 - ox;
-        const Y = Math.floor(this.y) - 22;
+        const Y = this.kneeling ? Y_UPPER_LEVEL - 17 : Math.floor(this.y) - 22;
         if (this.mainState === MainState.SINKING) {
             if (this.swallow) {
                 if (Y < 121) {
@@ -1690,6 +1727,57 @@ class Scorpion {
     }
     render(gs, ctx, ox) {
         ctx.drawImage(_graphics__WEBPACK_IMPORTED_MODULE_0__.sorpionSprites[this.dir][this.sprite], Math.floor(this.x) - 4 - ox, 158);
+    }
+}
+
+
+/***/ }),
+
+/***/ "./src/game/stationary-log.ts":
+/*!************************************!*\
+  !*** ./src/game/stationary-log.ts ***!
+  \************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   StationaryLog: () => (/* binding */ StationaryLog)
+/* harmony export */ });
+/* harmony import */ var _graphics__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @/graphics */ "./src/graphics.ts");
+/* harmony import */ var _map__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./map */ "./src/game/map.ts");
+
+
+class StationaryLog {
+    checkSkid(gs, x, y) {
+        const { harry } = gs;
+        if (harry.x >= x + 1 && harry.x <= x + 6 && harry.intersects(_graphics__WEBPACK_IMPORTED_MODULE_0__.logMasks[1], x, y)) {
+            harry.skidded();
+            if (gs.score > 0) {
+                --gs.score;
+            }
+        }
+    }
+    update(gs) {
+        switch (_map__WEBPACK_IMPORTED_MODULE_1__.map[gs.harry.scene].obsticles) {
+            case _map__WEBPACK_IMPORTED_MODULE_1__.ObsticleType.THREE_STATIONARY_LOGS:
+                this.checkSkid(gs, 20, 111);
+                this.checkSkid(gs, 148, 111);
+            // fall through to test to the final log
+            case _map__WEBPACK_IMPORTED_MODULE_1__.ObsticleType.ONE_STATIONARY_LOG:
+                this.checkSkid(gs, 116, 111);
+                break;
+        }
+    }
+    render(gs, ctx, scene, ox) {
+        switch (_map__WEBPACK_IMPORTED_MODULE_1__.map[scene].obsticles) {
+            case _map__WEBPACK_IMPORTED_MODULE_1__.ObsticleType.THREE_STATIONARY_LOGS:
+                ctx.drawImage(_graphics__WEBPACK_IMPORTED_MODULE_0__.logSprites[1], 20 - ox, 111);
+                ctx.drawImage(_graphics__WEBPACK_IMPORTED_MODULE_0__.logSprites[1], 148 - ox, 111);
+            // fall through to render to the final log
+            case _map__WEBPACK_IMPORTED_MODULE_1__.ObsticleType.ONE_STATIONARY_LOG:
+                ctx.drawImage(_graphics__WEBPACK_IMPORTED_MODULE_0__.logSprites[1], 116 - ox, 111);
+                break;
+        }
     }
 }
 

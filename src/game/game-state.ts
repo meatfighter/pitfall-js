@@ -4,6 +4,7 @@ import { Scorpion } from './scorpion';
 import { Vine } from './vine';
 import { Pit } from './pit';
 import { RollingLog } from './rolling-log';
+import { StationaryLog } from './stationary-log';
 import { Rattle } from './rattle';
 import { CobraAndFire } from './cobra-and-fire';
 import { Clock } from './clock';
@@ -25,6 +26,7 @@ export class GameState {
     vine = new Vine();
     pit = new Pit();
     rollingLog = new RollingLog();
+    stationaryLog = new StationaryLog();
     rattle = new Rattle();
     cobraAndFire = new CobraAndFire();
     clock = new Clock();
