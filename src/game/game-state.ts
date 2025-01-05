@@ -45,6 +45,8 @@ export class GameState {
     extraLives = 4;
     gameOver = false;
     gameOverDelay = 180;
+    treasureCount = 0;
+    treasureMapIndex = 0;
 
     constructor() {
         for (let i = map.length - 1; i >= 0; --i) {

@@ -2,6 +2,7 @@ import { GameState } from './game-state';
 import { moneySprite, moneyMask, ringSprite, ringMask, goldSprites, goldMasks, silverSprites, silverMasks, Mask, 
     Sprite } from '@/graphics';
 import { TreasureType } from './map';
+import { updateTreasureMapIndex } from './treasure-map';
 
 export class Treasure {
 
@@ -30,8 +31,10 @@ export class Treasure {
         }
 
         if (gs.harry.intersects(mask, 116, 111)) {
-            gs.sceneStates[gs.harry.scene].treasure = TreasureType.NONE;
+            gs.sceneStates[gs.harry.scene].treasure = TreasureType.NONE;            
             gs.score += points;
+            ++gs.treasureCount;
+            updateTreasureMapIndex(gs);
         }
     }
 

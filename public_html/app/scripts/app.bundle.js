@@ -369,6 +369,7 @@ class GameState {
     extraLives = 4;
     gameOver = false;
     gameOverDelay = 180;
+    treasureCount = 0;
     constructor() {
         for (let i = _map__WEBPACK_IMPORTED_MODULE_11__.map.length - 1; i >= 0; --i) {
             const scene = _map__WEBPACK_IMPORTED_MODULE_11__.map[i];
@@ -596,6 +597,16 @@ function renderHUD(ctx) {
     for (let i = gs.extraLives - 1, x = 13; i >= 0; --i, x += 2) {
         ctx.fillRect(x, 16, 1, 8);
     }
+    (0,_graphics__WEBPACK_IMPORTED_MODULE_2__.printNumber)(ctx, gs.harry.scene + 1, 124, 3, _graphics__WEBPACK_IMPORTED_MODULE_2__.Colors.OFF_WHITE);
+    (0,_graphics__WEBPACK_IMPORTED_MODULE_2__.printNumber)(ctx, gs.treasureCount, 100, 16, _graphics__WEBPACK_IMPORTED_MODULE_2__.Colors.OFF_WHITE);
+    const sprites = _graphics__WEBPACK_IMPORTED_MODULE_2__.charSprites[_graphics__WEBPACK_IMPORTED_MODULE_2__.Colors.OFF_WHITE];
+    ctx.drawImage(sprites[10], 108, 16);
+    ctx.drawImage(sprites[3], 116, 16);
+    ctx.drawImage(sprites[2], 124, 16);
+    // TODO TESTING
+    ctx.drawImage(_graphics__WEBPACK_IMPORTED_MODULE_2__.arrowSprites[0][0], 64, 64);
+    ctx.drawImage(_graphics__WEBPACK_IMPORTED_MODULE_2__.arrowSprites[0][2], 64, 64 + 20);
+    ctx.drawImage(_graphics__WEBPACK_IMPORTED_MODULE_2__.arrowSprites[1][3], 64, 154);
 }
 function renderScreen(ctx) {
     renderStrips(ctx);
@@ -670,7 +681,7 @@ var MainState;
 class Harry {
     mainState = MainState.STANDING;
     lastMainState = MainState.STANDING;
-    scene = 6; // TODO 0;
+    scene = 0;
     absoluteX = 12;
     x = this.absoluteX;
     y = Y_UPPER_LEVEL;
@@ -1835,6 +1846,7 @@ class Treasure {
         if (gs.harry.intersects(mask, 116, 111)) {
             gs.sceneStates[gs.harry.scene].treasure = _map__WEBPACK_IMPORTED_MODULE_1__.TreasureType.NONE;
             gs.score += points;
+            ++gs.treasureCount;
         }
     }
     render(gs, ctx, scene, ox) {
@@ -1910,6 +1922,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   VINE_CX: () => (/* binding */ VINE_CX),
 /* harmony export */   VINE_CY: () => (/* binding */ VINE_CY),
 /* harmony export */   VINE_PERIOD: () => (/* binding */ VINE_PERIOD),
+/* harmony export */   arrowSprites: () => (/* binding */ arrowSprites),
 /* harmony export */   branchesSprite: () => (/* binding */ branchesSprite),
 /* harmony export */   charSprites: () => (/* binding */ charSprites),
 /* harmony export */   cobraMasks: () => (/* binding */ cobraMasks),
@@ -1971,11 +1984,13 @@ var Colors;
     Colors[Colors["YELLOW"] = 30] = "YELLOW";
     Colors[Colors["ORANGE"] = 62] = "ORANGE";
     Colors[Colors["RED"] = 72] = "RED";
+    Colors[Colors["OFF_GREEN"] = 213] = "OFF_GREEN";
     Colors[Colors["GREEN"] = 214] = "GREEN";
     Colors[Colors["BLUE"] = 164] = "BLUE";
     Colors[Colors["YELLOW_GREEN"] = 200] = "YELLOW_GREEN";
     Colors[Colors["PINK"] = 74] = "PINK";
     Colors[Colors["BLACK"] = 0] = "BLACK";
+    Colors[Colors["OFF_BLACK"] = 2] = "OFF_BLACK";
     Colors[Colors["GREY"] = 6] = "GREY";
     Colors[Colors["OFF_WHITE"] = 12] = "OFF_WHITE";
     Colors[Colors["WHITE"] = 14] = "WHITE";
@@ -2017,6 +2032,7 @@ const VINE_CY = 28;
 const vinePoints = new Array(VINE_PERIOD);
 const vineSprites = new Array(VINE_PERIOD);
 const vineMasks = new Array(VINE_PERIOD);
+const arrowSprites = new Array(2); // color, direction (0=right, 1=left, 2=up, 3=down)
 function createVineSprites(palette, promises) {
     const LENGTH = 73;
     const DISTORTION = 245 / 145;
@@ -2196,6 +2212,10 @@ async function init() {
         Offsets[Offsets["EIGHT"] = 692] = "EIGHT";
         Offsets[Offsets["NINE"] = 700] = "NINE";
         Offsets[Offsets["COLON"] = 708] = "COLON";
+        Offsets[Offsets["ARROWRIGHT"] = 716] = "ARROWRIGHT";
+        Offsets[Offsets["ARROWLEFT"] = 732] = "ARROWLEFT";
+        Offsets[Offsets["ARROWUP"] = 748] = "ARROWUP";
+        Offsets[Offsets["ARROWDOWN"] = 764] = "ARROWDOWN";
     })(Offsets || (Offsets = {}));
     const palette = extractPalette();
     const binStr = atob('0tLS0tLS0tLS0tLSyMjIyMjISkpKEtLS0tLS0tLS0tLIyMjIyMjISkpKEhISEhISEhISEhISEhISEhIQEBAQED4+Pi4uLi'
@@ -2206,7 +2226,8 @@ async function init() {
         + 'YeHBg4ODweGgIYGBh+25mZmZmZmQABAw9/ABgkWlpaZn5edn5edjwYAADD5348GDx8fHg4ODAwEBAA/vn5+flgEAgMDAg4MEAAAP75+fr6YB'
         + 'AIDAwIODCAAAAAAAAA/6sDAwsuuuCAAAAAAAAAAP+rVf8GBAAAAAAAAD53d2N7Y29jNjYcCBw2AIUyPXj4xoKQiNhwAAAAAABJMzx4+sSSiN'
         + 'hwAAAAAAAA/rq6uv7u7u7+urq6/u7u7gD4/P7+fj4AEABUAJIAEAAA+Pz+/n4+AAAoAFQAEAAAAAA4bERERGw4EDh8OAAAADxmZmZmZmY8PB'
-        + 'gYGBgYOBh+YGA8BgZGPDxGBgwMBkY8DAwMfkwsHAx8RgYGfGBgfjxmZmZ8YGI8GBgYGAwGQn48ZmY8PGZmPDxGBj5mZmY8ABgYAAAYGAA=');
+        + 'gYGBgYOBh+YGA8BgZGPDxGBgwMBkY8DAwMfkwsHAx8RgYGfGBgfjxmZmZ8YGI8GBgYGAwGQn48ZmY8PGZmPDxGBj5mZmY8ABgYAAAYGAAACA'
+        + 'gMDP7+///+/gwMCAgAABAQMDB/f///f38wMBAQABAQODh8fP7+ODg4ODg4ODg4ODg4ODg4OP7+fHw4OBAQ');
     const promises = [];
     for (let dir = 0; dir < 2; ++dir) {
         const flipped = dir === 1;
@@ -2300,6 +2321,25 @@ async function init() {
     }
     // vines
     createVineSprites(palette, promises);
+    // arrows
+    const arrowColors = [Colors.OFF_GREEN, Colors.OFF_BLACK];
+    for (let color = 0; color < arrowColors.length; ++color) {
+        const arrowCol = palette[arrowColors[color]];
+        arrowSprites[color] = new Array(4);
+        for (let sprite = 0; sprite < 4; ++sprite) {
+            promises.push(createSprite(8, 16, imageData => {
+                const offset = Offsets.ARROWRIGHT + 16 * sprite;
+                for (let y = 0; y < 16; ++y) {
+                    const byte = binStr.charCodeAt(offset + y);
+                    for (let x = 0, mask = 0x80; x < 8; ++x, mask >>= 1) {
+                        if ((byte & mask) !== 0) {
+                            setColor(imageData, x, y, arrowCol);
+                        }
+                    }
+                }
+            }).then(({ imageBitmap }) => arrowSprites[color][sprite] = imageBitmap));
+        }
+    }
     await Promise.all(promises);
 }
 function printNumber(ctx, value, x, y, color, minDigits = 1) {

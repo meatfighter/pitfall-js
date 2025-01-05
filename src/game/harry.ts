@@ -39,7 +39,7 @@ enum MainState {
 export class Harry {   
     mainState = MainState.STANDING;
     lastMainState = MainState.STANDING;
-    scene = 6; // TODO 0;
+    scene = 0;
     absoluteX = 12;
     x = this.absoluteX;
     y = Y_UPPER_LEVEL;

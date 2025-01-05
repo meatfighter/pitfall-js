@@ -1,9 +1,11 @@
 import { map, WallType, PitType, ObsticleType, TreasureType } from './map';
 import { GameState } from './game-state';
-import { colors, Colors, Resolution, leavesSprites, branchesSprite, wallSprite, printNumber } from '@/graphics';
+import { colors, Colors, Resolution, leavesSprites, branchesSprite, wallSprite, printNumber, charSprites, arrowSprites } 
+    from '@/graphics';
 import { clamp } from '@/math';
 import { updateInput, upJustPressed, downJustPressed, leftJustPressed, rightJustPressed, jumpJustPressed } 
     from '@/input';
+import { updateTreasureMapIndex } from './treasure-map';    
 
 const SCENE_ALPHA_DELTA = 1 / 30;
 
@@ -21,6 +23,7 @@ let gs: GameState;
 
 export function resetGame() {
     gs = new GameState();
+    updateTreasureMapIndex(gs);
 }
 
 export function saveGame() {
@@ -102,6 +105,7 @@ export function update() {
         }
         if (gs.nextScene !== scene0 && gs.nextScene !== scene1) {
             gs.sceneStates[gs.nextScene].enteredLeft = false;
+            updateTreasureMapIndex(gs);
         }
     } else {
         gs.nextOx = gs.ox - Resolution.WIDTH;
@@ -111,6 +115,7 @@ export function update() {
         }
         if (gs.nextScene !== scene0 && gs.nextScene !== scene1) {
             gs.sceneStates[gs.nextScene].enteredLeft = true;
+            updateTreasureMapIndex(gs);
         }
     }
 }
@@ -220,6 +225,18 @@ function renderHUD(ctx: OffscreenCanvasRenderingContext2D) {
     for (let i = gs.extraLives - 1, x = 13; i >= 0; --i, x += 2) {
         ctx.fillRect(x, 16, 1, 8);
     }
+
+    printNumber(ctx, gs.harry.scene + 1, 124, 3, Colors.OFF_WHITE);
+    printNumber(ctx, gs.treasureCount, 100, 16, Colors.OFF_WHITE);
+    const sprites = charSprites[Colors.OFF_WHITE];
+    ctx.drawImage(sprites[10], 108, 16);
+    ctx.drawImage(sprites[3], 116, 16);
+    ctx.drawImage(sprites[2], 124, 16);
+
+    // TODO TESTING
+    ctx.drawImage(arrowSprites[0][0], 64, 64);
+    ctx.drawImage(arrowSprites[0][2], 64, 64 + 20);
+    ctx.drawImage(arrowSprites[1][3], 64, 154);
 }
 
 export function renderScreen(ctx: OffscreenCanvasRenderingContext2D) {

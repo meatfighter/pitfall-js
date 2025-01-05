@@ -24,11 +24,13 @@ export enum Colors {
     YELLOW = 0x1e,
     ORANGE = 0x3e,
     RED = 0x48,
+    OFF_GREEN = 0xd5,
     GREEN = 0xd6,
     BLUE = 0xa4,
     YELLOW_GREEN = 0xc8,
     PINK = 0x4a,
     BLACK = 0x00,
+    OFF_BLACK = 0x02,
     GREY = 0x06,
     OFF_WHITE = 0x0c,
     WHITE = 0x0e,
@@ -87,6 +89,8 @@ export const VINE_CY = 28;
 export const vinePoints = new Array<Point>(VINE_PERIOD);
 export const vineSprites = new Array<Sprite>(VINE_PERIOD);
 export const vineMasks = new Array<Mask>(VINE_PERIOD);
+
+export const arrowSprites: Sprite[][] = new Array<Sprite[]>(2); // color, direction (0=right, 1=left, 2=up, 3=down)
 
 function createVineSprites(palette: RGBColor[], promises: Promise<any>[]) {
     const LENGTH = 73;
@@ -281,6 +285,10 @@ export async function init() {
         EIGHT = 692,
         NINE = 700,
         COLON = 708,
+        ARROWRIGHT = 716,
+        ARROWLEFT = 732,
+        ARROWUP = 748,
+        ARROWDOWN = 764,        
     }
 
     const palette = extractPalette();
@@ -293,7 +301,8 @@ export async function init() {
         + 'YeHBg4ODweGgIYGBh+25mZmZmZmQABAw9/ABgkWlpaZn5edn5edjwYAADD5348GDx8fHg4ODAwEBAA/vn5+flgEAgMDAg4MEAAAP75+fr6YB'
         + 'AIDAwIODCAAAAAAAAA/6sDAwsuuuCAAAAAAAAAAP+rVf8GBAAAAAAAAD53d2N7Y29jNjYcCBw2AIUyPXj4xoKQiNhwAAAAAABJMzx4+sSSiN'
         + 'hwAAAAAAAA/rq6uv7u7u7+urq6/u7u7gD4/P7+fj4AEABUAJIAEAAA+Pz+/n4+AAAoAFQAEAAAAAA4bERERGw4EDh8OAAAADxmZmZmZmY8PB'
-        + 'gYGBgYOBh+YGA8BgZGPDxGBgwMBkY8DAwMfkwsHAx8RgYGfGBgfjxmZmZ8YGI8GBgYGAwGQn48ZmY8PGZmPDxGBj5mZmY8ABgYAAAYGAA=');
+        + 'gYGBgYOBh+YGA8BgZGPDxGBgwMBkY8DAwMfkwsHAx8RgYGfGBgfjxmZmZ8YGI8GBgYGAwGQn48ZmY8PGZmPDxGBj5mZmY8ABgYAAAYGAAACA'
+        + 'gMDP7+///+/gwMCAgAABAQMDB/f///f38wMBAQABAQODh8fP7+ODg4ODg4ODg4ODg4ODg4OP7+fHw4OBAQ');
 
     const promises: Promise<any>[] = [];
 
@@ -426,6 +435,26 @@ export async function init() {
 
     // vines
     createVineSprites(palette, promises);
+
+    // arrows
+    const arrowColors = [ Colors.OFF_GREEN, Colors.OFF_BLACK ];
+    for (let color = 0; color < arrowColors.length; ++color) {        
+        const arrowCol = palette[arrowColors[color]];
+        arrowSprites[color] = new Array<Sprite>(4);
+        for (let sprite = 0; sprite < 4; ++sprite) {
+            promises.push(createSprite(8, 16, imageData => {
+                const offset = Offsets.ARROWRIGHT + 16 * sprite;
+                for (let y = 0; y < 16; ++y) {
+                    const byte = binStr.charCodeAt(offset + y);
+                    for (let x = 0, mask = 0x80; x < 8; ++x, mask >>= 1) {
+                        if ((byte & mask) !== 0) {
+                            setColor(imageData, x, y, arrowCol);
+                        }
+                    }
+                }
+            }).then(({ imageBitmap }) => arrowSprites[color][sprite] = imageBitmap));
+        }
+    }
         
     await Promise.all(promises);
 }
