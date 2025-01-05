@@ -1,4 +1,4 @@
-import { map, WallType, PitType, ObsticleType } from './map';
+import { map, WallType, PitType, ObsticleType, TreasureType } from './map';
 import { GameState } from './game-state';
 import { colors, Colors, Resolution, leavesSprites, branchesSprite, wallSprite, printNumber } from '@/graphics';
 import { clamp } from '@/math';
@@ -49,6 +49,7 @@ export function update() {
         gs.clock.update();
         gs.rattle.update();
         gs.cobraAndFire.update(gs);
+        gs.treasure.update(gs);
         gs.scorpion.update(gs);
         gs.vine.update(gs);
         gs.pit.update(gs);
@@ -128,6 +129,7 @@ function renderStrips(ctx: OffscreenCanvasRenderingContext2D) {
 
 function renderBackground(ctx: OffscreenCanvasRenderingContext2D, scene: number, ox: number) {
     const { trees, ladder, holes, wall, vine, pit, obsticles, scorpion } = map[scene];
+    const { treasure } = gs.sceneStates[scene];
     const trunks = TRUNKS[trees];
     ctx.fillStyle = colors[Colors.DARK_BROWN];
     for (let i = 3; i >= 0; --i) {
@@ -174,6 +176,10 @@ function renderBackground(ctx: OffscreenCanvasRenderingContext2D, scene: number,
 
     if (pit !== PitType.NONE) {
         gs.pit.render(gs, ctx, scene, ox);
+    }
+
+    if (treasure !== TreasureType.NONE) {
+        gs.treasure.render(gs, ctx, scene, ox);
     }
 
     switch (obsticles) {

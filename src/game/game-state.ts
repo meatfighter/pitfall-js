@@ -7,6 +7,7 @@ import { RollingLog } from './rolling-log';
 import { StationaryLog } from './stationary-log';
 import { Rattle } from './rattle';
 import { CobraAndFire } from './cobra-and-fire';
+import { Treasure } from './treasure';
 import { Clock } from './clock';
 import { map, TreasureType } from './map';
 
@@ -29,6 +30,7 @@ export class GameState {
     stationaryLog = new StationaryLog();
     rattle = new Rattle();
     cobraAndFire = new CobraAndFire();
+    treasure = new Treasure();
     clock = new Clock();
     scrollX = Math.floor(this.harry.absoluteX);
     lastScrollX = this.scrollX;

@@ -14,9 +14,11 @@ export class RollingLog {
     }
 
     checkRolled(gs: GameState, x: number, y: number, sprite: number, offset: number, rollingRight: boolean) {
+        const { harry } = gs;
         const X = (x + offset) % Resolution.WIDTH;
-        if (this.computeFade(gs, X, offset, gs.harry.scene, rollingRight) === 1 
-                && gs.harry.intersects(logMasks[sprite], X, y)) {
+        if (this.computeFade(gs, X, offset, gs.harry.scene, rollingRight) === 1
+                && harry.x >= X + 1 && harry.x <= X + 6
+                && harry.intersects(logMasks[sprite], X, y)) {
             gs.harry.rolled();
             if (gs.score > 0) {
                 --gs.score;
