@@ -527,13 +527,14 @@ function renderBackground(ctx, scene, ox) {
     const trunks = TRUNKS[trees];
     const cells = _treasure_map__WEBPACK_IMPORTED_MODULE_5__.treasureCells[gs.treasureMapIndex][scene];
     ctx.drawImage(_graphics__WEBPACK_IMPORTED_MODULE_2__.arrowSprites[_treasure_map__WEBPACK_IMPORTED_MODULE_5__.Tier.UPPER][cells[_treasure_map__WEBPACK_IMPORTED_MODULE_5__.Tier.UPPER].direction], 68 - ox, 75);
+    const lowerDirection = cells[_treasure_map__WEBPACK_IMPORTED_MODULE_5__.Tier.LOWER].direction;
     let lowerOffset;
     switch (wall) {
         case _map__WEBPACK_IMPORTED_MODULE_0__.WallType.LEFT:
-            lowerOffset = 57;
+            lowerOffset = (lowerDirection === _treasure_map__WEBPACK_IMPORTED_MODULE_5__.Direction.RIGHT || lowerDirection === _treasure_map__WEBPACK_IMPORTED_MODULE_5__.Direction.LEFT) ? 60 : 61;
             break;
         case _map__WEBPACK_IMPORTED_MODULE_0__.WallType.RIGHT:
-            lowerOffset = 79;
+            lowerOffset = (lowerDirection === _treasure_map__WEBPACK_IMPORTED_MODULE_5__.Direction.RIGHT || lowerDirection === _treasure_map__WEBPACK_IMPORTED_MODULE_5__.Direction.LEFT) ? 75 : 76;
             break;
         default:
             lowerOffset = 68;
@@ -697,7 +698,7 @@ var MainState;
 class Harry {
     mainState = MainState.STANDING;
     lastMainState = MainState.STANDING;
-    scene = 0;
+    scene = 25; // TODO 0;
     absoluteX = 12;
     x = this.absoluteX;
     y = Y_UPPER_LEVEL;
@@ -1903,7 +1904,7 @@ function createTreasureMap(cells, origin) {
             }
             const leftCell = cells[leftScene][Tier.UPPER];
             if (leftCell.distance < 0) {
-                leftCell.distance = cell.distance + 2;
+                leftCell.distance = cell.distance + 1;
                 leftCell.direction = Direction.RIGHT;
                 queue.push(leftCell);
             }
@@ -1913,7 +1914,7 @@ function createTreasureMap(cells, origin) {
             }
             const rightCell = cells[rightScene][Tier.UPPER];
             if (rightCell.distance < 0) {
-                rightCell.distance = cell.distance + 2;
+                rightCell.distance = cell.distance + 1;
                 rightCell.direction = Direction.LEFT;
                 queue.push(rightCell);
             }
@@ -1935,7 +1936,7 @@ function createTreasureMap(cells, origin) {
                 if (_map__WEBPACK_IMPORTED_MODULE_0__.map[leftScene].wall !== _map__WEBPACK_IMPORTED_MODULE_0__.WallType.RIGHT) {
                     const leftCell = cells[leftScene][Tier.LOWER];
                     if (leftCell.distance < 0) {
-                        leftCell.distance = cell.distance + 2;
+                        leftCell.distance = cell.distance + 1;
                         leftCell.direction = Direction.RIGHT;
                         queue.push(leftCell);
                     }
@@ -1949,7 +1950,7 @@ function createTreasureMap(cells, origin) {
                 if (_map__WEBPACK_IMPORTED_MODULE_0__.map[rightScene].wall !== _map__WEBPACK_IMPORTED_MODULE_0__.WallType.LEFT) {
                     const rightCell = cells[rightScene][Tier.LOWER];
                     if (rightCell.distance < 0) {
-                        rightCell.distance = cell.distance + 2;
+                        rightCell.distance = cell.distance + 1;
                         rightCell.direction = Direction.LEFT;
                         queue.push(rightCell);
                     }
@@ -1957,13 +1958,6 @@ function createTreasureMap(cells, origin) {
             }
         }
     }
-    // console.log('---------------------------------------------------------------');
-    // console.log(`created map for ${origin}:`);
-    // for (let i = 0; i < 255; ++i) {
-    //     console.log(cells[i][Tier.UPPER]);
-    //     console.log(cells[i][Tier.LOWER]);
-    //     console.log('---');
-    // }
 }
 function initTreasureCells() {
     let treasureIndex = 0;
@@ -2408,7 +2402,7 @@ async function init() {
         + 'AIDAwIODCAAAAAAAAA/6sDAwsuuuCAAAAAAAAAAP+rVf8GBAAAAAAAAD53d2N7Y29jNjYcCBw2AIUyPXj4xoKQiNhwAAAAAABJMzx4+sSSiN'
         + 'hwAAAAAAAA/rq6uv7u7u7+urq6/u7u7gD4/P7+fj4AEABUAJIAEAAA+Pz+/n4+AAAoAFQAEAAAAAA4bERERGw4EDh8OAAAADxmZmZmZmY8PB'
         + 'gYGBgYOBh+YGA8BgZGPDxGBgwMBkY8DAwMfkwsHAx8RgYGfGBgfjxmZmZ8YGI8GBgYGAwGQn48ZmY8PGZmPDxGBj5mZmY8ABgYAAAYGAAACA'
-        + 'gMDP7+///+/gwMCAgAABAQMDB/f///f38wMBAQAAgIHBw+Pn9/HBwcHBwcHBwcHBwcHBwcHH9/Pj4cHAgI');
+        + 'gMDP7+///+/gwMCAgAABAQMDB/f///f38wMBAQABAQODh8fP7+ODg4ODg4ODg4ODg4ODg4OP7+fHw4OBAQ');
     const promises = [];
     for (let dir = 0; dir < 2; ++dir) {
         const flipped = dir === 1;

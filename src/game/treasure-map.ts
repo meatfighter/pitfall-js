@@ -70,7 +70,7 @@ function createTreasureMap(cells: TreasureCell[][], origin: number) {
             }
             const leftCell = cells[leftScene][Tier.UPPER];
             if (leftCell.distance < 0) {
-                leftCell.distance = cell.distance + 2;
+                leftCell.distance = cell.distance + 1;
                 leftCell.direction = Direction.RIGHT;
                 queue.push(leftCell);
             }
@@ -81,7 +81,7 @@ function createTreasureMap(cells: TreasureCell[][], origin: number) {
             }
             const rightCell = cells[rightScene][Tier.UPPER];
             if (rightCell.distance < 0) {
-                rightCell.distance = cell.distance + 2;
+                rightCell.distance = cell.distance + 1;
                 rightCell.direction = Direction.LEFT;
                 queue.push(rightCell);
             }            
@@ -103,7 +103,7 @@ function createTreasureMap(cells: TreasureCell[][], origin: number) {
                 if (map[leftScene].wall !== WallType.RIGHT) {
                     const leftCell = cells[leftScene][Tier.LOWER];
                     if (leftCell.distance < 0) {
-                        leftCell.distance = cell.distance + 2;
+                        leftCell.distance = cell.distance + 1;
                         leftCell.direction = Direction.RIGHT;
                         queue.push(leftCell);
                     }
@@ -118,7 +118,7 @@ function createTreasureMap(cells: TreasureCell[][], origin: number) {
                 if (map[rightScene].wall !== WallType.LEFT) {
                     const rightCell = cells[rightScene][Tier.LOWER];
                     if (rightCell.distance < 0) {
-                        rightCell.distance = cell.distance + 2;
+                        rightCell.distance = cell.distance + 1;
                         rightCell.direction = Direction.LEFT;
                         queue.push(rightCell);
                     }
@@ -126,14 +126,6 @@ function createTreasureMap(cells: TreasureCell[][], origin: number) {
             }
         }
     }
-
-    // console.log('---------------------------------------------------------------');
-    // console.log(`created map for ${origin}:`);
-    // for (let i = 0; i < 255; ++i) {
-    //     console.log(cells[i][Tier.UPPER]);
-    //     console.log(cells[i][Tier.LOWER]);
-    //     console.log('---');
-    // }
 }
 
 function initTreasureCells() {    

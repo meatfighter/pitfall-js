@@ -5,7 +5,7 @@ import { colors, Colors, Resolution, leavesSprites, branchesSprite, wallSprite, 
 import { clamp } from '@/math';
 import { updateInput, upJustPressed, downJustPressed, leftJustPressed, rightJustPressed, jumpJustPressed } 
     from '@/input';
-import { Tier, treasureCells, updateTreasureMapIndex } from './treasure-map';    
+import { Tier, treasureCells, updateTreasureMapIndex, Direction } from './treasure-map';    
 
 const SCENE_ALPHA_DELTA = 1 / 30;
 
@@ -138,13 +138,14 @@ function renderBackground(ctx: OffscreenCanvasRenderingContext2D, scene: number,
 
     const cells = treasureCells[gs.treasureMapIndex][scene];
     ctx.drawImage(arrowSprites[Tier.UPPER][cells[Tier.UPPER].direction], 68 - ox, 75);
+    const lowerDirection = cells[Tier.LOWER].direction;
     let lowerOffset: number;
     switch (wall) {
         case WallType.LEFT:
-            lowerOffset = 57;
+            lowerOffset = (lowerDirection === Direction.RIGHT || lowerDirection === Direction.LEFT) ? 60 : 61;
             break;
         case WallType.RIGHT:
-            lowerOffset = 79;
+            lowerOffset = (lowerDirection === Direction.RIGHT || lowerDirection === Direction.LEFT) ? 75 : 76;
             break;    
         default:
             lowerOffset = 68;
