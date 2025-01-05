@@ -370,6 +370,7 @@ class GameState {
     gameOver = false;
     gameOverDelay = 180;
     treasureCount = 0;
+    treasureMapIndex = 0;
     constructor() {
         for (let i = _map__WEBPACK_IMPORTED_MODULE_11__.map.length - 1; i >= 0; --i) {
             const scene = _map__WEBPACK_IMPORTED_MODULE_11__.map[i];
@@ -402,6 +403,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _graphics__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! @/graphics */ "./src/graphics.ts");
 /* harmony import */ var _math__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! @/math */ "./src/math.ts");
 /* harmony import */ var _input__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! @/input */ "./src/input.ts");
+/* harmony import */ var _treasure_map__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./treasure-map */ "./src/game/treasure-map.ts");
+
 
 
 
@@ -419,6 +422,7 @@ const TRUNKS = [
 let gs;
 function resetGame() {
     gs = new _game_state__WEBPACK_IMPORTED_MODULE_1__.GameState();
+    (0,_treasure_map__WEBPACK_IMPORTED_MODULE_5__.updateTreasureMapIndex)(gs);
 }
 function saveGame() {
     gs.save();
@@ -492,6 +496,7 @@ function update() {
         }
         if (gs.nextScene !== scene0 && gs.nextScene !== scene1) {
             gs.sceneStates[gs.nextScene].enteredLeft = false;
+            (0,_treasure_map__WEBPACK_IMPORTED_MODULE_5__.updateTreasureMapIndex)(gs);
         }
     }
     else {
@@ -502,6 +507,7 @@ function update() {
         }
         if (gs.nextScene !== scene0 && gs.nextScene !== scene1) {
             gs.sceneStates[gs.nextScene].enteredLeft = true;
+            (0,_treasure_map__WEBPACK_IMPORTED_MODULE_5__.updateTreasureMapIndex)(gs);
         }
     }
 }
@@ -518,8 +524,22 @@ function renderStrips(ctx) {
 }
 function renderBackground(ctx, scene, ox) {
     const { trees, ladder, holes, wall, vine, pit, obsticles, scorpion } = _map__WEBPACK_IMPORTED_MODULE_0__.map[scene];
-    const { treasure } = gs.sceneStates[scene];
     const trunks = TRUNKS[trees];
+    const cells = _treasure_map__WEBPACK_IMPORTED_MODULE_5__.treasureCells[gs.treasureMapIndex][scene];
+    ctx.drawImage(_graphics__WEBPACK_IMPORTED_MODULE_2__.arrowSprites[_treasure_map__WEBPACK_IMPORTED_MODULE_5__.Tier.UPPER][cells[_treasure_map__WEBPACK_IMPORTED_MODULE_5__.Tier.UPPER].direction], 68 - ox, 75);
+    let lowerOffset;
+    switch (wall) {
+        case _map__WEBPACK_IMPORTED_MODULE_0__.WallType.LEFT:
+            lowerOffset = 57;
+            break;
+        case _map__WEBPACK_IMPORTED_MODULE_0__.WallType.RIGHT:
+            lowerOffset = 79;
+            break;
+        default:
+            lowerOffset = 68;
+            break;
+    }
+    ctx.drawImage(_graphics__WEBPACK_IMPORTED_MODULE_2__.arrowSprites[_treasure_map__WEBPACK_IMPORTED_MODULE_5__.Tier.LOWER][cells[_treasure_map__WEBPACK_IMPORTED_MODULE_5__.Tier.LOWER].direction], lowerOffset - ox, 150);
     ctx.fillStyle = _graphics__WEBPACK_IMPORTED_MODULE_2__.colors[_graphics__WEBPACK_IMPORTED_MODULE_2__.Colors.DARK_BROWN];
     for (let i = 3; i >= 0; --i) {
         ctx.drawImage(_graphics__WEBPACK_IMPORTED_MODULE_2__.branchesSprite, trunks[i] - 2 - ox, 51);
@@ -560,7 +580,7 @@ function renderBackground(ctx, scene, ox) {
     if (pit !== _map__WEBPACK_IMPORTED_MODULE_0__.PitType.NONE) {
         gs.pit.render(gs, ctx, scene, ox);
     }
-    if (treasure !== _map__WEBPACK_IMPORTED_MODULE_0__.TreasureType.NONE) {
+    if (gs.sceneStates[scene].treasure !== _map__WEBPACK_IMPORTED_MODULE_0__.TreasureType.NONE) {
         gs.treasure.render(gs, ctx, scene, ox);
     }
     switch (obsticles) {
@@ -603,10 +623,6 @@ function renderHUD(ctx) {
     ctx.drawImage(sprites[10], 108, 16);
     ctx.drawImage(sprites[3], 116, 16);
     ctx.drawImage(sprites[2], 124, 16);
-    // TODO TESTING
-    ctx.drawImage(_graphics__WEBPACK_IMPORTED_MODULE_2__.arrowSprites[0][0], 64, 64);
-    ctx.drawImage(_graphics__WEBPACK_IMPORTED_MODULE_2__.arrowSprites[0][2], 64, 64 + 20);
-    ctx.drawImage(_graphics__WEBPACK_IMPORTED_MODULE_2__.arrowSprites[1][3], 64, 154);
 }
 function renderScreen(ctx) {
     renderStrips(ctx);
@@ -1805,6 +1821,168 @@ class StationaryLog {
 
 /***/ }),
 
+/***/ "./src/game/treasure-map.ts":
+/*!**********************************!*\
+  !*** ./src/game/treasure-map.ts ***!
+  \**********************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   Direction: () => (/* binding */ Direction),
+/* harmony export */   Tier: () => (/* binding */ Tier),
+/* harmony export */   TreasureCell: () => (/* binding */ TreasureCell),
+/* harmony export */   treasureCells: () => (/* binding */ treasureCells),
+/* harmony export */   treasureIndices: () => (/* binding */ treasureIndices),
+/* harmony export */   updateTreasureMapIndex: () => (/* binding */ updateTreasureMapIndex)
+/* harmony export */ });
+/* harmony import */ var _map__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./map */ "./src/game/map.ts");
+
+var Direction;
+(function (Direction) {
+    Direction[Direction["RIGHT"] = 0] = "RIGHT";
+    Direction[Direction["LEFT"] = 1] = "LEFT";
+    Direction[Direction["UP"] = 2] = "UP";
+    Direction[Direction["DOWN"] = 3] = "DOWN";
+})(Direction || (Direction = {}));
+var Tier;
+(function (Tier) {
+    Tier[Tier["UPPER"] = 0] = "UPPER";
+    Tier[Tier["LOWER"] = 1] = "LOWER";
+})(Tier || (Tier = {}));
+class TreasureCell {
+    scene;
+    tier;
+    direction = Direction.RIGHT;
+    distance = -1;
+    constructor(scene, tier) {
+        this.scene = scene;
+        this.tier = tier;
+    }
+}
+function updateTreasureMapIndex(gs) {
+    const { sceneStates } = gs;
+    const scene = gs.harry.scene;
+    const tier = gs.harry.isUnderground() ? Tier.LOWER : Tier.UPPER;
+    let minDistance = Number.MAX_VALUE;
+    for (let i = treasureIndices.length - 1; i >= 0; --i) {
+        if (sceneStates[treasureIndices[i]].treasure === _map__WEBPACK_IMPORTED_MODULE_0__.TreasureType.NONE) {
+            continue;
+        }
+        const distance = treasureCells[i][scene][tier].distance;
+        if (distance < minDistance) {
+            minDistance = distance;
+            gs.treasureMapIndex = i;
+        }
+    }
+}
+const treasureIndices = new Array(32);
+const treasureCells = new Array(32);
+function createTreasureMap(cells, origin) {
+    const originCell = cells[origin][Tier.UPPER];
+    originCell.distance = 0;
+    originCell.direction = Direction.RIGHT;
+    const queue = [originCell];
+    while (true) {
+        const cell = queue.shift();
+        if (!cell) {
+            break;
+        }
+        if (cell.tier === Tier.UPPER) {
+            if (_map__WEBPACK_IMPORTED_MODULE_0__.map[cell.scene].ladder) {
+                const lowerCell = cells[cell.scene][Tier.LOWER];
+                if (lowerCell.distance < 0) {
+                    lowerCell.distance = cell.distance + 1;
+                    lowerCell.direction = Direction.UP;
+                    queue.push(lowerCell);
+                }
+            }
+            let leftScene = cell.scene - 1;
+            if (leftScene < 0) {
+                leftScene += cells.length;
+            }
+            const leftCell = cells[leftScene][Tier.UPPER];
+            if (leftCell.distance < 0) {
+                leftCell.distance = cell.distance + 2;
+                leftCell.direction = Direction.RIGHT;
+                queue.push(leftCell);
+            }
+            let rightScene = cell.scene + 1;
+            if (rightScene >= cells.length) {
+                rightScene -= cells.length;
+            }
+            const rightCell = cells[rightScene][Tier.UPPER];
+            if (rightCell.distance < 0) {
+                rightCell.distance = cell.distance + 2;
+                rightCell.direction = Direction.LEFT;
+                queue.push(rightCell);
+            }
+        }
+        else {
+            if (_map__WEBPACK_IMPORTED_MODULE_0__.map[cell.scene].ladder) {
+                const upperCell = cells[cell.scene][Tier.UPPER];
+                if (upperCell.distance < 0) {
+                    upperCell.distance = cell.distance + 1;
+                    upperCell.direction = Direction.DOWN;
+                    queue.push(upperCell);
+                }
+            }
+            if (_map__WEBPACK_IMPORTED_MODULE_0__.map[cell.scene].wall !== _map__WEBPACK_IMPORTED_MODULE_0__.WallType.LEFT) {
+                let leftScene = cell.scene - 3;
+                if (leftScene < 0) {
+                    leftScene += cells.length;
+                }
+                if (_map__WEBPACK_IMPORTED_MODULE_0__.map[leftScene].wall !== _map__WEBPACK_IMPORTED_MODULE_0__.WallType.RIGHT) {
+                    const leftCell = cells[leftScene][Tier.LOWER];
+                    if (leftCell.distance < 0) {
+                        leftCell.distance = cell.distance + 2;
+                        leftCell.direction = Direction.RIGHT;
+                        queue.push(leftCell);
+                    }
+                }
+            }
+            if (_map__WEBPACK_IMPORTED_MODULE_0__.map[cell.scene].wall !== _map__WEBPACK_IMPORTED_MODULE_0__.WallType.RIGHT) {
+                let rightScene = cell.scene + 3;
+                if (rightScene >= cells.length) {
+                    rightScene -= cells.length;
+                }
+                if (_map__WEBPACK_IMPORTED_MODULE_0__.map[rightScene].wall !== _map__WEBPACK_IMPORTED_MODULE_0__.WallType.LEFT) {
+                    const rightCell = cells[rightScene][Tier.LOWER];
+                    if (rightCell.distance < 0) {
+                        rightCell.distance = cell.distance + 2;
+                        rightCell.direction = Direction.LEFT;
+                        queue.push(rightCell);
+                    }
+                }
+            }
+        }
+    }
+    // console.log('---------------------------------------------------------------');
+    // console.log(`created map for ${origin}:`);
+    // for (let i = 0; i < 255; ++i) {
+    //     console.log(cells[i][Tier.UPPER]);
+    //     console.log(cells[i][Tier.LOWER]);
+    //     console.log('---');
+    // }
+}
+function initTreasureCells() {
+    let treasureIndex = 0;
+    for (let scene = 0; scene < _map__WEBPACK_IMPORTED_MODULE_0__.map.length; ++scene) {
+        if (_map__WEBPACK_IMPORTED_MODULE_0__.map[scene].treasure !== _map__WEBPACK_IMPORTED_MODULE_0__.TreasureType.NONE) {
+            treasureIndices[treasureIndex] = scene;
+            const cells = treasureCells[treasureIndex++] = new Array(_map__WEBPACK_IMPORTED_MODULE_0__.map.length);
+            for (let i = 0; i < _map__WEBPACK_IMPORTED_MODULE_0__.map.length; ++i) {
+                cells[i] = [new TreasureCell(i, Tier.UPPER), new TreasureCell(i, Tier.LOWER)];
+            }
+            createTreasureMap(cells, scene);
+        }
+    }
+}
+initTreasureCells();
+
+
+/***/ }),
+
 /***/ "./src/game/treasure.ts":
 /*!******************************!*\
   !*** ./src/game/treasure.ts ***!
@@ -1817,6 +1995,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ });
 /* harmony import */ var _graphics__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @/graphics */ "./src/graphics.ts");
 /* harmony import */ var _map__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./map */ "./src/game/map.ts");
+/* harmony import */ var _treasure_map__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./treasure-map */ "./src/game/treasure-map.ts");
+
 
 
 class Treasure {
@@ -1847,6 +2027,7 @@ class Treasure {
             gs.sceneStates[gs.harry.scene].treasure = _map__WEBPACK_IMPORTED_MODULE_1__.TreasureType.NONE;
             gs.score += points;
             ++gs.treasureCount;
+            (0,_treasure_map__WEBPACK_IMPORTED_MODULE_2__.updateTreasureMapIndex)(gs);
         }
     }
     render(gs, ctx, scene, ox) {
@@ -2227,7 +2408,7 @@ async function init() {
         + 'AIDAwIODCAAAAAAAAA/6sDAwsuuuCAAAAAAAAAAP+rVf8GBAAAAAAAAD53d2N7Y29jNjYcCBw2AIUyPXj4xoKQiNhwAAAAAABJMzx4+sSSiN'
         + 'hwAAAAAAAA/rq6uv7u7u7+urq6/u7u7gD4/P7+fj4AEABUAJIAEAAA+Pz+/n4+AAAoAFQAEAAAAAA4bERERGw4EDh8OAAAADxmZmZmZmY8PB'
         + 'gYGBgYOBh+YGA8BgZGPDxGBgwMBkY8DAwMfkwsHAx8RgYGfGBgfjxmZmZ8YGI8GBgYGAwGQn48ZmY8PGZmPDxGBj5mZmY8ABgYAAAYGAAACA'
-        + 'gMDP7+///+/gwMCAgAABAQMDB/f///f38wMBAQABAQODh8fP7+ODg4ODg4ODg4ODg4ODg4OP7+fHw4OBAQ');
+        + 'gMDP7+///+/gwMCAgAABAQMDB/f///f38wMBAQAAgIHBw+Pn9/HBwcHBwcHBwcHBwcHBwcHH9/Pj4cHAgI');
     const promises = [];
     for (let dir = 0; dir < 2; ++dir) {
         const flipped = dir === 1;

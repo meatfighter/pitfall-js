@@ -28,7 +28,7 @@ export function updateTreasureMapIndex(gs: GameState) {
     
     let minDistance = Number.MAX_VALUE;
     for (let i = treasureIndices.length - 1; i >= 0; --i) {
-        if (sceneStates[treasureIndices[i]].treasure !== TreasureType.NONE) {
+        if (sceneStates[treasureIndices[i]].treasure === TreasureType.NONE) {
             continue;
         }
         const distance = treasureCells[i][scene][tier].distance;
@@ -57,7 +57,7 @@ function createTreasureMap(cells: TreasureCell[][], origin: number) {
         if (cell.tier === Tier.UPPER) {
             if (map[cell.scene].ladder) {
                 const lowerCell = cells[cell.scene][Tier.LOWER];
-                if (lowerCell.direction < 0) {
+                if (lowerCell.distance < 0) {
                     lowerCell.distance = cell.distance + 1;
                     lowerCell.direction = Direction.UP;
                     queue.push(lowerCell);
@@ -88,7 +88,7 @@ function createTreasureMap(cells: TreasureCell[][], origin: number) {
         } else {
             if (map[cell.scene].ladder) {
                 const upperCell = cells[cell.scene][Tier.UPPER];
-                if (upperCell.direction < 0) {
+                if (upperCell.distance < 0) {
                     upperCell.distance = cell.distance + 1;
                     upperCell.direction = Direction.DOWN;
                     queue.push(upperCell);
@@ -126,6 +126,14 @@ function createTreasureMap(cells: TreasureCell[][], origin: number) {
             }
         }
     }
+
+    // console.log('---------------------------------------------------------------');
+    // console.log(`created map for ${origin}:`);
+    // for (let i = 0; i < 255; ++i) {
+    //     console.log(cells[i][Tier.UPPER]);
+    //     console.log(cells[i][Tier.LOWER]);
+    //     console.log('---');
+    // }
 }
 
 function initTreasureCells() {    
@@ -135,7 +143,7 @@ function initTreasureCells() {
             treasureIndices[treasureIndex] = scene;
             const cells = treasureCells[treasureIndex++] = new Array<TreasureCell[]>(map.length);
             for (let i = 0; i < map.length; ++i) {
-                cells[i] = [ new TreasureCell(scene, Tier.UPPER), new TreasureCell(scene, Tier.LOWER) ];
+                cells[i] = [ new TreasureCell(i, Tier.UPPER), new TreasureCell(i, Tier.LOWER) ];
             }
             createTreasureMap(cells, scene);
         }

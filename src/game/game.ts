@@ -5,7 +5,7 @@ import { colors, Colors, Resolution, leavesSprites, branchesSprite, wallSprite, 
 import { clamp } from '@/math';
 import { updateInput, upJustPressed, downJustPressed, leftJustPressed, rightJustPressed, jumpJustPressed } 
     from '@/input';
-import { updateTreasureMapIndex } from './treasure-map';    
+import { Tier, treasureCells, updateTreasureMapIndex } from './treasure-map';    
 
 const SCENE_ALPHA_DELTA = 1 / 30;
 
@@ -134,8 +134,25 @@ function renderStrips(ctx: OffscreenCanvasRenderingContext2D) {
 
 function renderBackground(ctx: OffscreenCanvasRenderingContext2D, scene: number, ox: number) {
     const { trees, ladder, holes, wall, vine, pit, obsticles, scorpion } = map[scene];
-    const { treasure } = gs.sceneStates[scene];
     const trunks = TRUNKS[trees];
+
+    const cells = treasureCells[gs.treasureMapIndex][scene];
+    ctx.drawImage(arrowSprites[Tier.UPPER][cells[Tier.UPPER].direction], 68 - ox, 75);
+    let lowerOffset: number;
+    switch (wall) {
+        case WallType.LEFT:
+            lowerOffset = 57;
+            break;
+        case WallType.RIGHT:
+            lowerOffset = 79;
+            break;    
+        default:
+            lowerOffset = 68;
+            break;
+    }
+    ctx.drawImage(arrowSprites[Tier.LOWER][cells[Tier.LOWER].direction], lowerOffset - ox, 150);
+
+    
     ctx.fillStyle = colors[Colors.DARK_BROWN];
     for (let i = 3; i >= 0; --i) {
         ctx.drawImage(branchesSprite, trunks[i] - 2 - ox, 51);
@@ -183,7 +200,7 @@ function renderBackground(ctx: OffscreenCanvasRenderingContext2D, scene: number,
         gs.pit.render(gs, ctx, scene, ox);
     }
 
-    if (treasure !== TreasureType.NONE) {
+    if (gs.sceneStates[scene].treasure !== TreasureType.NONE) {
         gs.treasure.render(gs, ctx, scene, ox);
     }
 
@@ -232,11 +249,6 @@ function renderHUD(ctx: OffscreenCanvasRenderingContext2D) {
     ctx.drawImage(sprites[10], 108, 16);
     ctx.drawImage(sprites[3], 116, 16);
     ctx.drawImage(sprites[2], 124, 16);
-
-    // TODO TESTING
-    ctx.drawImage(arrowSprites[0][0], 64, 64);
-    ctx.drawImage(arrowSprites[0][2], 64, 64 + 20);
-    ctx.drawImage(arrowSprites[1][3], 64, 154);
 }
 
 export function renderScreen(ctx: OffscreenCanvasRenderingContext2D) {
