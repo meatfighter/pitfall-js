@@ -145,7 +145,7 @@ function renderBackground(ctx: OffscreenCanvasRenderingContext2D, scene: number,
             lowerOffset = (lowerDirection === Direction.RIGHT || lowerDirection === Direction.LEFT) ? 60 : 61;
             break;
         case WallType.RIGHT:
-            lowerOffset = (lowerDirection === Direction.RIGHT || lowerDirection === Direction.LEFT) ? 75 : 76;
+            lowerOffset = 76;
             break;    
         default:
             lowerOffset = 68;

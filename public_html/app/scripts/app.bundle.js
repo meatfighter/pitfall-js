@@ -302,6 +302,348 @@ class CobraAndFire {
 
 /***/ }),
 
+/***/ "./src/game/dijkstra.ts":
+/*!******************************!*\
+  !*** ./src/game/dijkstra.ts ***!
+  \******************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   dijkstra: () => (/* binding */ dijkstra)
+/* harmony export */ });
+/* harmony import */ var _fibonacci_priority_queue__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./fibonacci-priority-queue */ "./src/game/fibonacci-priority-queue.ts");
+
+/**
+ * Dijkstra's algorithm that computes:
+ * 1) The distance to the seed node for every node in the graph.
+ * 2) The immediate neighbor to follow to reach the seed.
+ *
+ * @param graph A Map whose keys are nodes and whose values are an array of edges.
+ * @param seed The seed node from which all distances are calculated.
+ * @returns A Map<T, { distance: number; link: T | null }> describing each node's
+ *          distance and the neighbor to go to first on route to the seed.
+ */
+function dijkstra(graph, seed) {
+    // Store the best-known distance for each node and the link to the first step back to seed
+    const distances = new Map();
+    const firstStepLink = new Map();
+    // Priority queue to pick the node with the smallest distance
+    const pq = new _fibonacci_priority_queue__WEBPACK_IMPORTED_MODULE_0__.FibonacciPriorityQueue();
+    // We need to keep track of the FibNode handles to decrease their priorities later
+    const nodeHandles = new Map();
+    // Initialize all nodes
+    for (const node of graph.keys()) {
+        distances.set(node, Number.POSITIVE_INFINITY);
+        firstStepLink.set(node, null);
+        // Add to Fibonacci priority queue with an initially large priority
+        const handle = pq.add(node, Number.POSITIVE_INFINITY);
+        nodeHandles.set(node, handle);
+    }
+    // Set the seed node's distance to 0 and update priority
+    distances.set(seed, 0);
+    pq.decreasePriority(nodeHandles.get(seed), 0);
+    // Dijkstra's main loop
+    while (pq.size() > 0) {
+        // Extract node with the smallest distance
+        const fibNode = pq.extractMin();
+        if (!fibNode)
+            break; // No more nodes
+        const currentNode = fibNode.key;
+        const currentDistance = distances.get(currentNode);
+        // Explore each neighbor
+        const edges = graph.get(currentNode) || [];
+        for (const { node: neighbor, weight } of edges) {
+            const alt = currentDistance + weight;
+            if (alt < distances.get(neighbor)) {
+                // Found a better route to neighbor
+                distances.set(neighbor, alt);
+                firstStepLink.set(neighbor, currentNode);
+                pq.decreasePriority(nodeHandles.get(neighbor), alt);
+            }
+        }
+    }
+    // Build the final map with distance and link
+    const result = new Map();
+    for (const node of graph.keys()) {
+        result.set(node, {
+            distance: distances.get(node),
+            link: firstStepLink.get(node),
+        });
+    }
+    return result;
+}
+
+
+/***/ }),
+
+/***/ "./src/game/fibonacci-priority-queue.ts":
+/*!**********************************************!*\
+  !*** ./src/game/fibonacci-priority-queue.ts ***!
+  \**********************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   FibNode: () => (/* binding */ FibNode),
+/* harmony export */   FibonacciPriorityQueue: () => (/* binding */ FibonacciPriorityQueue)
+/* harmony export */ });
+class FibNode {
+    key;
+    priority;
+    degree;
+    parent;
+    child;
+    left;
+    right;
+    mark;
+    constructor(key, priority) {
+        this.key = key;
+        this.priority = priority;
+        this.degree = 0;
+        this.parent = null;
+        this.child = null;
+        this.left = this;
+        this.right = this;
+        this.mark = false;
+    }
+}
+class FibonacciPriorityQueue {
+    min;
+    nodeCount;
+    constructor() {
+        this.min = null;
+        this.nodeCount = 0;
+    }
+    /**
+     * Inserts a new node with the given key and priority.
+     * Returns the newly created node.
+     */
+    add(key, priority) {
+        const node = new FibNode(key, priority);
+        // Merge this node into the root list
+        if (!this.min) {
+            this.min = node;
+        }
+        else {
+            // Insert into the min's right position
+            node.left = this.min;
+            node.right = this.min.right;
+            if (this.min.right) {
+                this.min.right.left = node;
+            }
+            this.min.right = node;
+            // Update min if necessary
+            if (node.priority < this.min.priority) {
+                this.min = node;
+            }
+        }
+        this.nodeCount++;
+        return node;
+    }
+    /**
+     * Extracts the node with the smallest priority.
+     * Returns the extracted node, or null if empty.
+     */
+    extractMin() {
+        const z = this.min;
+        if (!z) {
+            return null;
+        }
+        // Move each child of z into the root list
+        if (z.child) {
+            let child = z.child;
+            do {
+                const nextChild = child.right;
+                // Remove child from its sibling list
+                child.left.right = child.right;
+                child.right.left = child.left;
+                // Add child to the root list
+                child.left = this.min;
+                child.right = this.min.right;
+                if (this.min.right) {
+                    this.min.right.left = child;
+                }
+                this.min.right = child;
+                child.parent = null;
+                child = nextChild;
+            } while (child !== z.child);
+        }
+        // Remove z from the root list
+        z.left.right = z.right;
+        z.right.left = z.left;
+        if (z === z.right) {
+            this.min = null;
+        }
+        else {
+            this.min = z.right;
+            this.consolidate();
+        }
+        this.nodeCount--;
+        return z;
+    }
+    /**
+     * Decreases the priority of a given node to newPriority.
+     * Assumes newPriority is strictly less than the node's current priority.
+     */
+    decreasePriority(node, newPriority) {
+        if (newPriority > node.priority) {
+            throw new Error('New priority must be lower than the current priority.');
+        }
+        node.priority = newPriority;
+        const parent = node.parent;
+        if (parent && node.priority < parent.priority) {
+            this.cut(node, parent);
+            this.cascadingCut(parent);
+        }
+        // Update min if needed
+        if (this.min && node.priority < this.min.priority) {
+            this.min = node;
+        }
+    }
+    /**
+     * Private method to merge the trees of the heap by degree.
+     * Called after extracting the minimum.
+     */
+    consolidate() {
+        const A = [];
+        // Upper bound on degrees
+        const maxDegree = Math.floor(Math.log2(this.nodeCount)) + 2;
+        for (let i = 0; i < maxDegree; i++) {
+            A[i] = null;
+        }
+        // Collect all root nodes in a list
+        const roots = [];
+        if (this.min) {
+            let node = this.min;
+            do {
+                roots.push(node);
+                node = node.right;
+            } while (node !== this.min);
+        }
+        // For each root, merge with same degree
+        for (const w of roots) {
+            let x = w;
+            let d = x.degree;
+            while (A[d]) {
+                let y = A[d];
+                if (x.priority > y.priority) {
+                    // Swap x and y
+                    [x, y] = [y, x];
+                }
+                this.link(y, x);
+                A[d] = null;
+                d++;
+            }
+            A[d] = x;
+        }
+        // Rebuild the root list
+        this.min = null;
+        for (const node of A) {
+            if (node) {
+                if (!this.min) {
+                    this.min = node;
+                    node.left = node;
+                    node.right = node;
+                }
+                else {
+                    // Insert node into root list
+                    node.left = this.min;
+                    node.right = this.min.right;
+                    if (this.min.right) {
+                        this.min.right.left = node;
+                    }
+                    this.min.right = node;
+                    if (node.priority < this.min.priority) {
+                        this.min = node;
+                    }
+                }
+            }
+        }
+    }
+    /**
+     * Private method to make node y a child of node x.
+     */
+    link(y, x) {
+        // Remove y from the root list
+        y.left.right = y.right;
+        y.right.left = y.left;
+        // Make y a child of x
+        y.parent = x;
+        if (!x.child) {
+            x.child = y;
+            y.left = y;
+            y.right = y;
+        }
+        else {
+            y.left = x.child;
+            y.right = x.child.right;
+            if (x.child.right) {
+                x.child.right.left = y;
+            }
+            x.child.right = y;
+        }
+        x.degree++;
+        y.mark = false;
+    }
+    /**
+     * Private method to cut a node from its parent and move it to the root list.
+     */
+    cut(x, y) {
+        // Remove x from child list of y
+        if (x.right === x) {
+            y.child = null;
+        }
+        else {
+            x.left.right = x.right;
+            x.right.left = x.left;
+            if (y.child === x) {
+                y.child = x.right;
+            }
+        }
+        y.degree--;
+        // Add x to root list
+        x.left = this.min;
+        x.right = this.min.right;
+        if (this.min.right) {
+            this.min.right.left = x;
+        }
+        this.min.right = x;
+        x.parent = null;
+        x.mark = false;
+    }
+    /**
+     * Private method for recursively cutting marked parents.
+     */
+    cascadingCut(y) {
+        const z = y.parent;
+        if (z) {
+            if (!y.mark) {
+                y.mark = true;
+            }
+            else {
+                this.cut(y, z);
+                this.cascadingCut(z);
+            }
+        }
+    }
+    /**
+     * Returns the number of elements in the queue.
+     */
+    size() {
+        return this.nodeCount;
+    }
+    /**
+     * Peeks at the minimum node without removing it.
+     */
+    peekMin() {
+        return this.min;
+    }
+}
+
+
+/***/ }),
+
 /***/ "./src/game/game-state.ts":
 /*!********************************!*\
   !*** ./src/game/game-state.ts ***!
@@ -534,7 +876,7 @@ function renderBackground(ctx, scene, ox) {
             lowerOffset = (lowerDirection === _treasure_map__WEBPACK_IMPORTED_MODULE_5__.Direction.RIGHT || lowerDirection === _treasure_map__WEBPACK_IMPORTED_MODULE_5__.Direction.LEFT) ? 60 : 61;
             break;
         case _map__WEBPACK_IMPORTED_MODULE_0__.WallType.RIGHT:
-            lowerOffset = (lowerDirection === _treasure_map__WEBPACK_IMPORTED_MODULE_5__.Direction.RIGHT || lowerDirection === _treasure_map__WEBPACK_IMPORTED_MODULE_5__.Direction.LEFT) ? 75 : 76;
+            lowerOffset = 76;
             break;
         default:
             lowerOffset = 68;
@@ -698,7 +1040,7 @@ var MainState;
 class Harry {
     mainState = MainState.STANDING;
     lastMainState = MainState.STANDING;
-    scene = 25; // TODO 0;
+    scene = 0;
     absoluteX = 12;
     x = this.absoluteX;
     y = Y_UPPER_LEVEL;
@@ -1231,7 +1573,8 @@ class Scene {
     obsticles;
     wall;
     scorpion;
-    constructor(trees, ladder, holes, vine, pit, treasure, obsticles, wall, scorpion) {
+    difficulty;
+    constructor(trees, ladder, holes, vine, pit, treasure, obsticles, wall, scorpion, difficulty) {
         this.trees = trees;
         this.ladder = ladder;
         this.holes = holes;
@@ -1241,10 +1584,12 @@ class Scene {
         this.obsticles = obsticles;
         this.wall = wall;
         this.scorpion = scorpion;
+        this.difficulty = difficulty;
     }
 }
 let seed = 0xC4;
 for (let i = 0; i < map.length; ++i) {
+    let difficulty = 304;
     const trees = seed >> 6;
     let ladder = false;
     let holes = false;
@@ -1256,42 +1601,70 @@ for (let i = 0; i < map.length; ++i) {
     switch ((seed >> 3) & 7) {
         case 0:
             ladder = true;
+            difficulty += 5;
             break;
         case 1:
             ladder = true;
             holes = true;
+            difficulty += 10;
             break;
         case 2:
             vine = true;
             pit = PitType.TAR;
+            difficulty += 143;
             break;
         case 3:
             vine = true;
             pit = PitType.QUICKSAND;
+            difficulty += 143;
             break;
         case 4:
             vine = ((seed >> 1) & 1) === 1;
             pit = PitType.CROCS;
+            difficulty += vine ? 143 : 240;
             break;
         case 5:
             pit = PitType.SHIFTING_TAR;
             treasure = seed & 3;
+            difficulty += 111;
             break;
         case 6:
             pit = PitType.SHIFTING_TAR;
             vine = true;
+            difficulty += 111;
             break;
         case 7:
             pit = PitType.SHIFTING_QUICKSAND;
+            difficulty += 111;
             break;
     }
     if (treasure === TreasureType.NONE && pit !== PitType.CROCS) {
         obsticles = seed & 7;
+        switch (obsticles) {
+            case ObsticleType.ONE_STATIONARY_LOG:
+            case ObsticleType.THREE_STATIONARY_LOGS:
+            case ObsticleType.ONE_ROLLING_LOG:
+                difficulty += 5;
+                break;
+            case ObsticleType.TWO_ROLLING_LOGS_FAR:
+                difficulty += 10;
+                break;
+            case ObsticleType.TWO_ROLLING_LOGS_NEAR:
+                difficulty += 15;
+                break;
+            case ObsticleType.THREE_ROLLING_LOGS:
+                difficulty += 20;
+                break;
+            case ObsticleType.FIRE:
+            case ObsticleType.COBRA:
+                difficulty += 30;
+                break;
+        }
     }
     if (ladder) {
         wall = (seed >> 7) & 1;
     }
-    map[i] = new Scene(trees, ladder, holes, vine, pit, treasure, obsticles, wall, !ladder);
+    map[i] = new Scene(trees, ladder, holes, vine, pit, treasure, obsticles, wall, !ladder, difficulty);
     seed = 0xFF & ((seed << 1) | (((seed >> 7) & 1) ^ ((seed >> 5) & 1) ^ ((seed >> 4) & 1) ^ ((seed >> 3) & 1)));
 }
 
@@ -1838,6 +2211,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   updateTreasureMapIndex: () => (/* binding */ updateTreasureMapIndex)
 /* harmony export */ });
 /* harmony import */ var _map__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./map */ "./src/game/map.ts");
+/* harmony import */ var _dijkstra__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./dijkstra */ "./src/game/dijkstra.ts");
+
 
 var Direction;
 (function (Direction) {
@@ -1851,14 +2226,89 @@ var Tier;
     Tier[Tier["UPPER"] = 0] = "UPPER";
     Tier[Tier["LOWER"] = 1] = "LOWER";
 })(Tier || (Tier = {}));
-class TreasureCell {
+class Node {
     scene;
     tier;
-    direction = Direction.RIGHT;
-    distance = -1;
     constructor(scene, tier) {
         this.scene = scene;
         this.tier = tier;
+    }
+}
+function createNodes() {
+    const nodes = new Array(_map__WEBPACK_IMPORTED_MODULE_0__.map.length);
+    for (let scene = _map__WEBPACK_IMPORTED_MODULE_0__.map.length - 1; scene >= 0; --scene) {
+        nodes[scene] = [new Node(scene, Tier.UPPER), new Node(scene, Tier.LOWER)];
+    }
+    return nodes;
+}
+function createGraph(nodes) {
+    const graph = new Map();
+    for (let scene = _map__WEBPACK_IMPORTED_MODULE_0__.map.length - 1; scene >= 0; --scene) {
+        {
+            const edges = [];
+            if (_map__WEBPACK_IMPORTED_MODULE_0__.map[scene].ladder) {
+                edges.push({
+                    node: nodes[scene][Tier.LOWER],
+                    weight: 160,
+                });
+            }
+            let leftScene = scene - 1;
+            if (leftScene < 0) {
+                leftScene += _map__WEBPACK_IMPORTED_MODULE_0__.map.length;
+            }
+            let rightScene = scene + 1;
+            if (rightScene >= _map__WEBPACK_IMPORTED_MODULE_0__.map.length) {
+                rightScene -= _map__WEBPACK_IMPORTED_MODULE_0__.map.length;
+            }
+            edges.push({
+                node: nodes[leftScene][Tier.UPPER],
+                weight: _map__WEBPACK_IMPORTED_MODULE_0__.map[scene].difficulty + _map__WEBPACK_IMPORTED_MODULE_0__.map[leftScene].difficulty,
+            });
+            edges.push({
+                node: nodes[rightScene][Tier.UPPER],
+                weight: _map__WEBPACK_IMPORTED_MODULE_0__.map[scene].difficulty + _map__WEBPACK_IMPORTED_MODULE_0__.map[rightScene].difficulty,
+            });
+            graph.set(nodes[scene][Tier.UPPER], edges);
+        }
+        {
+            const edges = [];
+            if (_map__WEBPACK_IMPORTED_MODULE_0__.map[scene].ladder) {
+                edges.push({
+                    node: nodes[scene][Tier.UPPER],
+                    weight: 160,
+                });
+            }
+            let leftScene = scene - 3;
+            if (leftScene < 0) {
+                leftScene += _map__WEBPACK_IMPORTED_MODULE_0__.map.length;
+            }
+            let rightScene = scene + 3;
+            if (rightScene >= _map__WEBPACK_IMPORTED_MODULE_0__.map.length) {
+                rightScene -= _map__WEBPACK_IMPORTED_MODULE_0__.map.length;
+            }
+            if (_map__WEBPACK_IMPORTED_MODULE_0__.map[scene].wall !== _map__WEBPACK_IMPORTED_MODULE_0__.WallType.LEFT && _map__WEBPACK_IMPORTED_MODULE_0__.map[leftScene].wall !== _map__WEBPACK_IMPORTED_MODULE_0__.WallType.RIGHT) {
+                edges.push({
+                    node: nodes[leftScene][Tier.LOWER],
+                    weight: 10,
+                });
+            }
+            if (_map__WEBPACK_IMPORTED_MODULE_0__.map[scene].wall !== _map__WEBPACK_IMPORTED_MODULE_0__.WallType.RIGHT && _map__WEBPACK_IMPORTED_MODULE_0__.map[rightScene].wall !== _map__WEBPACK_IMPORTED_MODULE_0__.WallType.LEFT) {
+                edges.push({
+                    node: nodes[rightScene][Tier.LOWER],
+                    weight: 10,
+                });
+            }
+            graph.set(nodes[scene][Tier.LOWER], edges);
+        }
+    }
+    return graph;
+}
+class TreasureCell {
+    direction;
+    distance;
+    constructor(direction, distance) {
+        this.direction = direction;
+        this.distance = distance;
     }
 }
 function updateTreasureMapIndex(gs) {
@@ -1879,96 +2329,61 @@ function updateTreasureMapIndex(gs) {
 }
 const treasureIndices = new Array(32);
 const treasureCells = new Array(32);
-function createTreasureMap(cells, origin) {
-    const originCell = cells[origin][Tier.UPPER];
-    originCell.distance = 0;
-    originCell.direction = Direction.RIGHT;
-    const queue = [originCell];
-    while (true) {
-        const cell = queue.shift();
-        if (!cell) {
-            break;
-        }
-        if (cell.tier === Tier.UPPER) {
-            if (_map__WEBPACK_IMPORTED_MODULE_0__.map[cell.scene].ladder) {
-                const lowerCell = cells[cell.scene][Tier.LOWER];
-                if (lowerCell.distance < 0) {
-                    lowerCell.distance = cell.distance + 1;
-                    lowerCell.direction = Direction.UP;
-                    queue.push(lowerCell);
-                }
-            }
-            let leftScene = cell.scene - 1;
-            if (leftScene < 0) {
-                leftScene += cells.length;
-            }
-            const leftCell = cells[leftScene][Tier.UPPER];
-            if (leftCell.distance < 0) {
-                leftCell.distance = cell.distance + 1;
-                leftCell.direction = Direction.RIGHT;
-                queue.push(leftCell);
-            }
-            let rightScene = cell.scene + 1;
-            if (rightScene >= cells.length) {
-                rightScene -= cells.length;
-            }
-            const rightCell = cells[rightScene][Tier.UPPER];
-            if (rightCell.distance < 0) {
-                rightCell.distance = cell.distance + 1;
-                rightCell.direction = Direction.LEFT;
-                queue.push(rightCell);
-            }
-        }
-        else {
-            if (_map__WEBPACK_IMPORTED_MODULE_0__.map[cell.scene].ladder) {
-                const upperCell = cells[cell.scene][Tier.UPPER];
-                if (upperCell.distance < 0) {
-                    upperCell.distance = cell.distance + 1;
-                    upperCell.direction = Direction.DOWN;
-                    queue.push(upperCell);
-                }
-            }
-            if (_map__WEBPACK_IMPORTED_MODULE_0__.map[cell.scene].wall !== _map__WEBPACK_IMPORTED_MODULE_0__.WallType.LEFT) {
-                let leftScene = cell.scene - 3;
-                if (leftScene < 0) {
-                    leftScene += cells.length;
-                }
-                if (_map__WEBPACK_IMPORTED_MODULE_0__.map[leftScene].wall !== _map__WEBPACK_IMPORTED_MODULE_0__.WallType.RIGHT) {
-                    const leftCell = cells[leftScene][Tier.LOWER];
-                    if (leftCell.distance < 0) {
-                        leftCell.distance = cell.distance + 1;
-                        leftCell.direction = Direction.RIGHT;
-                        queue.push(leftCell);
-                    }
-                }
-            }
-            if (_map__WEBPACK_IMPORTED_MODULE_0__.map[cell.scene].wall !== _map__WEBPACK_IMPORTED_MODULE_0__.WallType.RIGHT) {
-                let rightScene = cell.scene + 3;
-                if (rightScene >= cells.length) {
-                    rightScene -= cells.length;
-                }
-                if (_map__WEBPACK_IMPORTED_MODULE_0__.map[rightScene].wall !== _map__WEBPACK_IMPORTED_MODULE_0__.WallType.LEFT) {
-                    const rightCell = cells[rightScene][Tier.LOWER];
-                    if (rightCell.distance < 0) {
-                        rightCell.distance = cell.distance + 1;
-                        rightCell.direction = Direction.LEFT;
-                        queue.push(rightCell);
-                    }
-                }
-            }
-        }
-    }
-}
 function initTreasureCells() {
+    const nodes = createNodes();
+    const graph = createGraph(nodes);
     let treasureIndex = 0;
     for (let scene = 0; scene < _map__WEBPACK_IMPORTED_MODULE_0__.map.length; ++scene) {
-        if (_map__WEBPACK_IMPORTED_MODULE_0__.map[scene].treasure !== _map__WEBPACK_IMPORTED_MODULE_0__.TreasureType.NONE) {
-            treasureIndices[treasureIndex] = scene;
-            const cells = treasureCells[treasureIndex++] = new Array(_map__WEBPACK_IMPORTED_MODULE_0__.map.length);
-            for (let i = 0; i < _map__WEBPACK_IMPORTED_MODULE_0__.map.length; ++i) {
-                cells[i] = [new TreasureCell(i, Tier.UPPER), new TreasureCell(i, Tier.LOWER)];
+        if (_map__WEBPACK_IMPORTED_MODULE_0__.map[scene].treasure === _map__WEBPACK_IMPORTED_MODULE_0__.TreasureType.NONE) {
+            continue;
+        }
+        treasureIndices[treasureIndex] = scene;
+        const distLinks = (0,_dijkstra__WEBPACK_IMPORTED_MODULE_1__.dijkstra)(graph, nodes[scene][Tier.UPPER]);
+        const cells = treasureCells[treasureIndex++] = new Array(_map__WEBPACK_IMPORTED_MODULE_0__.map.length);
+        for (let i = 0; i < _map__WEBPACK_IMPORTED_MODULE_0__.map.length; ++i) {
+            cells[i] = new Array(2);
+            {
+                const distLink = distLinks.get(nodes[i][Tier.UPPER]);
+                if (!distLink) {
+                    throw new Error('Missing upper distLink');
+                }
+                const { distance, link } = distLink;
+                let direction = Direction.RIGHT;
+                if (link) {
+                    if (link.tier === Tier.LOWER) {
+                        direction = Direction.DOWN;
+                    }
+                    else {
+                        let leftScene = i - 1;
+                        if (leftScene < 0) {
+                            leftScene += _map__WEBPACK_IMPORTED_MODULE_0__.map.length;
+                        }
+                        direction = (link.scene === leftScene) ? Direction.LEFT : Direction.RIGHT;
+                    }
+                }
+                cells[i][Tier.UPPER] = new TreasureCell(direction, distance);
             }
-            createTreasureMap(cells, scene);
+            {
+                const distLink = distLinks.get(nodes[i][Tier.LOWER]);
+                if (!distLink) {
+                    throw new Error('Missing lower distLink');
+                }
+                const { distance, link } = distLink;
+                let direction = Direction.RIGHT;
+                if (link) {
+                    if (link.tier === Tier.UPPER) {
+                        direction = Direction.UP;
+                    }
+                    else {
+                        let leftScene = i - 3;
+                        if (leftScene < 0) {
+                            leftScene += _map__WEBPACK_IMPORTED_MODULE_0__.map.length;
+                        }
+                        direction = (link.scene === leftScene) ? Direction.LEFT : Direction.RIGHT;
+                    }
+                }
+                cells[i][Tier.LOWER] = new TreasureCell(direction, distance);
+            }
         }
     }
 }

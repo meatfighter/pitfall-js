@@ -1,5 +1,6 @@
 import { map, TreasureType, WallType } from './map';
 import { GameState } from './game-state';
+import { dijkstra, Edge } from './dijkstra';
 
 export enum Direction {
     RIGHT = 0,
@@ -13,11 +14,86 @@ export enum Tier {
     LOWER = 1,
 }
 
-export class TreasureCell {
-    direction = Direction.RIGHT;
-    distance = -1;
-
+class Node {
     constructor(public readonly scene: number, public readonly tier: Tier) {        
+    }
+}
+
+function createNodes(): Node[][] {
+    const nodes = new Array<Node[]>(map.length);
+    for (let scene = map.length - 1; scene >= 0; --scene) {
+        nodes[scene] = [ new Node(scene, Tier.UPPER), new Node(scene, Tier.LOWER) ];
+    }
+    return nodes;
+}
+
+function createGraph(nodes: Node[][]): Map<Node, Edge<Node>[]> {
+
+    const graph = new Map<Node, Edge<Node>[]>();
+    for (let scene = map.length - 1; scene >= 0; --scene) {
+        {
+            const edges: Edge<Node>[] = [];
+            if (map[scene].ladder) {
+                edges.push({ 
+                    node: nodes[scene][Tier.LOWER], 
+                    weight: 160, 
+                });
+            }
+            let leftScene = scene - 1;
+            if (leftScene < 0) {
+                leftScene += map.length;
+            }
+            let rightScene = scene + 1;
+            if (rightScene >= map.length) {
+                rightScene -= map.length;
+            }
+            edges.push({ 
+                node: nodes[leftScene][Tier.UPPER], 
+                weight: map[scene].difficulty + map[leftScene].difficulty, 
+            });
+            edges.push({ 
+                node: nodes[rightScene][Tier.UPPER], 
+                weight: map[scene].difficulty + map[rightScene].difficulty,
+            });            
+            graph.set(nodes[scene][Tier.UPPER], edges);
+        }
+
+        {
+            const edges: Edge<Node>[] = [];
+            if (map[scene].ladder) {
+                edges.push({ 
+                    node: nodes[scene][Tier.UPPER], 
+                    weight: 160, 
+                });
+            }
+            let leftScene = scene - 3;
+            if (leftScene < 0) {
+                leftScene += map.length;
+            }
+            let rightScene = scene + 3;
+            if (rightScene >= map.length) {
+                rightScene -= map.length;
+            }
+            if (map[scene].wall !== WallType.LEFT && map[leftScene].wall !== WallType.RIGHT) {
+                edges.push({ 
+                    node: nodes[leftScene][Tier.LOWER], 
+                    weight: 10, 
+                });
+            }
+            if (map[scene].wall !== WallType.RIGHT && map[rightScene].wall !== WallType.LEFT) {
+                edges.push({ 
+                    node: nodes[rightScene][Tier.LOWER], 
+                    weight: 10, 
+                });
+            }
+            graph.set(nodes[scene][Tier.LOWER], edges);
+        }
+    }    
+    return graph;
+}
+
+export class TreasureCell {
+    constructor(public readonly direction: Direction, public readonly distance: number) {
     }
 }
 
@@ -42,102 +118,60 @@ export function updateTreasureMapIndex(gs: GameState) {
 export const treasureIndices = new Array<number>(32);
 export const treasureCells = new Array<TreasureCell[][]>(32);
 
-function createTreasureMap(cells: TreasureCell[][], origin: number) {
-    const originCell = cells[origin][Tier.UPPER];
-    originCell.distance = 0;
-    originCell.direction = Direction.RIGHT;
+function initTreasureCells() {
+    const nodes = createNodes();
+    const graph = createGraph(nodes);
     
-    const queue = [ originCell ];
-    while (true) {
-        const cell = queue.shift();
-        if (!cell) {
-            break;
-        }
-
-        if (cell.tier === Tier.UPPER) {
-            if (map[cell.scene].ladder) {
-                const lowerCell = cells[cell.scene][Tier.LOWER];
-                if (lowerCell.distance < 0) {
-                    lowerCell.distance = cell.distance + 1;
-                    lowerCell.direction = Direction.UP;
-                    queue.push(lowerCell);
-                }
-            }
-
-            let leftScene = cell.scene - 1;
-            if (leftScene < 0) {
-                leftScene += cells.length;
-            }
-            const leftCell = cells[leftScene][Tier.UPPER];
-            if (leftCell.distance < 0) {
-                leftCell.distance = cell.distance + 1;
-                leftCell.direction = Direction.RIGHT;
-                queue.push(leftCell);
-            }
-
-            let rightScene = cell.scene + 1;
-            if (rightScene >= cells.length) {
-                rightScene -= cells.length;
-            }
-            const rightCell = cells[rightScene][Tier.UPPER];
-            if (rightCell.distance < 0) {
-                rightCell.distance = cell.distance + 1;
-                rightCell.direction = Direction.LEFT;
-                queue.push(rightCell);
-            }            
-        } else {
-            if (map[cell.scene].ladder) {
-                const upperCell = cells[cell.scene][Tier.UPPER];
-                if (upperCell.distance < 0) {
-                    upperCell.distance = cell.distance + 1;
-                    upperCell.direction = Direction.DOWN;
-                    queue.push(upperCell);
-                }
-            }
-
-            if (map[cell.scene].wall !== WallType.LEFT) {
-                let leftScene = cell.scene - 3;
-                if (leftScene < 0) {
-                    leftScene += cells.length;
-                }
-                if (map[leftScene].wall !== WallType.RIGHT) {
-                    const leftCell = cells[leftScene][Tier.LOWER];
-                    if (leftCell.distance < 0) {
-                        leftCell.distance = cell.distance + 1;
-                        leftCell.direction = Direction.RIGHT;
-                        queue.push(leftCell);
-                    }
-                }
-            }
-
-            if (map[cell.scene].wall !== WallType.RIGHT) {
-                let rightScene = cell.scene + 3;
-                if (rightScene >= cells.length) {
-                    rightScene -= cells.length;
-                }
-                if (map[rightScene].wall !== WallType.LEFT) {
-                    const rightCell = cells[rightScene][Tier.LOWER];
-                    if (rightCell.distance < 0) {
-                        rightCell.distance = cell.distance + 1;
-                        rightCell.direction = Direction.LEFT;
-                        queue.push(rightCell);
-                    }
-                }
-            }
-        }
-    }
-}
-
-function initTreasureCells() {    
     let treasureIndex = 0;
     for (let scene = 0; scene < map.length; ++scene) {
-        if (map[scene].treasure !== TreasureType.NONE) {
-            treasureIndices[treasureIndex] = scene;
-            const cells = treasureCells[treasureIndex++] = new Array<TreasureCell[]>(map.length);
-            for (let i = 0; i < map.length; ++i) {
-                cells[i] = [ new TreasureCell(i, Tier.UPPER), new TreasureCell(i, Tier.LOWER) ];
+        if (map[scene].treasure === TreasureType.NONE) {
+            continue;
+        }
+        treasureIndices[treasureIndex] = scene;
+        const distLinks = dijkstra(graph, nodes[scene][Tier.UPPER]);        
+        const cells = treasureCells[treasureIndex++] = new Array<TreasureCell[]>(map.length);
+        for (let i = 0; i < map.length; ++i) {
+            cells[i] = new Array<TreasureCell>(2);
+            {                             
+                const distLink = distLinks.get(nodes[i][Tier.UPPER]);
+                if (!distLink) {
+                    throw new Error('Missing upper distLink');
+                }
+                const { distance, link } = distLink;
+                let direction = Direction.RIGHT;
+                if (link) {
+                    if (link.tier === Tier.LOWER) {
+                        direction = Direction.DOWN;
+                    } else {
+                        let leftScene = i - 1;
+                        if (leftScene < 0) {
+                            leftScene += map.length;
+                        }
+                        direction = (link.scene === leftScene) ? Direction.LEFT : Direction.RIGHT;
+                    }
+                }
+                cells[i][Tier.UPPER] = new TreasureCell(direction, distance);
             }
-            createTreasureMap(cells, scene);
+            {                             
+                const distLink = distLinks.get(nodes[i][Tier.LOWER]);
+                if (!distLink) {
+                    throw new Error('Missing lower distLink');
+                }
+                const { distance, link } = distLink;
+                let direction = Direction.RIGHT;
+                if (link) {
+                    if (link.tier === Tier.UPPER) {
+                        direction = Direction.UP;
+                    } else {
+                        let leftScene = i - 3;
+                        if (leftScene < 0) {
+                            leftScene += map.length;
+                        }
+                        direction = (link.scene === leftScene) ? Direction.LEFT : Direction.RIGHT;
+                    }
+                }
+                cells[i][Tier.LOWER] = new TreasureCell(direction, distance);
+            }
         }
     }
 }
