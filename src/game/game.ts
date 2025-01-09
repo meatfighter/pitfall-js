@@ -105,7 +105,6 @@ export function update() {
         }
         if (gs.nextScene !== scene0 && gs.nextScene !== scene1) {
             gs.sceneStates[gs.nextScene].enteredLeft = false;
-            updateTreasureMapIndex(gs);
         }
     } else {
         gs.nextOx = gs.ox - Resolution.WIDTH;
@@ -115,7 +114,6 @@ export function update() {
         }
         if (gs.nextScene !== scene0 && gs.nextScene !== scene1) {
             gs.sceneStates[gs.nextScene].enteredLeft = true;
-            updateTreasureMapIndex(gs);
         }
     }
 }

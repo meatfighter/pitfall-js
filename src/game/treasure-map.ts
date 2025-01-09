@@ -93,24 +93,15 @@ function createGraph(nodes: Node[][]): Map<Node, Edge<Node>[]> {
 }
 
 export class TreasureCell {
-    constructor(public readonly direction: Direction, public readonly distance: number) {
+    constructor(public readonly direction: Direction) {
     }
 }
 
-export function updateTreasureMapIndex(gs: GameState) {
-    const { sceneStates } = gs;
-    const scene = gs.harry.scene;
-    const tier = gs.harry.isUnderground() ? Tier.LOWER : Tier.UPPER;
-    
-    let minDistance = Number.MAX_VALUE;
-    for (let i = treasureIndices.length - 1; i >= 0; --i) {
-        if (sceneStates[treasureIndices[i]].treasure === TreasureType.NONE) {
-            continue;
-        }
-        const distance = treasureCells[i][scene][tier].distance;
-        if (distance < minDistance) {
-            minDistance = distance;
+export function updateTreasureMapIndex(gs: GameState) {   
+    for (let i = 0; i < treasureIndices.length; ++i) {
+        if (gs.sceneStates[treasureIndices[i]].treasure !== TreasureType.NONE) {
             gs.treasureMapIndex = i;
+            break;
         }
     }
 }
@@ -137,7 +128,7 @@ function initTreasureCells() {
                 if (!distLink) {
                     throw new Error('Missing upper distLink');
                 }
-                const { distance, link } = distLink;
+                const { link } = distLink;
                 let direction = Direction.RIGHT;
                 if (link) {
                     if (link.tier === Tier.LOWER) {
@@ -150,14 +141,14 @@ function initTreasureCells() {
                         direction = (link.scene === leftScene) ? Direction.LEFT : Direction.RIGHT;
                     }
                 }
-                cells[i][Tier.UPPER] = new TreasureCell(direction, distance);
+                cells[i][Tier.UPPER] = new TreasureCell(direction);
             }
             {                             
                 const distLink = distLinks.get(nodes[i][Tier.LOWER]);
                 if (!distLink) {
                     throw new Error('Missing lower distLink');
                 }
-                const { distance, link } = distLink;
+                const { link } = distLink;
                 let direction = Direction.RIGHT;
                 if (link) {
                     if (link.tier === Tier.UPPER) {
@@ -170,7 +161,7 @@ function initTreasureCells() {
                         direction = (link.scene === leftScene) ? Direction.LEFT : Direction.RIGHT;
                     }
                 }
-                cells[i][Tier.LOWER] = new TreasureCell(direction, distance);
+                cells[i][Tier.LOWER] = new TreasureCell(direction);
             }
         }
     }
