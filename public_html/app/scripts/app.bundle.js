@@ -3785,13 +3785,16 @@ function enter() {
                         <span class="right-volume-label" id="right-volume-span" lang="en">100</span>
                     </div>
                     <div class="difficulty-div">
-                        <label for="difficulty-select">Difficulty:</label>
-                        <select id="difficulty-select" name="difficulty-select">
-                            <option value="0">Easy</option>
-                            <option value="1">Normal</option>
-                            <option value="2">Hard</option>
-                        </select>
-                    </div>
+                        <div id="dropdown-label">Difficulty:</div>
+                        <div id="custom-dropdown" class="custom-dropdown">
+                            <div class="dropdown-selected">${getDifficultyName()}</div>
+                            <div class="dropdown-options">
+                                <div class="dropdown-option" data-value="0">Easy</div>
+                                <div class="dropdown-option" data-value="1">Normal</div>
+                                <div class="dropdown-option" data-value="2">Hard</div>
+                            </div>
+                        </div>    
+                    </div>    
                     <div id="go-div">
                         <button id="start-button">${isNewGame() ? 'Start' : 'Continue'}</button>
                     </div>
@@ -3801,10 +3804,33 @@ function enter() {
     const volumeInput = document.getElementById('volume-input');
     volumeInput.addEventListener('input', volumeChanged);
     volumeInput.value = String(_store__WEBPACK_IMPORTED_MODULE_2__.store.volume);
-    const difficultySelect = document.getElementById('difficulty-select');
-    difficultySelect.value = _store__WEBPACK_IMPORTED_MODULE_2__.store.difficulty.toString();
+    // const difficultySelect = document.getElementById('difficulty-select') as HTMLSelectElement;
+    // difficultySelect.value = store.difficulty.toString();
     const startButton = document.getElementById('start-button');
     startButton.addEventListener('click', startButtonClicked);
+    const dropdown = document.getElementById('custom-dropdown');
+    const selected = dropdown.querySelector('.dropdown-selected');
+    const options = dropdown.querySelector('.dropdown-options');
+    const optionItems = dropdown.querySelectorAll('.dropdown-option');
+    // Toggle dropdown open/closed on click
+    selected.addEventListener('click', () => {
+        dropdown.classList.toggle('open');
+    });
+    // Handle clicks on each option
+    optionItems.forEach((option) => {
+        option.addEventListener('click', () => {
+            // Update the "selected" text
+            selected.textContent = option.textContent;
+            // Close the dropdown
+            dropdown.classList.remove('open');
+        });
+    });
+    // Optional: close if clicked outside
+    document.addEventListener('click', (event) => {
+        if (!dropdown.contains(event.target)) {
+            dropdown.classList.remove('open');
+        }
+    });
     windowResized();
 }
 function exit() {
@@ -3814,14 +3840,24 @@ function exit() {
     volumeInput.removeEventListener('input', volumeChanged);
     const startButton = document.getElementById('start-button');
     startButton.removeEventListener('click', startButtonClicked);
-    const difficultySelect = document.getElementById('difficulty-select');
-    _store__WEBPACK_IMPORTED_MODULE_2__.store.difficulty = Number(difficultySelect.value);
+    // const difficultySelect = document.getElementById('difficulty-select') as HTMLSelectElement;
+    // store.difficulty = Number(difficultySelect.value);
     (0,_store__WEBPACK_IMPORTED_MODULE_2__.saveStore)();
+}
+function getDifficultyName() {
+    switch (_store__WEBPACK_IMPORTED_MODULE_2__.store.difficulty) {
+        case _store__WEBPACK_IMPORTED_MODULE_2__.Difficulty.EASY:
+            return "Easy";
+        case _store__WEBPACK_IMPORTED_MODULE_2__.Difficulty.NORMAL:
+            return "Normal";
+        default:
+            return "Hard";
+    }
 }
 function startButtonClicked() {
     (0,_sfx__WEBPACK_IMPORTED_MODULE_0__.setVolume)(_store__WEBPACK_IMPORTED_MODULE_2__.store.volume);
-    const difficultySelect = document.getElementById('difficulty-select');
-    _store__WEBPACK_IMPORTED_MODULE_2__.store.difficulty = Number(difficultySelect.value);
+    // const difficultySelect = document.getElementById('difficulty-select') as HTMLSelectElement;
+    // store.difficulty = Number(difficultySelect.value);
     exit();
     (0,_screen__WEBPACK_IMPORTED_MODULE_1__.enter)();
 }

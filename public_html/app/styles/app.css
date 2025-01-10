@@ -229,3 +229,79 @@ select:focus {
     outline: none;
     border-color: #aaa;
 }
+
+
+
+    /* Basic label styling */
+    #dropdown-label {
+        display: inline-block;
+        margin-bottom: 4px;
+        margin-right: 6px;
+      }
+  
+      /* Outer wrapper for dropdown */
+      .custom-dropdown {
+        position: relative;
+        display: inline-block;
+        cursor: pointer;
+        border: 1px solid #ccc;
+        width: 120px;
+        padding: 6px 8px;
+        /* background-color: #333; */
+        user-select: none;
+        border-radius: 2px;
+      }
+
+    /*
+      Using a pseudo-element to create a triangle. 
+      Adjust the widths & heights of each border for different shapes.
+    */
+    .custom-dropdown::after {
+        content: "";
+        position: absolute;
+        right: 8px;
+        top: 50%;
+        transform: translateY(-50%) rotate(0deg); /* Start with no rotation */
+        transition: transform 0.2s ease; /* Smooth rotation */
+        /* Creates a triangle 12px wide, 4px tall */
+        border-left: 5px solid transparent;
+        border-right: 5px solid transparent;
+        border-top: 5px solid #fff; /* color of the triangle */
+        pointer-events: none;
+      }   
+      
+      /* Flip the triangle when open */
+    .custom-dropdown.open::after {
+        transform: translateY(-50%) rotate(180deg);
+      }
+  
+      /* The visible "selected" value */
+      .dropdown-selected {
+        /* font-weight: bold; */
+        padding-right: 14px; /* Add some space so the text doesn’t collide with arrow */
+      }
+  
+      /* Hidden options container (absolute) */
+      .dropdown-options {
+        position: absolute;
+        top: 100%;
+        left: -1px;
+        width: 100%;
+        background-color: #222;
+        border: 1px solid #ccc;
+        display: none; /* hidden by default */
+        z-index: 999;
+      }
+  
+      /* Show the options when .open is applied */
+      .custom-dropdown.open .dropdown-options {
+        display: block;
+      }
+  
+      /* Individual option styling */
+      .dropdown-option {
+        padding: 6px 8px;
+      }
+      .dropdown-option:hover {
+        background-color: #0075FF;
+      }

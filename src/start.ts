@@ -1,6 +1,6 @@
 import { setVolume } from './sfx';
 import { enter as enterGame } from './screen';
-import { store, saveStore } from './store';
+import { store, saveStore, Difficulty } from './store';
 
 let landscape = false;
 
@@ -22,13 +22,16 @@ export function enter() {
                         <span class="right-volume-label" id="right-volume-span" lang="en">100</span>
                     </div>
                     <div class="difficulty-div">
-                        <label for="difficulty-select">Difficulty:</label>
-                        <select id="difficulty-select" name="difficulty-select">
-                            <option value="0">Easy</option>
-                            <option value="1">Normal</option>
-                            <option value="2">Hard</option>
-                        </select>
-                    </div>
+                        <div id="dropdown-label">Difficulty:</div>
+                        <div id="custom-dropdown" class="custom-dropdown">
+                            <div class="dropdown-selected">${getDifficultyName()}</div>
+                            <div class="dropdown-options">
+                                <div class="dropdown-option" data-value="0">Easy</div>
+                                <div class="dropdown-option" data-value="1">Normal</div>
+                                <div class="dropdown-option" data-value="2">Hard</div>
+                            </div>
+                        </div>    
+                    </div>    
                     <div id="go-div">
                         <button id="start-button">${isNewGame() ? 'Start' : 'Continue'}</button>
                     </div>
@@ -40,11 +43,42 @@ export function enter() {
     volumeInput.addEventListener('input', volumeChanged);
     volumeInput.value = String(store.volume);
 
-    const difficultySelect = document.getElementById('difficulty-select') as HTMLSelectElement;
-    difficultySelect.value = store.difficulty.toString();
+    // const difficultySelect = document.getElementById('difficulty-select') as HTMLSelectElement;
+    // difficultySelect.value = store.difficulty.toString();
 
     const startButton = document.getElementById('start-button') as HTMLButtonElement;
     startButton.addEventListener('click', startButtonClicked);
+
+
+
+    const dropdown = document.getElementById('custom-dropdown') as HTMLDivElement;
+    const selected = dropdown.querySelector('.dropdown-selected') as HTMLDivElement;
+    const options = dropdown.querySelector('.dropdown-options') as HTMLDivElement;
+    const optionItems = dropdown.querySelectorAll('.dropdown-option');
+
+    // Toggle dropdown open/closed on click
+    selected.addEventListener('click', () => {
+        dropdown.classList.toggle('open');
+    });
+
+    // Handle clicks on each option
+    optionItems.forEach((option) => {
+        option.addEventListener('click', () => {
+            // Update the "selected" text
+            selected.textContent = option.textContent;
+            // Close the dropdown
+            dropdown.classList.remove('open');
+        });
+    });
+
+    // Optional: close if clicked outside
+    document.addEventListener('click', (event) => {
+        if (!dropdown.contains(event.target as Node)) {
+            dropdown.classList.remove('open');
+        }
+    });
+
+
 
     windowResized();
 }
@@ -59,17 +93,28 @@ export function exit() {
     const startButton = document.getElementById('start-button') as HTMLButtonElement;
     startButton.removeEventListener('click', startButtonClicked);
 
-    const difficultySelect = document.getElementById('difficulty-select') as HTMLSelectElement;
-    store.difficulty = Number(difficultySelect.value);
+    // const difficultySelect = document.getElementById('difficulty-select') as HTMLSelectElement;
+    // store.difficulty = Number(difficultySelect.value);
     
     saveStore();
+}
+
+function getDifficultyName() {
+    switch (store.difficulty) {
+        case Difficulty.EASY:
+            return "Easy";
+        case Difficulty.NORMAL:
+            return "Normal";
+        default:
+            return "Hard";        
+    }
 }
 
 function startButtonClicked() {
     setVolume(store.volume);
 
-    const difficultySelect = document.getElementById('difficulty-select') as HTMLSelectElement;
-    store.difficulty = Number(difficultySelect.value);
+    // const difficultySelect = document.getElementById('difficulty-select') as HTMLSelectElement;
+    // store.difficulty = Number(difficultySelect.value);
     
     exit();
     enterGame();
