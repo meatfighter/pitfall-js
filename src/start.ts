@@ -14,35 +14,20 @@ export function enter() {
     mainElement.innerHTML = `
             <div id="start-container">
                 <div id="start-div">
-                    <div id="high-score-div">High Score: ${store.highScore}</div>
+                    <div id="high-score-div">High Score: ${store.highScores[store.difficulty]}</div>
                     <div class="volume-div">
                         <span class="left-volume-label material-icons" id="left-volume-span" 
                                 lang="en">volume_mute</span>
                         <input type="range" id="volume-input" min="0" max="100" step="any" value="10">
                         <span class="right-volume-label" id="right-volume-span" lang="en">100</span>
                     </div>
-                    <div class="checkboxes-div">
-                        <div class="checkbox-item">
-                            <input type="checkbox" id="autofire-checkbox" name="autofire-checkbox">
-                            <label for="autofire-checkbox">
-                                <span class="custom-checkbox"></span>
-                                Autofire
-                            </label>
-                        </div>
-                        <div class="checkbox-item">
-                            <input type="checkbox" id="tracer-checkbox" name="tracer-checkbox">
-                            <label for="tracer-checkbox">
-                                <span class="custom-checkbox"></span>
-                                Tracer
-                            </label>
-                        </div>
-                        <div class="checkbox-item">
-                            <input type="checkbox" id="fast-checkbox" name="fast-checkbox">
-                            <label for="fast-checkbox">
-                                <span class="custom-checkbox"></span>
-                                Fast
-                            </label>
-                        </div>
+                    <div class="difficulty-div">
+                        <label for="difficulty-select">Difficulty:</label>
+                        <select id="difficulty-select" name="difficulty-select">
+                            <option value="0">Easy</option>
+                            <option value="1">Normal</option>
+                            <option value="2">Hard</option>
+                        </select>
                     </div>
                     <div id="go-div">
                         <button id="start-button">${isNewGame() ? 'Start' : 'Continue'}</button>
@@ -55,14 +40,8 @@ export function enter() {
     volumeInput.addEventListener('input', volumeChanged);
     volumeInput.value = String(store.volume);
 
-    const autofireCheckbox = document.getElementById('autofire-checkbox') as HTMLInputElement;
-    autofireCheckbox.checked = store.autofire;
-
-    const tracerCheckbox = document.getElementById('tracer-checkbox') as HTMLInputElement;
-    tracerCheckbox.checked = store.tracer;
-
-    const fastCheckbox = document.getElementById('fast-checkbox') as HTMLInputElement;
-    fastCheckbox.checked = store.fast;
+    const difficultySelect = document.getElementById('difficulty-select') as HTMLSelectElement;
+    difficultySelect.value = store.difficulty.toString();
 
     const startButton = document.getElementById('start-button') as HTMLButtonElement;
     startButton.addEventListener('click', startButtonClicked);
@@ -80,14 +59,8 @@ export function exit() {
     const startButton = document.getElementById('start-button') as HTMLButtonElement;
     startButton.removeEventListener('click', startButtonClicked);
 
-    const autofireCheckbox = document.getElementById('autofire-checkbox') as HTMLInputElement;
-    store.autofire = autofireCheckbox.checked;
-
-    const tracerCheckbox = document.getElementById('tracer-checkbox') as HTMLInputElement;
-    store.tracer = tracerCheckbox.checked;
-    
-    const fastCheckbox = document.getElementById('fast-checkbox') as HTMLInputElement;
-    store.fast = fastCheckbox.checked;
+    const difficultySelect = document.getElementById('difficulty-select') as HTMLSelectElement;
+    store.difficulty = Number(difficultySelect.value);
     
     saveStore();
 }
@@ -95,14 +68,8 @@ export function exit() {
 function startButtonClicked() {
     setVolume(store.volume);
 
-    const autofireCheckbox = document.getElementById('autofire-checkbox') as HTMLInputElement;
-    store.autofire = autofireCheckbox.checked;
-
-    const tracerCheckbox = document.getElementById('tracer-checkbox') as HTMLInputElement;
-    store.tracer = tracerCheckbox.checked;
-
-    const fastCheckbox = document.getElementById('fast-checkbox') as HTMLInputElement;
-    store.fast = fastCheckbox.checked;
+    const difficultySelect = document.getElementById('difficulty-select') as HTMLSelectElement;
+    store.difficulty = Number(difficultySelect.value);
     
     exit();
     enterGame();

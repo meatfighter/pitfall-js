@@ -194,70 +194,6 @@ button:focus {
     border-radius: 4px;
 }
 
-.checkboxes-div {
-    display: flex;
-    gap: 25px;
-    align-items: center;
-}
-
-.checkbox-item {
-    display: flex;
-    align-items: center;
-}
-
-.checkbox-item input[type="checkbox"] {
-    display: none;
-}
-
-.checkbox-item label {
-    display: flex;
-    align-items: center;
-    cursor: pointer;
-    user-select: none;
-}
-
-.custom-checkbox {
-    position: relative;
-    width: 24px;
-    height: 24px;
-    background-color: #FFFFFF;
-    border: 2px solid #767676;
-    border-radius: 4px;
-    margin-right: 8px;
-    box-sizing: border-box;
-}
-
-.custom-checkbox::after {
-    content: '';
-    position: absolute;
-    left: 50%;
-    top: 50%;
-    width: 6px;
-    height: 12px;
-    border: solid white;
-    border-width: 0 3px 3px 0;
-    transform: translate(-50%, -67%) rotate(45deg);
-    opacity: 0;
-}
-
-.checkbox-item input[type="checkbox"]:checked + label .custom-checkbox {
-    background-color: #0075FF;
-    border-color: #0075FF;
-}
-
-.checkbox-item input[type="checkbox"]:checked + label .custom-checkbox::after {
-    opacity: 1;
-}
-
-.checkbox-item label:hover .custom-checkbox {
-    border-color: #4F4F4F;
-}
-
-.checkbox-item input[type="checkbox"]:checked + label:hover .custom-checkbox {
-    background-color: #005CC8;
-    border-color: #005CC8;
-}
-
 #death-div {
     position: absolute;
     display: flex;
@@ -275,4 +211,21 @@ button:focus {
     place-items: center;
     height: 100vh;
     font-size: 64px;
+}
+
+label {
+    margin-right: 8px;
+}
+
+select {
+    background-color: #333;
+    color: #fff;
+    border: 1px solid #666;
+    border-radius: 2px;
+    padding: 4px 8px;
+}
+
+select:focus {
+    outline: none;
+    border-color: #aaa;
 }

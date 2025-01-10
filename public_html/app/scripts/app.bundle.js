@@ -2303,46 +2303,11 @@ function createGraph(nodes) {
 }
 class TreasureCell {
     direction;
-    distance;
-    constructor(direction, distance) {
+    constructor(direction) {
         this.direction = direction;
-        this.distance = distance;
     }
 }
-// TODO TESTING 
-// export function updateTreasureMapIndex(gs: GameState) {
-//     const { sceneStates } = gs;
-//     const scene = gs.harry.scene;
-//     const tier = gs.harry.isUnderground() ? Tier.LOWER : Tier.UPPER;
-//     let minDistance = Number.MAX_VALUE;
-//     for (let i = treasureIndices.length - 1; i >= 0; --i) {
-//         if (sceneStates[treasureIndices[i]].treasure === TreasureType.NONE) {
-//             continue;
-//         }
-//         const distance = treasureCells[i][scene][tier].distance;
-//         if (distance < minDistance) {
-//             minDistance = distance;
-//             gs.treasureMapIndex = i;
-//         }
-//     }
-// }
 function updateTreasureMapIndex(gs) {
-    // TODO TESTING    
-    // for (let i = 0; i < gs.sceneStates.length; ++i) {
-    //     if (i < 28 || i > 95) {
-    //         gs.sceneStates[i].treasure = TreasureType.NONE;
-    //     }
-    // }
-    // TODO OPTIMAL?
-    // for (let i = treasureIndices.length - 1, j = 0; i >= 0; --i, --j) {
-    //     if (j < 0) {
-    //         j += treasureIndices.length;
-    //     }
-    //     if (gs.sceneStates[treasureIndices[j]].treasure !== TreasureType.NONE) {
-    //         gs.treasureMapIndex = j;
-    //         break;
-    //     }
-    // }
     for (let i = 0; i < treasureIndices.length; ++i) {
         if (gs.sceneStates[treasureIndices[i]].treasure !== _map__WEBPACK_IMPORTED_MODULE_0__.TreasureType.NONE) {
             gs.treasureMapIndex = i;
@@ -2370,7 +2335,7 @@ function initTreasureCells() {
                 if (!distLink) {
                     throw new Error('Missing upper distLink');
                 }
-                const { link, distance } = distLink;
+                const { link } = distLink;
                 let direction = Direction.RIGHT;
                 if (link) {
                     if (link.tier === Tier.LOWER) {
@@ -2384,14 +2349,14 @@ function initTreasureCells() {
                         direction = (link.scene === leftScene) ? Direction.LEFT : Direction.RIGHT;
                     }
                 }
-                cells[i][Tier.UPPER] = new TreasureCell(direction, distance);
+                cells[i][Tier.UPPER] = new TreasureCell(direction);
             }
             {
                 const distLink = distLinks.get(nodes[i][Tier.LOWER]);
                 if (!distLink) {
                     throw new Error('Missing lower distLink');
                 }
-                const { link, distance } = distLink;
+                const { link } = distLink;
                 let direction = Direction.RIGHT;
                 if (link) {
                     if (link.tier === Tier.UPPER) {
@@ -2405,14 +2370,10 @@ function initTreasureCells() {
                         direction = (link.scene === leftScene) ? Direction.LEFT : Direction.RIGHT;
                     }
                 }
-                cells[i][Tier.LOWER] = new TreasureCell(direction, distance);
+                cells[i][Tier.LOWER] = new TreasureCell(direction);
             }
         }
     }
-    // TODO TESTING 
-    // for (let i = 0; i < map.length; ++i) {
-    //     console.log(`${i + 1}: ${treasureCells[12][i][Tier.UPPER].distance}`);
-    // }
 }
 initTreasureCells();
 
@@ -3816,35 +3777,20 @@ function enter() {
     mainElement.innerHTML = `
             <div id="start-container">
                 <div id="start-div">
-                    <div id="high-score-div">High Score: ${_store__WEBPACK_IMPORTED_MODULE_2__.store.highScore}</div>
+                    <div id="high-score-div">High Score: ${_store__WEBPACK_IMPORTED_MODULE_2__.store.highScores[_store__WEBPACK_IMPORTED_MODULE_2__.store.difficulty]}</div>
                     <div class="volume-div">
                         <span class="left-volume-label material-icons" id="left-volume-span" 
                                 lang="en">volume_mute</span>
                         <input type="range" id="volume-input" min="0" max="100" step="any" value="10">
                         <span class="right-volume-label" id="right-volume-span" lang="en">100</span>
                     </div>
-                    <div class="checkboxes-div">
-                        <div class="checkbox-item">
-                            <input type="checkbox" id="autofire-checkbox" name="autofire-checkbox">
-                            <label for="autofire-checkbox">
-                                <span class="custom-checkbox"></span>
-                                Autofire
-                            </label>
-                        </div>
-                        <div class="checkbox-item">
-                            <input type="checkbox" id="tracer-checkbox" name="tracer-checkbox">
-                            <label for="tracer-checkbox">
-                                <span class="custom-checkbox"></span>
-                                Tracer
-                            </label>
-                        </div>
-                        <div class="checkbox-item">
-                            <input type="checkbox" id="fast-checkbox" name="fast-checkbox">
-                            <label for="fast-checkbox">
-                                <span class="custom-checkbox"></span>
-                                Fast
-                            </label>
-                        </div>
+                    <div class="difficulty-div">
+                        <label for="difficulty-select">Difficulty:</label>
+                        <select id="difficulty-select" name="difficulty-select">
+                            <option value="0">Easy</option>
+                            <option value="1">Normal</option>
+                            <option value="2">Hard</option>
+                        </select>
                     </div>
                     <div id="go-div">
                         <button id="start-button">${isNewGame() ? 'Start' : 'Continue'}</button>
@@ -3855,12 +3801,8 @@ function enter() {
     const volumeInput = document.getElementById('volume-input');
     volumeInput.addEventListener('input', volumeChanged);
     volumeInput.value = String(_store__WEBPACK_IMPORTED_MODULE_2__.store.volume);
-    const autofireCheckbox = document.getElementById('autofire-checkbox');
-    autofireCheckbox.checked = _store__WEBPACK_IMPORTED_MODULE_2__.store.autofire;
-    const tracerCheckbox = document.getElementById('tracer-checkbox');
-    tracerCheckbox.checked = _store__WEBPACK_IMPORTED_MODULE_2__.store.tracer;
-    const fastCheckbox = document.getElementById('fast-checkbox');
-    fastCheckbox.checked = _store__WEBPACK_IMPORTED_MODULE_2__.store.fast;
+    const difficultySelect = document.getElementById('difficulty-select');
+    difficultySelect.value = _store__WEBPACK_IMPORTED_MODULE_2__.store.difficulty.toString();
     const startButton = document.getElementById('start-button');
     startButton.addEventListener('click', startButtonClicked);
     windowResized();
@@ -3872,22 +3814,14 @@ function exit() {
     volumeInput.removeEventListener('input', volumeChanged);
     const startButton = document.getElementById('start-button');
     startButton.removeEventListener('click', startButtonClicked);
-    const autofireCheckbox = document.getElementById('autofire-checkbox');
-    _store__WEBPACK_IMPORTED_MODULE_2__.store.autofire = autofireCheckbox.checked;
-    const tracerCheckbox = document.getElementById('tracer-checkbox');
-    _store__WEBPACK_IMPORTED_MODULE_2__.store.tracer = tracerCheckbox.checked;
-    const fastCheckbox = document.getElementById('fast-checkbox');
-    _store__WEBPACK_IMPORTED_MODULE_2__.store.fast = fastCheckbox.checked;
+    const difficultySelect = document.getElementById('difficulty-select');
+    _store__WEBPACK_IMPORTED_MODULE_2__.store.difficulty = Number(difficultySelect.value);
     (0,_store__WEBPACK_IMPORTED_MODULE_2__.saveStore)();
 }
 function startButtonClicked() {
     (0,_sfx__WEBPACK_IMPORTED_MODULE_0__.setVolume)(_store__WEBPACK_IMPORTED_MODULE_2__.store.volume);
-    const autofireCheckbox = document.getElementById('autofire-checkbox');
-    _store__WEBPACK_IMPORTED_MODULE_2__.store.autofire = autofireCheckbox.checked;
-    const tracerCheckbox = document.getElementById('tracer-checkbox');
-    _store__WEBPACK_IMPORTED_MODULE_2__.store.tracer = tracerCheckbox.checked;
-    const fastCheckbox = document.getElementById('fast-checkbox');
-    _store__WEBPACK_IMPORTED_MODULE_2__.store.fast = fastCheckbox.checked;
+    const difficultySelect = document.getElementById('difficulty-select');
+    _store__WEBPACK_IMPORTED_MODULE_2__.store.difficulty = Number(difficultySelect.value);
     exit();
     (0,_screen__WEBPACK_IMPORTED_MODULE_1__.enter)();
 }
@@ -3996,21 +3930,24 @@ function isNewGame() {
 
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   Difficulty: () => (/* binding */ Difficulty),
 /* harmony export */   LOCAL_STORAGE_KEY: () => (/* binding */ LOCAL_STORAGE_KEY),
 /* harmony export */   Store: () => (/* binding */ Store),
 /* harmony export */   loadStore: () => (/* binding */ loadStore),
 /* harmony export */   saveStore: () => (/* binding */ saveStore),
 /* harmony export */   store: () => (/* binding */ store)
 /* harmony export */ });
-/* harmony import */ var _input__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./input */ "./src/input.ts");
-
 const LOCAL_STORAGE_KEY = 'pitfall-store';
+var Difficulty;
+(function (Difficulty) {
+    Difficulty[Difficulty["EASY"] = 0] = "EASY";
+    Difficulty[Difficulty["NORMAL"] = 1] = "NORMAL";
+    Difficulty[Difficulty["HARD"] = 2] = "HARD";
+})(Difficulty || (Difficulty = {}));
 class Store {
-    highScore = 0;
+    highScores = [0, 0, 0];
     volume = 10;
-    autofire = (0,_input__WEBPACK_IMPORTED_MODULE_0__.isTouchOnlyDevice)();
-    tracer = false;
-    fast = false;
+    difficulty = 0;
 }
 let store;
 function saveStore() {

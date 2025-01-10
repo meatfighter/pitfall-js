@@ -2,16 +2,16 @@ import { isTouchOnlyDevice } from './input';
 
 export const LOCAL_STORAGE_KEY = 'pitfall-store';
 
+export enum Difficulty {
+    EASY = 0,
+    NORMAL = 1,
+    HARD = 2,
+}
+
 export class Store {
-    highScore = 0;
-    
+    highScores = [ 0, 0, 0];  
     volume = 10;
-
-    autofire = isTouchOnlyDevice();
-    tracer = false;
-    fast = false;
-   
-
+    difficulty = 0;
 }
 
 export let store: Store;
