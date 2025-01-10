@@ -223,7 +223,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _graphics__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @/graphics */ "./src/graphics.ts");
 
 class Clock {
-    minutes = 20;
+    minutes = 40; // TODO 20;
     seconds = 0;
     frames = 0;
     timeUp = false;
@@ -2247,7 +2247,7 @@ function createGraph(nodes) {
             if (_map__WEBPACK_IMPORTED_MODULE_0__.map[scene].ladder) {
                 edges.push({
                     node: nodes[scene][Tier.LOWER],
-                    weight: 160,
+                    weight: 165 + _map__WEBPACK_IMPORTED_MODULE_0__.map[scene].difficulty,
                 });
             }
             let leftScene = scene - 1;
@@ -2273,7 +2273,7 @@ function createGraph(nodes) {
             if (_map__WEBPACK_IMPORTED_MODULE_0__.map[scene].ladder) {
                 edges.push({
                     node: nodes[scene][Tier.UPPER],
-                    weight: 160,
+                    weight: 165 + _map__WEBPACK_IMPORTED_MODULE_0__.map[scene].difficulty,
                 });
             }
             let leftScene = scene - 3;
@@ -2303,11 +2303,46 @@ function createGraph(nodes) {
 }
 class TreasureCell {
     direction;
-    constructor(direction) {
+    distance;
+    constructor(direction, distance) {
         this.direction = direction;
+        this.distance = distance;
     }
 }
+// TODO TESTING 
+// export function updateTreasureMapIndex(gs: GameState) {
+//     const { sceneStates } = gs;
+//     const scene = gs.harry.scene;
+//     const tier = gs.harry.isUnderground() ? Tier.LOWER : Tier.UPPER;
+//     let minDistance = Number.MAX_VALUE;
+//     for (let i = treasureIndices.length - 1; i >= 0; --i) {
+//         if (sceneStates[treasureIndices[i]].treasure === TreasureType.NONE) {
+//             continue;
+//         }
+//         const distance = treasureCells[i][scene][tier].distance;
+//         if (distance < minDistance) {
+//             minDistance = distance;
+//             gs.treasureMapIndex = i;
+//         }
+//     }
+// }
 function updateTreasureMapIndex(gs) {
+    // TODO TESTING    
+    // for (let i = 0; i < gs.sceneStates.length; ++i) {
+    //     if (i < 28 || i > 95) {
+    //         gs.sceneStates[i].treasure = TreasureType.NONE;
+    //     }
+    // }
+    // TODO OPTIMAL?
+    // for (let i = treasureIndices.length - 1, j = 0; i >= 0; --i, --j) {
+    //     if (j < 0) {
+    //         j += treasureIndices.length;
+    //     }
+    //     if (gs.sceneStates[treasureIndices[j]].treasure !== TreasureType.NONE) {
+    //         gs.treasureMapIndex = j;
+    //         break;
+    //     }
+    // }
     for (let i = 0; i < treasureIndices.length; ++i) {
         if (gs.sceneStates[treasureIndices[i]].treasure !== _map__WEBPACK_IMPORTED_MODULE_0__.TreasureType.NONE) {
             gs.treasureMapIndex = i;
@@ -2335,7 +2370,7 @@ function initTreasureCells() {
                 if (!distLink) {
                     throw new Error('Missing upper distLink');
                 }
-                const { link } = distLink;
+                const { link, distance } = distLink;
                 let direction = Direction.RIGHT;
                 if (link) {
                     if (link.tier === Tier.LOWER) {
@@ -2349,14 +2384,14 @@ function initTreasureCells() {
                         direction = (link.scene === leftScene) ? Direction.LEFT : Direction.RIGHT;
                     }
                 }
-                cells[i][Tier.UPPER] = new TreasureCell(direction);
+                cells[i][Tier.UPPER] = new TreasureCell(direction, distance);
             }
             {
                 const distLink = distLinks.get(nodes[i][Tier.LOWER]);
                 if (!distLink) {
                     throw new Error('Missing lower distLink');
                 }
-                const { link } = distLink;
+                const { link, distance } = distLink;
                 let direction = Direction.RIGHT;
                 if (link) {
                     if (link.tier === Tier.UPPER) {
@@ -2370,10 +2405,14 @@ function initTreasureCells() {
                         direction = (link.scene === leftScene) ? Direction.LEFT : Direction.RIGHT;
                     }
                 }
-                cells[i][Tier.LOWER] = new TreasureCell(direction);
+                cells[i][Tier.LOWER] = new TreasureCell(direction, distance);
             }
         }
     }
+    // TODO TESTING 
+    // for (let i = 0; i < map.length; ++i) {
+    //     console.log(`${i + 1}: ${treasureCells[12][i][Tier.UPPER].distance}`);
+    // }
 }
 initTreasureCells();
 

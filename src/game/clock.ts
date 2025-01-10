@@ -2,7 +2,7 @@ import { printNumber, Colors, charSprites } from '@/graphics';
 
 export class Clock {
 
-    minutes = 20;
+    minutes = 40; // TODO 20;
     seconds = 0;
     frames = 0;
     timeUp = false;

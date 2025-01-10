@@ -1,0 +1,21 @@
+easy: 25 min, 4 lives, arrows, shadows, hud extras
+normal: 24 min, 3 lives, shadows, hud extras
+hard: 23 min, 2 lives
+
+config screen
+high score: ...
+volume
+[ easy, normal, hard ]
+[ start ] vs [ new game ] [ continue ]
+
+save high scores
+
+high score color cycle
+
+win
+
+touch
+
+gamepad
+
+sfx

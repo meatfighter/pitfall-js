@@ -36,7 +36,7 @@ function createGraph(nodes: Node[][]): Map<Node, Edge<Node>[]> {
             if (map[scene].ladder) {
                 edges.push({ 
                     node: nodes[scene][Tier.LOWER], 
-                    weight: 160, 
+                    weight: 165 + map[scene].difficulty, 
                 });
             }
             let leftScene = scene - 1;
@@ -63,7 +63,7 @@ function createGraph(nodes: Node[][]): Map<Node, Edge<Node>[]> {
             if (map[scene].ladder) {
                 edges.push({ 
                     node: nodes[scene][Tier.UPPER], 
-                    weight: 160, 
+                    weight: 165 + map[scene].difficulty,
                 });
             }
             let leftScene = scene - 3;
@@ -97,12 +97,12 @@ export class TreasureCell {
     }
 }
 
-export function updateTreasureMapIndex(gs: GameState) {   
+export function updateTreasureMapIndex(gs: GameState) { 
     for (let i = 0; i < treasureIndices.length; ++i) {
         if (gs.sceneStates[treasureIndices[i]].treasure !== TreasureType.NONE) {
             gs.treasureMapIndex = i;
             break;
-        }
+        }        
     }
 }
 
