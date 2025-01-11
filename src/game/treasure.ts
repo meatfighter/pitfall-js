@@ -6,6 +6,9 @@ import { updateTreasureMapIndex } from './treasure-map';
 
 export class Treasure {
 
+    constructor(_: { } = { }) {
+    }
+
     update(gs: GameState) {
         let mask: Mask;
         let points = 0;
@@ -33,8 +36,11 @@ export class Treasure {
         if (gs.harry.intersects(mask, 116, 111)) {
             gs.sceneStates[gs.harry.scene].treasure = TreasureType.NONE;            
             gs.score += points;
-            ++gs.treasureCount;
-            updateTreasureMapIndex(gs);
+            if (++gs.treasureCount === 32) {
+                gs.endGame();
+            } else {
+                updateTreasureMapIndex(gs);
+            }
         }
     }
 

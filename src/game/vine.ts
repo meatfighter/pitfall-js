@@ -4,7 +4,15 @@ import { map } from './map';
 
 export class Vine {
     
-    sprite = 0;
+    sprite: number;
+
+    constructor(vine: {
+        sprite: number;
+    } = {
+        sprite: 0,
+    }) {
+        this.sprite = vine.sprite;
+    }
 
     update(gs: GameState) {
         if (++this.sprite === vinePoints.length) {

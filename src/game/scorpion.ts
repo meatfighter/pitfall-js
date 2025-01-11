@@ -9,11 +9,31 @@ const X_MARGIN = Resolution.WIDTH / 8;
 const FRAMES_PER_UPDATE = 8;
 
 export class Scorpion {
-    x = X_START;
-    X = this.x;
-    dir = 0;
-    sprite = 0;
-    updateCounter = FRAMES_PER_UPDATE;
+    x: number;
+    X: number;
+    dir: number;
+    sprite: number;
+    updateCounter: number;
+
+    constructor(scorpion: {
+        x: number;
+        X: number;
+        dir: number;
+        sprite: number;
+        updateCounter: number;
+    } = {
+        x: X_START,
+        X: X_START,
+        dir: 0,
+        sprite: 0,
+        updateCounter: FRAMES_PER_UPDATE,
+    }) {
+        this.x = scorpion.x;
+        this.X = scorpion.X;
+        this.dir = scorpion.dir;
+        this.sprite = scorpion.sprite;
+        this.updateCounter = scorpion.updateCounter;
+    }
 
     update(gs: GameState) {
         const harryNearby = map[gs.harry.scene].scorpion && gs.harry.isUnderground();

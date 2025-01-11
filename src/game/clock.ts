@@ -4,22 +4,25 @@ import { store, Difficulty } from '@/store';
 export class Clock {
 
     minutes: number;
-    seconds = 0;
-    frames = 0;
-    timeUp = false;
+    seconds: number;
+    frames: number;
+    timeUp: boolean;
 
-    constructor() {                
-        switch (store.difficulty) {
-            case Difficulty.EASY:
-                this.minutes = 25;
-                break;
-            case Difficulty.NORMAL:
-                this.minutes = 24;
-                break;
-            default:
-                this.minutes = 23;
-                break;        
-        }
+    constructor(clock: {
+        minutes: number;
+        seconds: number;
+        frames: number;
+        timeUp: boolean;
+    } = {
+        minutes: (store.difficulty === Difficulty.EASY) ? 25 : (store.difficulty === Difficulty.NORMAL) ? 24 : 23,
+        seconds: 0,
+        frames: 59,
+        timeUp: false,
+    }) {                
+        this.minutes = clock.minutes;
+        this.seconds = clock.seconds;
+        this.frames = clock.frames;
+        this.timeUp = clock.timeUp;
     }
    
     update() {

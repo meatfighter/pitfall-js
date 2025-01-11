@@ -22,26 +22,26 @@ const TRUNKS = [
 
 let gs: GameState;
 
-export function resetGame() {
-    gs = new GameState();
+export function initGame() {
+    store.gameState = gs = new GameState(store.gameState);
     updateTreasureMapIndex(gs);
-}
-
-export function saveGame() {
-    gs.save();    
 }
 
 export function update() {
     updateInput();
 
     if (gs.gameOver) {
+        if (gs.newHighScore) {
+            gs.scoreColor = (gs.scoreColor + 1) & 0xFF;
+        }
         if (gs.gameOverDelay > 0) {
             --gs.gameOverDelay;
             return;
         }
         if (upJustPressed || downJustPressed || leftJustPressed || rightJustPressed || jumpJustPressed) {
-            resetGame();
+            initGame();
         }
+        return;
     }
 
     gs.harry.teleported = false;
@@ -237,7 +237,7 @@ function renderLeaves(ctx: OffscreenCanvasRenderingContext2D, scene: number, ox:
 }
 
 function renderHUD(ctx: OffscreenCanvasRenderingContext2D) {
-    printNumber(ctx, gs.score, 53, 3, Colors.OFF_WHITE);
+    printNumber(ctx, gs.score, 53, 3, gs.scoreColor);
     gs.clock.render(ctx);
     ctx.fillStyle = colors[Colors.OFF_WHITE];
     for (let i = gs.extraLives - 1, x = 13; i >= 0; --i, x += 2) {

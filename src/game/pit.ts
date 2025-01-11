@@ -59,12 +59,32 @@ enum CrocState {
 
 export class Pit {
 
-    pitState = PitState.OPENED;
-    pitOffset = 0;
-    pitCounter = PIT_OPEN_FRAMES;
+    pitState: PitState;
+    pitOffset: number;
+    pitCounter: number;
+    
+    crocState: CrocState;
+    crocCounter: number;
 
-    crocState = CrocState.CLOSED;
-    crocCounter = CROC_CLOSED_FRAMES;
+    constructor(pit: {
+        pitState: PitState;
+        pitOffset: number;
+        pitCounter: number;
+        crocState: CrocState;
+        crocCounter: number;
+    } = {
+        pitState: PitState.OPENED,
+        pitOffset: 0,
+        pitCounter: PIT_OPEN_FRAMES,
+        crocState: CrocState.CLOSED,
+        crocCounter: CROC_CLOSED_FRAMES,
+    }) {
+        this.pitState = pit.pitState;
+        this.pitOffset = pit.pitOffset;
+        this.pitCounter = pit.pitCounter;
+        this.crocState = pit.crocState;
+        this.crocCounter = pit.crocCounter;
+    }
 
     private updatePitOpened(gs: GameState) {
         if (--this.pitCounter >= 0) {

@@ -4,6 +4,9 @@ import { map, ObsticleType } from './map';
 
 export class CobraAndFire {
 
+    constructor(_: { } = { }) {
+    }
+
     update(gs: GameState) {
         let mask: Mask;
         switch (map[gs.harry.scene].obsticles) {

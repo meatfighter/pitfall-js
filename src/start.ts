@@ -39,11 +39,14 @@ export function enter() {
                             </div>
                         </div>    
                     </div>    
-                    <div id="go-div">
-                        <button id="start-button">${isNewGame() ? 'Start' : 'Continue'}</button>
+                    <div id="go-div">${store.gameState 
+                        ? '<button id="start-button">New Game</button><button id="continue-button">Continue</button>' 
+                        : '<button id="start-button">Start</button>'}
                     </div>
                 </div>
             </div>`;
+
+    const highScore = document.getElementById('high-score-div') as HTMLDivElement;
 
     setVolume(store.volume);
     const volumeInput = document.getElementById('volume-input') as HTMLInputElement;
@@ -52,6 +55,9 @@ export function enter() {
 
     const startButton = document.getElementById('start-button') as HTMLButtonElement;
     startButton.addEventListener('click', startButtonClicked);
+
+    const continueButton = document.getElementById('continue-button') as HTMLButtonElement | null;
+    continueButton?.addEventListener('click', continueButtonClicked);
 
     const dropdown = document.getElementById('custom-dropdown') as HTMLDivElement;
     const selected = dropdown.querySelector('.dropdown-selected') as HTMLDivElement;
@@ -73,7 +79,8 @@ export function enter() {
     optionItems.forEach(option => {
         const difficulty = Number(option.getAttribute('data-value'));
         optionListners[difficulty] = () => {
-            selectedDifficulty = difficulty;            
+            selectedDifficulty = difficulty;
+            highScore.textContent = `High Score: ${store.highScores[selectedDifficulty]}`;
             selected.textContent = option.textContent; // Update the "selected" text            
             dropdown.classList.remove('open');         // Close dropdown
         };
@@ -92,6 +99,9 @@ export function exit() {
 
     const startButton = document.getElementById('start-button') as HTMLButtonElement;
     startButton.removeEventListener('click', startButtonClicked);
+
+    const continueButton = document.getElementById('continue-button') as HTMLButtonElement | null;
+    continueButton?.removeEventListener('click', continueButtonClicked);    
 
     const dropdown = document.getElementById('custom-dropdown') as HTMLDivElement;
     document.removeEventListener('click', dropdownCloseListener);
@@ -118,10 +128,13 @@ function getDifficultyName() {
 }
 
 function startButtonClicked() {
-    setVolume(store.volume);
-
+    store.gameState = undefined;
     store.difficulty = selectedDifficulty;
-    
+    continueButtonClicked();
+}
+
+function continueButtonClicked() {
+    setVolume(store.volume);    
     exit();
     enterGame();
 }
@@ -230,8 +243,4 @@ function windowResized() {
     rightVolumeSpan.textContent = String(store.volume);
 
     volumeChanged();
-}
-
-function isNewGame() {
-    return true; // TODO
 }

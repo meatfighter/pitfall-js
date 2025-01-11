@@ -4,8 +4,19 @@ import { map, ObsticleType } from './map';
 
 export class RollingLog {
 
-    xCounter = 0;
-    spriteCounter = 0;
+    xCounter: number;
+    spriteCounter: number;
+
+    constructor(rollingLog: {
+        xCounter: number;
+        spriteCounter: number;
+    } = {
+        xCounter: 0,
+        spriteCounter: 0,
+    }) {
+        this.xCounter = rollingLog.xCounter;
+        this.spriteCounter = rollingLog.spriteCounter;
+    }
 
     // When the scroll position changes, floor the rolling logs counter to prevent jittering. Jittering occurs when the 
     // scroll position and the rolling logs change on alternate frames.

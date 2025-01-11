@@ -226,21 +226,19 @@ __webpack_require__.r(__webpack_exports__);
 
 class Clock {
     minutes;
-    seconds = 0;
-    frames = 0;
-    timeUp = false;
-    constructor() {
-        switch (_store__WEBPACK_IMPORTED_MODULE_1__.store.difficulty) {
-            case _store__WEBPACK_IMPORTED_MODULE_1__.Difficulty.EASY:
-                this.minutes = 25;
-                break;
-            case _store__WEBPACK_IMPORTED_MODULE_1__.Difficulty.NORMAL:
-                this.minutes = 24;
-                break;
-            default:
-                this.minutes = 23;
-                break;
-        }
+    seconds;
+    frames;
+    timeUp;
+    constructor(clock = {
+        minutes: (_store__WEBPACK_IMPORTED_MODULE_1__.store.difficulty === _store__WEBPACK_IMPORTED_MODULE_1__.Difficulty.EASY) ? 25 : (_store__WEBPACK_IMPORTED_MODULE_1__.store.difficulty === _store__WEBPACK_IMPORTED_MODULE_1__.Difficulty.NORMAL) ? 24 : 23,
+        seconds: 0,
+        frames: 59,
+        timeUp: false,
+    }) {
+        this.minutes = clock.minutes;
+        this.seconds = clock.seconds;
+        this.frames = clock.frames;
+        this.timeUp = clock.timeUp;
     }
     update() {
         if (this.minutes === 0 && this.seconds === 0 && this.frames === 0) {
@@ -282,6 +280,8 @@ __webpack_require__.r(__webpack_exports__);
 
 
 class CobraAndFire {
+    constructor(_ = {}) {
+    }
     update(gs) {
         let mask;
         switch (_map__WEBPACK_IMPORTED_MODULE_1__.map[gs.harry.scene].obsticles) {
@@ -682,6 +682,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _treasure__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ./treasure */ "./src/game/treasure.ts");
 /* harmony import */ var _clock__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ./clock */ "./src/game/clock.ts");
 /* harmony import */ var _map__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ./map */ "./src/game/map.ts");
+/* harmony import */ var _graphics__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! @/graphics */ "./src/graphics.ts");
+
 
 
 
@@ -695,58 +697,123 @@ __webpack_require__.r(__webpack_exports__);
 
 
 class SceneState {
-    treasure;
     enteredLeft = true;
-    constructor(treasure) {
-        this.treasure = treasure;
+    treasure;
+    constructor(sceneState = {
+        enteredLeft: true,
+        treasure: _map__WEBPACK_IMPORTED_MODULE_11__.TreasureType.NONE,
+    }) {
+        this.enteredLeft = sceneState.enteredLeft;
+        this.treasure = sceneState.treasure;
     }
 }
 class GameState {
-    sceneStates = new Array(_map__WEBPACK_IMPORTED_MODULE_11__.map.length);
-    harry = new _harry__WEBPACK_IMPORTED_MODULE_1__.Harry();
-    scorpion = new _scorpion__WEBPACK_IMPORTED_MODULE_2__.Scorpion();
-    vine = new _vine__WEBPACK_IMPORTED_MODULE_3__.Vine();
-    pit = new _pit__WEBPACK_IMPORTED_MODULE_4__.Pit();
-    rollingLog = new _rolling_log__WEBPACK_IMPORTED_MODULE_5__.RollingLog();
-    stationaryLog = new _stationary_log__WEBPACK_IMPORTED_MODULE_6__.StationaryLog();
-    rattle = new _rattle__WEBPACK_IMPORTED_MODULE_7__.Rattle();
-    cobraAndFire = new _cobra_and_fire__WEBPACK_IMPORTED_MODULE_8__.CobraAndFire();
-    treasure = new _treasure__WEBPACK_IMPORTED_MODULE_9__.Treasure();
-    clock = new _clock__WEBPACK_IMPORTED_MODULE_10__.Clock();
-    scrollX = Math.floor(this.harry.absoluteX);
-    lastScrollX = this.scrollX;
-    ox = 0;
-    lastOx = 0;
-    nextOx = 0;
-    nextScene = 0;
-    lastNextScene = 0;
-    lastHarryUnderground = false;
-    sceneAlpha = 1;
-    score = 2000;
+    sceneStates;
+    harry;
+    scorpion;
+    vine;
+    pit;
+    rollingLog;
+    stationaryLog;
+    rattle;
+    cobraAndFire;
+    treasure;
+    clock;
+    scrollX;
+    lastScrollX;
+    ox;
+    lastOx;
+    nextOx;
+    nextScene;
+    lastNextScene;
+    lastHarryUnderground;
+    sceneAlpha;
+    score;
     extraLives;
-    gameOver = false;
-    gameOverDelay = 180;
-    treasureCount = 0;
-    treasureMapIndex = 0;
-    constructor() {
-        switch (_store__WEBPACK_IMPORTED_MODULE_0__.store.difficulty) {
-            case _store__WEBPACK_IMPORTED_MODULE_0__.Difficulty.EASY:
-                this.extraLives = 4;
-                break;
-            case _store__WEBPACK_IMPORTED_MODULE_0__.Difficulty.NORMAL:
-                this.extraLives = 3;
-                break;
-            default:
-                this.extraLives = 2;
-                break;
+    gameOver;
+    gameOverDelay;
+    newHighScore;
+    scoreColor;
+    treasureCount;
+    treasureMapIndex;
+    constructor(gameState = {
+        sceneStates: undefined,
+        harry: undefined,
+        scorpion: undefined,
+        vine: undefined,
+        pit: undefined,
+        rollingLog: undefined,
+        stationaryLog: undefined,
+        rattle: undefined,
+        cobraAndFire: undefined,
+        treasure: undefined,
+        clock: undefined,
+        scrollX: 12,
+        lastScrollX: 12,
+        ox: 0,
+        lastOx: 0,
+        nextOx: 0,
+        nextScene: 0,
+        lastNextScene: 0,
+        lastHarryUnderground: false,
+        sceneAlpha: 1,
+        score: 2000,
+        extraLives: (_store__WEBPACK_IMPORTED_MODULE_0__.store.difficulty === _store__WEBPACK_IMPORTED_MODULE_0__.Difficulty.EASY) ? 4 : (_store__WEBPACK_IMPORTED_MODULE_0__.store.difficulty === _store__WEBPACK_IMPORTED_MODULE_0__.Difficulty.NORMAL) ? 3 : 2,
+        gameOver: false,
+        gameOverDelay: 180,
+        newHighScore: false,
+        scoreColor: _graphics__WEBPACK_IMPORTED_MODULE_12__.Colors.OFF_WHITE,
+        treasureCount: 31, // TODO 0
+        treasureMapIndex: 0,
+    }) {
+        this.sceneStates = new Array(_map__WEBPACK_IMPORTED_MODULE_11__.map.length);
+        if (gameState.sceneStates?.length === _map__WEBPACK_IMPORTED_MODULE_11__.map.length) {
+            for (let i = _map__WEBPACK_IMPORTED_MODULE_11__.map.length - 1; i >= 0; --i) {
+                this.sceneStates[i] = new SceneState(gameState.sceneStates[i]);
+            }
         }
-        for (let i = _map__WEBPACK_IMPORTED_MODULE_11__.map.length - 1; i >= 0; --i) {
-            const scene = _map__WEBPACK_IMPORTED_MODULE_11__.map[i];
-            this.sceneStates[i] = new SceneState(scene.treasure);
+        else {
+            for (let i = _map__WEBPACK_IMPORTED_MODULE_11__.map.length - 1; i >= 0; --i) {
+                this.sceneStates[i] = new SceneState({ enteredLeft: true, treasure: _map__WEBPACK_IMPORTED_MODULE_11__.map[i].treasure, });
+            }
         }
+        this.harry = new _harry__WEBPACK_IMPORTED_MODULE_1__.Harry(gameState.harry);
+        this.scorpion = new _scorpion__WEBPACK_IMPORTED_MODULE_2__.Scorpion(gameState.scorpion);
+        this.vine = new _vine__WEBPACK_IMPORTED_MODULE_3__.Vine(gameState.vine);
+        this.pit = new _pit__WEBPACK_IMPORTED_MODULE_4__.Pit(gameState.pit);
+        this.rollingLog = new _rolling_log__WEBPACK_IMPORTED_MODULE_5__.RollingLog(gameState.rollingLog);
+        this.stationaryLog = new _stationary_log__WEBPACK_IMPORTED_MODULE_6__.StationaryLog(gameState.stationaryLog);
+        this.rattle = new _rattle__WEBPACK_IMPORTED_MODULE_7__.Rattle(gameState.rattle);
+        this.cobraAndFire = new _cobra_and_fire__WEBPACK_IMPORTED_MODULE_8__.CobraAndFire(gameState.cobraAndFire);
+        this.treasure = new _treasure__WEBPACK_IMPORTED_MODULE_9__.Treasure(gameState.treasure);
+        this.clock = new _clock__WEBPACK_IMPORTED_MODULE_10__.Clock(gameState.clock);
+        this.scrollX = gameState.scrollX;
+        this.lastScrollX = gameState.lastScrollX;
+        this.ox = gameState.ox;
+        this.lastOx = gameState.lastOx;
+        this.nextOx = gameState.nextOx;
+        this.nextScene = gameState.nextScene;
+        this.lastNextScene = gameState.lastNextScene;
+        this.lastHarryUnderground = gameState.lastHarryUnderground;
+        this.sceneAlpha = gameState.sceneAlpha;
+        this.score = gameState.score;
+        this.extraLives = gameState.extraLives;
+        this.gameOver = gameState.gameOver;
+        this.gameOverDelay = gameState.gameOverDelay;
+        this.newHighScore = gameState.newHighScore;
+        this.scoreColor = gameState.scoreColor;
+        this.treasureCount = gameState.treasureCount;
+        ;
+        this.treasureMapIndex = gameState.treasureMapIndex;
     }
-    save() {
-        (0,_store__WEBPACK_IMPORTED_MODULE_0__.saveStore)();
+    endGame() {
+        this.gameOver = true;
+        this.gameOverDelay = (this.treasureCount === 32) ? 600 : 180;
+        _store__WEBPACK_IMPORTED_MODULE_0__.store.gameState = undefined;
+        if (this.score > _store__WEBPACK_IMPORTED_MODULE_0__.store.highScores[_store__WEBPACK_IMPORTED_MODULE_0__.store.difficulty]) {
+            this.newHighScore = true;
+            _store__WEBPACK_IMPORTED_MODULE_0__.store.highScores[_store__WEBPACK_IMPORTED_MODULE_0__.store.difficulty] = this.score;
+        }
     }
 }
 
@@ -761,9 +828,8 @@ class GameState {
 
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   initGame: () => (/* binding */ initGame),
 /* harmony export */   renderScreen: () => (/* binding */ renderScreen),
-/* harmony export */   resetGame: () => (/* binding */ resetGame),
-/* harmony export */   saveGame: () => (/* binding */ saveGame),
 /* harmony export */   update: () => (/* binding */ update)
 /* harmony export */ });
 /* harmony import */ var _map__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./map */ "./src/game/map.ts");
@@ -790,23 +856,24 @@ const TRUNKS = [
     [28, 60, 80, 112],
 ];
 let gs;
-function resetGame() {
-    gs = new _game_state__WEBPACK_IMPORTED_MODULE_1__.GameState();
+function initGame() {
+    _store__WEBPACK_IMPORTED_MODULE_6__.store.gameState = gs = new _game_state__WEBPACK_IMPORTED_MODULE_1__.GameState(_store__WEBPACK_IMPORTED_MODULE_6__.store.gameState);
     (0,_treasure_map__WEBPACK_IMPORTED_MODULE_5__.updateTreasureMapIndex)(gs);
-}
-function saveGame() {
-    gs.save();
 }
 function update() {
     (0,_input__WEBPACK_IMPORTED_MODULE_4__.updateInput)();
     if (gs.gameOver) {
+        if (gs.newHighScore) {
+            gs.scoreColor = (gs.scoreColor + 1) & 0xFF;
+        }
         if (gs.gameOverDelay > 0) {
             --gs.gameOverDelay;
             return;
         }
         if (_input__WEBPACK_IMPORTED_MODULE_4__.upJustPressed || _input__WEBPACK_IMPORTED_MODULE_4__.downJustPressed || _input__WEBPACK_IMPORTED_MODULE_4__.leftJustPressed || _input__WEBPACK_IMPORTED_MODULE_4__.rightJustPressed || _input__WEBPACK_IMPORTED_MODULE_4__.jumpJustPressed) {
-            resetGame();
+            initGame();
         }
+        return;
     }
     gs.harry.teleported = false;
     const scene0 = gs.harry.scene;
@@ -982,7 +1049,7 @@ function renderLeaves(ctx, scene, ox) {
     ctx.drawImage(_graphics__WEBPACK_IMPORTED_MODULE_2__.leavesSprites[0][trees], 0, 0, 4, 4, 136 - ox, 51, 16, 8);
 }
 function renderHUD(ctx) {
-    (0,_graphics__WEBPACK_IMPORTED_MODULE_2__.printNumber)(ctx, gs.score, 53, 3, _graphics__WEBPACK_IMPORTED_MODULE_2__.Colors.OFF_WHITE);
+    (0,_graphics__WEBPACK_IMPORTED_MODULE_2__.printNumber)(ctx, gs.score, 53, 3, gs.scoreColor);
     gs.clock.render(ctx);
     ctx.fillStyle = _graphics__WEBPACK_IMPORTED_MODULE_2__.colors[_graphics__WEBPACK_IMPORTED_MODULE_2__.Colors.OFF_WHITE];
     for (let i = gs.extraLives - 1, x = 13; i >= 0; --i, x += 2) {
@@ -1054,7 +1121,7 @@ const JUMP_ARC_HEIGHT = 11;
 const T = JUMP_ARC_BASE;
 const G = 2 * JUMP_ARC_HEIGHT / (T * T);
 const VY0 = -G * T;
-const INJURED_DELAY = 20; //134;
+const INJURED_DELAY = 20; // 134;
 const X_SPAWN_MARGIN = _graphics__WEBPACK_IMPORTED_MODULE_0__.Resolution.WIDTH / 4;
 var MainState;
 (function (MainState) {
@@ -1068,24 +1135,63 @@ var MainState;
     MainState[MainState["SKIDDING"] = 7] = "SKIDDING";
 })(MainState || (MainState = {}));
 class Harry {
-    mainState = MainState.STANDING;
-    lastMainState = MainState.STANDING;
-    scene = 0;
-    absoluteX = 12;
-    x = this.absoluteX;
-    y = Y_UPPER_LEVEL;
-    vy = 0;
-    dir = 0;
-    sprite = 0;
-    runCounter = 0;
-    climbCounter = 0;
-    teleported = false;
-    injuredCounter = 0;
-    tunnelSpawning = false;
-    releasedVine = false;
-    swallow = false;
-    kneeling = false;
-    kneelingDelay = false;
+    mainState;
+    lastMainState;
+    scene;
+    absoluteX;
+    x;
+    y;
+    vy;
+    dir;
+    sprite;
+    runCounter;
+    climbCounter;
+    teleported;
+    injuredCounter;
+    tunnelSpawning;
+    releasedVine;
+    swallow;
+    kneeling;
+    kneelingDelay;
+    constructor(harry = {
+        mainState: MainState.STANDING,
+        lastMainState: MainState.STANDING,
+        scene: 0,
+        absoluteX: 12,
+        x: 12,
+        y: Y_UPPER_LEVEL,
+        vy: 0,
+        dir: 0,
+        sprite: 0,
+        runCounter: 0,
+        climbCounter: 0,
+        teleported: false,
+        injuredCounter: 0,
+        tunnelSpawning: false,
+        releasedVine: false,
+        swallow: false,
+        kneeling: false,
+        kneelingDelay: false,
+    }) {
+        this.mainState = harry.mainState;
+        this.lastMainState = harry.lastMainState;
+        this.scene = harry.scene;
+        this.absoluteX = harry.absoluteX;
+        this.x = harry.x;
+        this.y = harry.y;
+        this.vy = harry.vy;
+        this.dir = harry.dir;
+        this.sprite = harry.sprite;
+        this.runCounter = harry.runCounter;
+        this.climbCounter = harry.climbCounter;
+        this.teleported = harry.teleported;
+        this.injuredCounter = harry.injuredCounter;
+        this.tunnelSpawning = harry.tunnelSpawning;
+        this.releasedVine = harry.releasedVine;
+        this.swallow = harry.swallow;
+        this.kneeling = harry.kneeling;
+        this.kneelingDelay = harry.kneelingDelay;
+    }
     intersects(mask, x, y) {
         return (0,_math__WEBPACK_IMPORTED_MODULE_3__.spritesIntersect)(mask, x, y, _graphics__WEBPACK_IMPORTED_MODULE_0__.harryMasks[this.dir][this.sprite], Math.floor(this.x) - 4, Math.floor(this.y) - 22);
     }
@@ -1347,7 +1453,7 @@ class Harry {
     }
     startTunnelSpawn(gs) {
         if (gs.extraLives === 0) {
-            gs.gameOver = true;
+            gs.endGame();
             return;
         }
         --gs.extraLives;
@@ -1373,7 +1479,7 @@ class Harry {
     }
     startTreeSpawn(gs) {
         if (gs.extraLives === 0) {
-            gs.gameOver = true;
+            gs.endGame();
             return;
         }
         --gs.extraLives;
@@ -1765,11 +1871,24 @@ var CrocState;
     CrocState[CrocState["CLOSED"] = 1] = "CLOSED";
 })(CrocState || (CrocState = {}));
 class Pit {
-    pitState = PitState.OPENED;
-    pitOffset = 0;
-    pitCounter = PIT_OPEN_FRAMES;
-    crocState = CrocState.CLOSED;
-    crocCounter = CROC_CLOSED_FRAMES;
+    pitState;
+    pitOffset;
+    pitCounter;
+    crocState;
+    crocCounter;
+    constructor(pit = {
+        pitState: PitState.OPENED,
+        pitOffset: 0,
+        pitCounter: PIT_OPEN_FRAMES,
+        crocState: CrocState.CLOSED,
+        crocCounter: CROC_CLOSED_FRAMES,
+    }) {
+        this.pitState = pit.pitState;
+        this.pitOffset = pit.pitOffset;
+        this.pitCounter = pit.pitCounter;
+        this.crocState = pit.crocState;
+        this.crocCounter = pit.crocCounter;
+    }
     updatePitOpened(gs) {
         if (--this.pitCounter >= 0) {
             return;
@@ -1949,13 +2068,18 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   Rattle: () => (/* binding */ Rattle)
 /* harmony export */ });
 class Rattle {
-    seed = 1;
+    seed;
+    constructor(rattle = {
+        seed: 1,
+    }) {
+        this.seed = rattle.seed;
+    }
     update() {
         let a = this.seed;
         a <<= 1;
         a ^= this.seed;
         a <<= 1;
-        this.seed = (this.seed << 1) | ((a & 0x100) ? 1 : 0);
+        this.seed = 0xFF & ((this.seed << 1) | ((a & 0x100) ? 1 : 0));
     }
     getValue() {
         return (this.seed >> 4) & 1;
@@ -1980,8 +2104,15 @@ __webpack_require__.r(__webpack_exports__);
 
 
 class RollingLog {
-    xCounter = 0;
-    spriteCounter = 0;
+    xCounter;
+    spriteCounter;
+    constructor(rollingLog = {
+        xCounter: 0,
+        spriteCounter: 0,
+    }) {
+        this.xCounter = rollingLog.xCounter;
+        this.spriteCounter = rollingLog.spriteCounter;
+    }
     // When the scroll position changes, floor the rolling logs counter to prevent jittering. Jittering occurs when the 
     // scroll position and the rolling logs change on alternate frames.
     sync() {
@@ -2128,11 +2259,24 @@ const X_MAX = _graphics__WEBPACK_IMPORTED_MODULE_0__.Resolution.WIDTH - 4;
 const X_MARGIN = _graphics__WEBPACK_IMPORTED_MODULE_0__.Resolution.WIDTH / 8;
 const FRAMES_PER_UPDATE = 8;
 class Scorpion {
-    x = X_START;
-    X = this.x;
-    dir = 0;
-    sprite = 0;
-    updateCounter = FRAMES_PER_UPDATE;
+    x;
+    X;
+    dir;
+    sprite;
+    updateCounter;
+    constructor(scorpion = {
+        x: X_START,
+        X: X_START,
+        dir: 0,
+        sprite: 0,
+        updateCounter: FRAMES_PER_UPDATE,
+    }) {
+        this.x = scorpion.x;
+        this.X = scorpion.X;
+        this.dir = scorpion.dir;
+        this.sprite = scorpion.sprite;
+        this.updateCounter = scorpion.updateCounter;
+    }
     update(gs) {
         const harryNearby = _map__WEBPACK_IMPORTED_MODULE_1__.map[gs.harry.scene].scorpion && gs.harry.isUnderground();
         if (harryNearby && gs.harry.intersects(_graphics__WEBPACK_IMPORTED_MODULE_0__.scorpionMasks[this.dir][this.sprite], Math.floor(this.x) - 4, 158)) {
@@ -2191,6 +2335,8 @@ __webpack_require__.r(__webpack_exports__);
 
 
 class StationaryLog {
+    constructor(_ = {}) {
+    }
     checkSkid(gs, x, y) {
         const { harry } = gs;
         if (harry.x >= x + 1 && harry.x <= x + 6 && harry.intersects(_graphics__WEBPACK_IMPORTED_MODULE_0__.logMasks[1], x, y)) {
@@ -2431,6 +2577,8 @@ __webpack_require__.r(__webpack_exports__);
 
 
 class Treasure {
+    constructor(_ = {}) {
+    }
     update(gs) {
         let mask;
         let points = 0;
@@ -2457,8 +2605,12 @@ class Treasure {
         if (gs.harry.intersects(mask, 116, 111)) {
             gs.sceneStates[gs.harry.scene].treasure = _map__WEBPACK_IMPORTED_MODULE_1__.TreasureType.NONE;
             gs.score += points;
-            ++gs.treasureCount;
-            (0,_treasure_map__WEBPACK_IMPORTED_MODULE_2__.updateTreasureMapIndex)(gs);
+            if (++gs.treasureCount === 32) {
+                gs.endGame();
+            }
+            else {
+                (0,_treasure_map__WEBPACK_IMPORTED_MODULE_2__.updateTreasureMapIndex)(gs);
+            }
         }
     }
     render(gs, ctx, scene, ox) {
@@ -2501,7 +2653,12 @@ __webpack_require__.r(__webpack_exports__);
 
 
 class Vine {
-    sprite = 0;
+    sprite;
+    constructor(vine = {
+        sprite: 0,
+    }) {
+        this.sprite = vine.sprite;
+    }
     update(gs) {
         if (++this.sprite === _graphics__WEBPACK_IMPORTED_MODULE_0__.vinePoints.length) {
             this.sprite = 0;
@@ -3552,6 +3709,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _graphics__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./graphics */ "./src/graphics.ts");
 /* harmony import */ var _input__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./input */ "./src/input.ts");
 /* harmony import */ var _game_game__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./game/game */ "./src/game/game.ts");
+/* harmony import */ var _store__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./store */ "./src/store.ts");
+
 
 
 
@@ -3587,7 +3746,7 @@ function updatePixelRatio() {
 ;
 function enter() {
     exiting = false;
-    (0,_game_game__WEBPACK_IMPORTED_MODULE_5__.resetGame)();
+    (0,_game_game__WEBPACK_IMPORTED_MODULE_5__.initGame)();
     document.body.style.backgroundColor = '#C2BCB1';
     screenCanvas = new OffscreenCanvas(_graphics__WEBPACK_IMPORTED_MODULE_3__.Resolution.WIDTH, _graphics__WEBPACK_IMPORTED_MODULE_3__.Resolution.HEIGHT);
     ctx = screenCanvas.getContext('2d');
@@ -3622,7 +3781,7 @@ function cleanUp() {
         removeMediaEventListener();
         removeMediaEventListener = null;
     }
-    (0,_game_game__WEBPACK_IMPORTED_MODULE_5__.saveGame)();
+    (0,_store__WEBPACK_IMPORTED_MODULE_6__.saveStore)();
 }
 function exit() {
     cleanUp();
@@ -3834,17 +3993,21 @@ function enter() {
                             </div>
                         </div>    
                     </div>    
-                    <div id="go-div">
-                        <button id="start-button">${isNewGame() ? 'Start' : 'Continue'}</button>
+                    <div id="go-div">${_store__WEBPACK_IMPORTED_MODULE_2__.store.gameState
+        ? '<button id="start-button">New Game</button><button id="continue-button">Continue</button>'
+        : '<button id="start-button">Start</button>'}
                     </div>
                 </div>
             </div>`;
+    const highScore = document.getElementById('high-score-div');
     (0,_sfx__WEBPACK_IMPORTED_MODULE_0__.setVolume)(_store__WEBPACK_IMPORTED_MODULE_2__.store.volume);
     const volumeInput = document.getElementById('volume-input');
     volumeInput.addEventListener('input', volumeChanged);
     volumeInput.value = String(_store__WEBPACK_IMPORTED_MODULE_2__.store.volume);
     const startButton = document.getElementById('start-button');
     startButton.addEventListener('click', startButtonClicked);
+    const continueButton = document.getElementById('continue-button');
+    continueButton?.addEventListener('click', continueButtonClicked);
     const dropdown = document.getElementById('custom-dropdown');
     const selected = dropdown.querySelector('.dropdown-selected');
     const optionItems = dropdown.querySelectorAll('.dropdown-option');
@@ -3863,6 +4026,7 @@ function enter() {
         const difficulty = Number(option.getAttribute('data-value'));
         optionListners[difficulty] = () => {
             selectedDifficulty = difficulty;
+            highScore.textContent = `High Score: ${_store__WEBPACK_IMPORTED_MODULE_2__.store.highScores[selectedDifficulty]}`;
             selected.textContent = option.textContent; // Update the "selected" text            
             dropdown.classList.remove('open'); // Close dropdown
         };
@@ -3877,6 +4041,8 @@ function exit() {
     volumeInput.removeEventListener('input', volumeChanged);
     const startButton = document.getElementById('start-button');
     startButton.removeEventListener('click', startButtonClicked);
+    const continueButton = document.getElementById('continue-button');
+    continueButton?.removeEventListener('click', continueButtonClicked);
     const dropdown = document.getElementById('custom-dropdown');
     document.removeEventListener('click', dropdownCloseListener);
     const selected = dropdown.querySelector('.dropdown-selected');
@@ -3896,8 +4062,12 @@ function getDifficultyName() {
     }
 }
 function startButtonClicked() {
-    (0,_sfx__WEBPACK_IMPORTED_MODULE_0__.setVolume)(_store__WEBPACK_IMPORTED_MODULE_2__.store.volume);
+    _store__WEBPACK_IMPORTED_MODULE_2__.store.gameState = undefined;
     _store__WEBPACK_IMPORTED_MODULE_2__.store.difficulty = selectedDifficulty;
+    continueButtonClicked();
+}
+function continueButtonClicked() {
+    (0,_sfx__WEBPACK_IMPORTED_MODULE_0__.setVolume)(_store__WEBPACK_IMPORTED_MODULE_2__.store.volume);
     exit();
     (0,_screen__WEBPACK_IMPORTED_MODULE_1__.enter)();
 }
@@ -3991,9 +4161,6 @@ function windowResized() {
     rightVolumeSpan.textContent = String(_store__WEBPACK_IMPORTED_MODULE_2__.store.volume);
     volumeChanged();
 }
-function isNewGame() {
-    return true; // TODO
-}
 
 
 /***/ }),
@@ -4013,6 +4180,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   saveStore: () => (/* binding */ saveStore),
 /* harmony export */   store: () => (/* binding */ store)
 /* harmony export */ });
+/* harmony import */ var _game_game_state__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./game/game-state */ "./src/game/game-state.ts");
+
 const LOCAL_STORAGE_KEY = 'pitfall-store';
 var Difficulty;
 (function (Difficulty) {
@@ -4024,9 +4193,13 @@ class Store {
     highScores = [0, 0, 0];
     volume = 10;
     difficulty = 0;
+    gameState = undefined;
 }
 let store;
 function saveStore() {
+    if (store.gameState?.gameOver) {
+        store.gameState = undefined;
+    }
     localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(store));
 }
 function loadStore() {
@@ -4037,6 +4210,8 @@ function loadStore() {
     if (str) {
         try {
             store = JSON.parse(str);
+            store.gameState = (store.gameState && !store.gameState.gameOver)
+                ? new _game_game_state__WEBPACK_IMPORTED_MODULE_0__.GameState(store.gameState) : undefined;
         }
         catch {
             store = new Store();

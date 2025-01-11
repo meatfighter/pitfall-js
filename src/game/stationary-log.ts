@@ -4,6 +4,9 @@ import { map, ObsticleType } from './map';
 
 export class StationaryLog {
 
+    constructor(_: { } = { }) {
+    }
+
     checkSkid(gs: GameState, x: number, y: number) {
         const { harry } = gs;
         if (harry.x >= x + 1 && harry.x <= x + 6 && harry.intersects(logMasks[1], x, y)) {

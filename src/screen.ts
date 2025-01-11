@@ -4,7 +4,8 @@ import { NoParamVoidFunc } from './no-param-void-func';
 import { enter as enterStart } from './start';
 import { PhysicalDimensions, Resolution } from './graphics';
 import { startInput, stopInput, resetInput } from './input';
-import { renderScreen, resetGame, saveGame } from './game/game';
+import { renderScreen, initGame } from './game/game';
+import { saveStore } from './store';
 
 export let dpr: number;
 
@@ -44,7 +45,7 @@ function updatePixelRatio() {
 export function enter() {
     exiting = false;
 
-    resetGame();
+    initGame();
 
     document.body.style.backgroundColor = '#C2BCB1';
 
@@ -89,7 +90,7 @@ function cleanUp() {
         removeMediaEventListener = null;
     }
 
-    saveGame();
+    saveStore();
 }
 
 export function exit() {

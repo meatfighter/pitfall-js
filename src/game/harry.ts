@@ -21,7 +21,7 @@ const T = JUMP_ARC_BASE;
 const G = 2 * JUMP_ARC_HEIGHT / (T * T);
 const VY0 = -G * T;
 
-const INJURED_DELAY = 20//134;
+const INJURED_DELAY = 20 // 134;
 
 const X_SPAWN_MARGIN = Resolution.WIDTH / 4;
 
@@ -37,24 +37,83 @@ enum MainState {
 }
 
 export class Harry {   
-    mainState = MainState.STANDING;
-    lastMainState = MainState.STANDING;
-    scene = 0;
-    absoluteX = 12;
-    x = this.absoluteX;
-    y = Y_UPPER_LEVEL;
-    vy = 0;
-    dir = 0;
-    sprite = 0;
-    runCounter = 0;
-    climbCounter = 0;
-    teleported = false;
-    injuredCounter = 0;
-    tunnelSpawning = false;
-    releasedVine = false;
-    swallow = false;
-    kneeling = false;
-    kneelingDelay = false;
+    mainState: MainState;
+    lastMainState: MainState;
+    scene: number;
+    absoluteX: number;
+    x: number;
+    y: number;
+    vy: number;
+    dir: number;
+    sprite: number;
+    runCounter: number;
+    climbCounter: number;
+    teleported: boolean;
+    injuredCounter: number;
+    tunnelSpawning: boolean;
+    releasedVine: boolean;
+    swallow: boolean;
+    kneeling: boolean;
+    kneelingDelay: boolean; 
+
+    constructor(harry: {
+        mainState: MainState;
+        lastMainState: MainState;
+        scene: number;
+        absoluteX: number;
+        x: number;
+        y: number;
+        vy: number;
+        dir: number;
+        sprite: number;
+        runCounter: number;
+        climbCounter: number;
+        teleported: boolean;
+        injuredCounter: number;
+        tunnelSpawning: boolean;
+        releasedVine: boolean;
+        swallow: boolean;
+        kneeling: boolean;
+        kneelingDelay: boolean;   
+    } = {
+        mainState: MainState.STANDING,
+        lastMainState: MainState.STANDING,
+        scene: 0,
+        absoluteX: 12,
+        x: 12,
+        y: Y_UPPER_LEVEL,
+        vy: 0,
+        dir: 0,
+        sprite: 0,
+        runCounter: 0,
+        climbCounter: 0,
+        teleported: false,
+        injuredCounter: 0,
+        tunnelSpawning: false,
+        releasedVine: false,
+        swallow: false,
+        kneeling: false,
+        kneelingDelay: false,
+    }) {
+        this.mainState = harry.mainState;
+        this.lastMainState = harry.lastMainState;
+        this.scene = harry.scene;
+        this.absoluteX = harry.absoluteX;
+        this.x = harry.x;
+        this.y = harry.y;
+        this.vy = harry.vy;
+        this.dir = harry.dir;
+        this.sprite = harry.sprite;
+        this.runCounter = harry.runCounter;
+        this.climbCounter = harry.climbCounter;
+        this.teleported = harry.teleported;
+        this.injuredCounter = harry.injuredCounter;
+        this.tunnelSpawning = harry.tunnelSpawning;
+        this.releasedVine = harry.releasedVine;
+        this.swallow = harry.swallow;
+        this.kneeling = harry.kneeling;
+        this.kneelingDelay = harry.kneelingDelay;
+    }
 
     intersects(mask: Mask, x: number, y: number): boolean {
         return spritesIntersect(mask, x, y, harryMasks[this.dir][this.sprite], Math.floor(this.x) - 4, 
@@ -340,7 +399,7 @@ export class Harry {
 
     private startTunnelSpawn(gs: GameState) {
         if (gs.extraLives === 0) {
-            gs.gameOver = true;
+            gs.endGame();
             return;
         }
         --gs.extraLives;
@@ -367,7 +426,7 @@ export class Harry {
 
     private startTreeSpawn(gs: GameState) {
         if (gs.extraLives === 0) {
-            gs.gameOver = true;
+            gs.endGame();
             return;
         }
         --gs.extraLives;
