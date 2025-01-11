@@ -1,4 +1,4 @@
-import { store, saveStore } from '@/store';
+import { store, saveStore, Difficulty } from '@/store';
 import { Harry } from './harry';
 import { Scorpion } from './scorpion';
 import { Vine } from './vine';
@@ -42,13 +42,25 @@ export class GameState {
     lastHarryUnderground = false;
     sceneAlpha = 1;
     score = 2000;
-    extraLives = 4;
+    extraLives: number;
     gameOver = false;
     gameOverDelay = 180;
     treasureCount = 0;
     treasureMapIndex = 0;
 
     constructor() {
+        switch (store.difficulty) {
+            case Difficulty.EASY:
+                this.extraLives = 4;
+                break;
+            case Difficulty.NORMAL:
+                this.extraLives = 3;
+                break;
+            default:
+                this.extraLives = 2;
+                break;        
+        }
+
         for (let i = map.length - 1; i >= 0; --i) {
             const scene = map[i];
             this.sceneStates[i] = new SceneState(scene.treasure);

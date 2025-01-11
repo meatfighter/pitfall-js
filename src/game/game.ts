@@ -5,7 +5,8 @@ import { colors, Colors, Resolution, leavesSprites, branchesSprite, wallSprite, 
 import { clamp } from '@/math';
 import { updateInput, upJustPressed, downJustPressed, leftJustPressed, rightJustPressed, jumpJustPressed } 
     from '@/input';
-import { Tier, treasureCells, updateTreasureMapIndex, Direction } from './treasure-map';    
+import { Tier, treasureCells, updateTreasureMapIndex, Direction } from './treasure-map';
+import { store, Difficulty } from '@/store';    
 
 const SCENE_ALPHA_DELTA = 1 / 30;
 
@@ -134,23 +135,24 @@ function renderBackground(ctx: OffscreenCanvasRenderingContext2D, scene: number,
     const { trees, ladder, holes, wall, vine, pit, obsticles, scorpion } = map[scene];
     const trunks = TRUNKS[trees];
 
-    const cells = treasureCells[gs.treasureMapIndex][scene];
-    ctx.drawImage(arrowSprites[Tier.UPPER][cells[Tier.UPPER].direction], 68 - ox, 75);
-    const lowerDirection = cells[Tier.LOWER].direction;
-    let lowerOffset: number;
-    switch (wall) {
-        case WallType.LEFT:
-            lowerOffset = (lowerDirection === Direction.RIGHT || lowerDirection === Direction.LEFT) ? 60 : 61;
-            break;
-        case WallType.RIGHT:
-            lowerOffset = 76;
-            break;    
-        default:
-            lowerOffset = 68;
-            break;
+    if (store.difficulty === Difficulty.EASY) {
+        const cells = treasureCells[gs.treasureMapIndex][scene];
+        ctx.drawImage(arrowSprites[Tier.UPPER][cells[Tier.UPPER].direction], 68 - ox, 75);
+        const lowerDirection = cells[Tier.LOWER].direction;
+        let lowerOffset: number;
+        switch (wall) {
+            case WallType.LEFT:
+                lowerOffset = (lowerDirection === Direction.RIGHT || lowerDirection === Direction.LEFT) ? 60 : 61;
+                break;
+            case WallType.RIGHT:
+                lowerOffset = 76;
+                break;    
+            default:
+                lowerOffset = 68;
+                break;
+        }
+        ctx.drawImage(arrowSprites[Tier.LOWER][cells[Tier.LOWER].direction], lowerOffset - ox, 150);
     }
-    ctx.drawImage(arrowSprites[Tier.LOWER][cells[Tier.LOWER].direction], lowerOffset - ox, 150);
-
     
     ctx.fillStyle = colors[Colors.DARK_BROWN];
     for (let i = 3; i >= 0; --i) {
@@ -242,12 +244,14 @@ function renderHUD(ctx: OffscreenCanvasRenderingContext2D) {
         ctx.fillRect(x, 16, 1, 8);
     }
 
-    printNumber(ctx, gs.harry.scene + 1, 124, 3, Colors.OFF_WHITE);
-    printNumber(ctx, gs.treasureCount, 100, 16, Colors.OFF_WHITE);
-    const sprites = charSprites[Colors.OFF_WHITE];
-    ctx.drawImage(sprites[10], 108, 16);
-    ctx.drawImage(sprites[3], 116, 16);
-    ctx.drawImage(sprites[2], 124, 16);
+    if (store.difficulty !== Difficulty.HARD) {
+        printNumber(ctx, gs.harry.scene + 1, 124, 3, Colors.OFF_WHITE);
+        printNumber(ctx, gs.treasureCount, 100, 16, Colors.OFF_WHITE);
+        const sprites = charSprites[Colors.OFF_WHITE];
+        ctx.drawImage(sprites[10], 108, 16);
+        ctx.drawImage(sprites[3], 116, 16);
+        ctx.drawImage(sprites[2], 124, 16);
+    }
 }
 
 export function renderScreen(ctx: OffscreenCanvasRenderingContext2D) {

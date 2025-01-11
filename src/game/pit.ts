@@ -1,6 +1,7 @@
 import { GameState } from './game-state';
 import { PitType, map } from './map';
 import { pitSprites, crocSprites } from '@/graphics';
+import { store, Difficulty } from '@/store';
 
 const PIT_OPEN_FRAMES = 71;
 const PIT_CLOSED_FRAMES = 143;
@@ -198,7 +199,7 @@ export class Pit {
         const { pit } = map[scene];
         const sprites = pitSprites[(pit === PitType.TAR || pit == PitType.SHIFTING_TAR) ? 0 : 1];
         if (pit === PitType.SHIFTING_TAR || pit === PitType.SHIFTING_QUICKSAND) {
-            if (this.pitState !== PitState.OPENED) {
+            if (store.difficulty !== Difficulty.HARD && this.pitState !== PitState.OPENED) {
                 ctx.drawImage(pitSprites[2][0], 40 - ox, 114);
                 ctx.drawImage(pitSprites[2][1], 40 - ox, 119);
             }

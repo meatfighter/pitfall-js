@@ -4,7 +4,14 @@ import { store, saveStore, Difficulty } from './store';
 
 let landscape = false;
 
+let dropdownToggleListener: () => void;
+let dropdownCloseListener: (event: MouseEvent) => void;
+const optionListners = new Array<() => void>(3);
+let selectedDifficulty: number;
+
 export function enter() {
+    selectedDifficulty = store.difficulty;
+
     document.body.style.backgroundColor = '#0F0F0F';
 
     window.addEventListener('resize', windowResized);
@@ -14,7 +21,7 @@ export function enter() {
     mainElement.innerHTML = `
             <div id="start-container">
                 <div id="start-div">
-                    <div id="high-score-div">High Score: ${store.highScores[store.difficulty]}</div>
+                    <div id="high-score-div">High Score: ${store.highScores[selectedDifficulty]}</div>
                     <div class="volume-div">
                         <span class="left-volume-label material-icons" id="left-volume-span" 
                                 lang="en">volume_mute</span>
@@ -43,42 +50,35 @@ export function enter() {
     volumeInput.addEventListener('input', volumeChanged);
     volumeInput.value = String(store.volume);
 
-    // const difficultySelect = document.getElementById('difficulty-select') as HTMLSelectElement;
-    // difficultySelect.value = store.difficulty.toString();
-
     const startButton = document.getElementById('start-button') as HTMLButtonElement;
     startButton.addEventListener('click', startButtonClicked);
 
-
-
     const dropdown = document.getElementById('custom-dropdown') as HTMLDivElement;
     const selected = dropdown.querySelector('.dropdown-selected') as HTMLDivElement;
-    const options = dropdown.querySelector('.dropdown-options') as HTMLDivElement;
     const optionItems = dropdown.querySelectorAll('.dropdown-option');
 
     // Toggle dropdown open/closed on click
-    selected.addEventListener('click', () => {
-        dropdown.classList.toggle('open');
-    });
+    dropdownToggleListener = () => dropdown.classList.toggle('open');
+    selected.addEventListener('click', dropdownToggleListener);
 
-    // Handle clicks on each option
-    optionItems.forEach((option) => {
-        option.addEventListener('click', () => {
-            // Update the "selected" text
-            selected.textContent = option.textContent;
-            // Close the dropdown
-            dropdown.classList.remove('open');
-        });
-    });
-
-    // Optional: close if clicked outside
-    document.addEventListener('click', (event) => {
+    // Close if clicked outside
+    dropdownCloseListener = event => {
         if (!dropdown.contains(event.target as Node)) {
             dropdown.classList.remove('open');
         }
+    };
+    document.addEventListener('click', dropdownCloseListener);
+
+    // Handle clicks on each option
+    optionItems.forEach(option => {
+        const difficulty = Number(option.getAttribute('data-value'));
+        optionListners[difficulty] = () => {
+            selectedDifficulty = difficulty;            
+            selected.textContent = option.textContent; // Update the "selected" text            
+            dropdown.classList.remove('open');         // Close dropdown
+        };
+        option.addEventListener('click', optionListners[difficulty]);
     });
-
-
 
     windowResized();
 }
@@ -93,8 +93,15 @@ export function exit() {
     const startButton = document.getElementById('start-button') as HTMLButtonElement;
     startButton.removeEventListener('click', startButtonClicked);
 
-    // const difficultySelect = document.getElementById('difficulty-select') as HTMLSelectElement;
-    // store.difficulty = Number(difficultySelect.value);
+    const dropdown = document.getElementById('custom-dropdown') as HTMLDivElement;
+    document.removeEventListener('click', dropdownCloseListener);
+    
+    const selected = dropdown.querySelector('.dropdown-selected') as HTMLDivElement;
+    selected.removeEventListener('click', dropdownToggleListener);   
+
+    const optionItems = dropdown.querySelectorAll('.dropdown-option');
+    optionItems.forEach(option => option.removeEventListener('click', 
+            optionListners[Number(option.getAttribute('data-value'))]));
     
     saveStore();
 }
@@ -106,15 +113,14 @@ function getDifficultyName() {
         case Difficulty.NORMAL:
             return "Normal";
         default:
-            return "Hard";        
+            return "Hard";
     }
 }
 
 function startButtonClicked() {
     setVolume(store.volume);
 
-    // const difficultySelect = document.getElementById('difficulty-select') as HTMLSelectElement;
-    // store.difficulty = Number(difficultySelect.value);
+    store.difficulty = selectedDifficulty;
     
     exit();
     enterGame();

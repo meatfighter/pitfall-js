@@ -221,12 +221,27 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   Clock: () => (/* binding */ Clock)
 /* harmony export */ });
 /* harmony import */ var _graphics__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @/graphics */ "./src/graphics.ts");
+/* harmony import */ var _store__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @/store */ "./src/store.ts");
+
 
 class Clock {
-    minutes = 40; // TODO 20;
+    minutes;
     seconds = 0;
     frames = 0;
     timeUp = false;
+    constructor() {
+        switch (_store__WEBPACK_IMPORTED_MODULE_1__.store.difficulty) {
+            case _store__WEBPACK_IMPORTED_MODULE_1__.Difficulty.EASY:
+                this.minutes = 25;
+                break;
+            case _store__WEBPACK_IMPORTED_MODULE_1__.Difficulty.NORMAL:
+                this.minutes = 24;
+                break;
+            default:
+                this.minutes = 23;
+                break;
+        }
+    }
     update() {
         if (this.minutes === 0 && this.seconds === 0 && this.frames === 0) {
             this.timeUp = true;
@@ -708,12 +723,23 @@ class GameState {
     lastHarryUnderground = false;
     sceneAlpha = 1;
     score = 2000;
-    extraLives = 4;
+    extraLives;
     gameOver = false;
     gameOverDelay = 180;
     treasureCount = 0;
     treasureMapIndex = 0;
     constructor() {
+        switch (_store__WEBPACK_IMPORTED_MODULE_0__.store.difficulty) {
+            case _store__WEBPACK_IMPORTED_MODULE_0__.Difficulty.EASY:
+                this.extraLives = 4;
+                break;
+            case _store__WEBPACK_IMPORTED_MODULE_0__.Difficulty.NORMAL:
+                this.extraLives = 3;
+                break;
+            default:
+                this.extraLives = 2;
+                break;
+        }
         for (let i = _map__WEBPACK_IMPORTED_MODULE_11__.map.length - 1; i >= 0; --i) {
             const scene = _map__WEBPACK_IMPORTED_MODULE_11__.map[i];
             this.sceneStates[i] = new SceneState(scene.treasure);
@@ -746,6 +772,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _math__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! @/math */ "./src/math.ts");
 /* harmony import */ var _input__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! @/input */ "./src/input.ts");
 /* harmony import */ var _treasure_map__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./treasure-map */ "./src/game/treasure-map.ts");
+/* harmony import */ var _store__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! @/store */ "./src/store.ts");
+
 
 
 
@@ -865,22 +893,24 @@ function renderStrips(ctx) {
 function renderBackground(ctx, scene, ox) {
     const { trees, ladder, holes, wall, vine, pit, obsticles, scorpion } = _map__WEBPACK_IMPORTED_MODULE_0__.map[scene];
     const trunks = TRUNKS[trees];
-    const cells = _treasure_map__WEBPACK_IMPORTED_MODULE_5__.treasureCells[gs.treasureMapIndex][scene];
-    ctx.drawImage(_graphics__WEBPACK_IMPORTED_MODULE_2__.arrowSprites[_treasure_map__WEBPACK_IMPORTED_MODULE_5__.Tier.UPPER][cells[_treasure_map__WEBPACK_IMPORTED_MODULE_5__.Tier.UPPER].direction], 68 - ox, 75);
-    const lowerDirection = cells[_treasure_map__WEBPACK_IMPORTED_MODULE_5__.Tier.LOWER].direction;
-    let lowerOffset;
-    switch (wall) {
-        case _map__WEBPACK_IMPORTED_MODULE_0__.WallType.LEFT:
-            lowerOffset = (lowerDirection === _treasure_map__WEBPACK_IMPORTED_MODULE_5__.Direction.RIGHT || lowerDirection === _treasure_map__WEBPACK_IMPORTED_MODULE_5__.Direction.LEFT) ? 60 : 61;
-            break;
-        case _map__WEBPACK_IMPORTED_MODULE_0__.WallType.RIGHT:
-            lowerOffset = 76;
-            break;
-        default:
-            lowerOffset = 68;
-            break;
+    if (_store__WEBPACK_IMPORTED_MODULE_6__.store.difficulty === _store__WEBPACK_IMPORTED_MODULE_6__.Difficulty.EASY) {
+        const cells = _treasure_map__WEBPACK_IMPORTED_MODULE_5__.treasureCells[gs.treasureMapIndex][scene];
+        ctx.drawImage(_graphics__WEBPACK_IMPORTED_MODULE_2__.arrowSprites[_treasure_map__WEBPACK_IMPORTED_MODULE_5__.Tier.UPPER][cells[_treasure_map__WEBPACK_IMPORTED_MODULE_5__.Tier.UPPER].direction], 68 - ox, 75);
+        const lowerDirection = cells[_treasure_map__WEBPACK_IMPORTED_MODULE_5__.Tier.LOWER].direction;
+        let lowerOffset;
+        switch (wall) {
+            case _map__WEBPACK_IMPORTED_MODULE_0__.WallType.LEFT:
+                lowerOffset = (lowerDirection === _treasure_map__WEBPACK_IMPORTED_MODULE_5__.Direction.RIGHT || lowerDirection === _treasure_map__WEBPACK_IMPORTED_MODULE_5__.Direction.LEFT) ? 60 : 61;
+                break;
+            case _map__WEBPACK_IMPORTED_MODULE_0__.WallType.RIGHT:
+                lowerOffset = 76;
+                break;
+            default:
+                lowerOffset = 68;
+                break;
+        }
+        ctx.drawImage(_graphics__WEBPACK_IMPORTED_MODULE_2__.arrowSprites[_treasure_map__WEBPACK_IMPORTED_MODULE_5__.Tier.LOWER][cells[_treasure_map__WEBPACK_IMPORTED_MODULE_5__.Tier.LOWER].direction], lowerOffset - ox, 150);
     }
-    ctx.drawImage(_graphics__WEBPACK_IMPORTED_MODULE_2__.arrowSprites[_treasure_map__WEBPACK_IMPORTED_MODULE_5__.Tier.LOWER][cells[_treasure_map__WEBPACK_IMPORTED_MODULE_5__.Tier.LOWER].direction], lowerOffset - ox, 150);
     ctx.fillStyle = _graphics__WEBPACK_IMPORTED_MODULE_2__.colors[_graphics__WEBPACK_IMPORTED_MODULE_2__.Colors.DARK_BROWN];
     for (let i = 3; i >= 0; --i) {
         ctx.drawImage(_graphics__WEBPACK_IMPORTED_MODULE_2__.branchesSprite, trunks[i] - 2 - ox, 51);
@@ -958,12 +988,14 @@ function renderHUD(ctx) {
     for (let i = gs.extraLives - 1, x = 13; i >= 0; --i, x += 2) {
         ctx.fillRect(x, 16, 1, 8);
     }
-    (0,_graphics__WEBPACK_IMPORTED_MODULE_2__.printNumber)(ctx, gs.harry.scene + 1, 124, 3, _graphics__WEBPACK_IMPORTED_MODULE_2__.Colors.OFF_WHITE);
-    (0,_graphics__WEBPACK_IMPORTED_MODULE_2__.printNumber)(ctx, gs.treasureCount, 100, 16, _graphics__WEBPACK_IMPORTED_MODULE_2__.Colors.OFF_WHITE);
-    const sprites = _graphics__WEBPACK_IMPORTED_MODULE_2__.charSprites[_graphics__WEBPACK_IMPORTED_MODULE_2__.Colors.OFF_WHITE];
-    ctx.drawImage(sprites[10], 108, 16);
-    ctx.drawImage(sprites[3], 116, 16);
-    ctx.drawImage(sprites[2], 124, 16);
+    if (_store__WEBPACK_IMPORTED_MODULE_6__.store.difficulty !== _store__WEBPACK_IMPORTED_MODULE_6__.Difficulty.HARD) {
+        (0,_graphics__WEBPACK_IMPORTED_MODULE_2__.printNumber)(ctx, gs.harry.scene + 1, 124, 3, _graphics__WEBPACK_IMPORTED_MODULE_2__.Colors.OFF_WHITE);
+        (0,_graphics__WEBPACK_IMPORTED_MODULE_2__.printNumber)(ctx, gs.treasureCount, 100, 16, _graphics__WEBPACK_IMPORTED_MODULE_2__.Colors.OFF_WHITE);
+        const sprites = _graphics__WEBPACK_IMPORTED_MODULE_2__.charSprites[_graphics__WEBPACK_IMPORTED_MODULE_2__.Colors.OFF_WHITE];
+        ctx.drawImage(sprites[10], 108, 16);
+        ctx.drawImage(sprites[3], 116, 16);
+        ctx.drawImage(sprites[2], 124, 16);
+    }
 }
 function renderScreen(ctx) {
     renderStrips(ctx);
@@ -1681,6 +1713,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ });
 /* harmony import */ var _map__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./map */ "./src/game/map.ts");
 /* harmony import */ var _graphics__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @/graphics */ "./src/graphics.ts");
+/* harmony import */ var _store__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! @/store */ "./src/store.ts");
+
 
 
 const PIT_OPEN_FRAMES = 71;
@@ -1856,7 +1890,7 @@ class Pit {
         const { pit } = _map__WEBPACK_IMPORTED_MODULE_0__.map[scene];
         const sprites = _graphics__WEBPACK_IMPORTED_MODULE_1__.pitSprites[(pit === _map__WEBPACK_IMPORTED_MODULE_0__.PitType.TAR || pit == _map__WEBPACK_IMPORTED_MODULE_0__.PitType.SHIFTING_TAR) ? 0 : 1];
         if (pit === _map__WEBPACK_IMPORTED_MODULE_0__.PitType.SHIFTING_TAR || pit === _map__WEBPACK_IMPORTED_MODULE_0__.PitType.SHIFTING_QUICKSAND) {
-            if (this.pitState !== PitState.OPENED) {
+            if (_store__WEBPACK_IMPORTED_MODULE_2__.store.difficulty !== _store__WEBPACK_IMPORTED_MODULE_2__.Difficulty.HARD && this.pitState !== PitState.OPENED) {
                 ctx.drawImage(_graphics__WEBPACK_IMPORTED_MODULE_1__.pitSprites[2][0], 40 - ox, 114);
                 ctx.drawImage(_graphics__WEBPACK_IMPORTED_MODULE_1__.pitSprites[2][1], 40 - ox, 119);
             }
@@ -3769,7 +3803,12 @@ __webpack_require__.r(__webpack_exports__);
 
 
 let landscape = false;
+let dropdownToggleListener;
+let dropdownCloseListener;
+const optionListners = new Array(3);
+let selectedDifficulty;
 function enter() {
+    selectedDifficulty = _store__WEBPACK_IMPORTED_MODULE_2__.store.difficulty;
     document.body.style.backgroundColor = '#0F0F0F';
     window.addEventListener('resize', windowResized);
     window.addEventListener('touchmove', onTouchMove, { passive: false });
@@ -3777,7 +3816,7 @@ function enter() {
     mainElement.innerHTML = `
             <div id="start-container">
                 <div id="start-div">
-                    <div id="high-score-div">High Score: ${_store__WEBPACK_IMPORTED_MODULE_2__.store.highScores[_store__WEBPACK_IMPORTED_MODULE_2__.store.difficulty]}</div>
+                    <div id="high-score-div">High Score: ${_store__WEBPACK_IMPORTED_MODULE_2__.store.highScores[selectedDifficulty]}</div>
                     <div class="volume-div">
                         <span class="left-volume-label material-icons" id="left-volume-span" 
                                 lang="en">volume_mute</span>
@@ -3804,32 +3843,30 @@ function enter() {
     const volumeInput = document.getElementById('volume-input');
     volumeInput.addEventListener('input', volumeChanged);
     volumeInput.value = String(_store__WEBPACK_IMPORTED_MODULE_2__.store.volume);
-    // const difficultySelect = document.getElementById('difficulty-select') as HTMLSelectElement;
-    // difficultySelect.value = store.difficulty.toString();
     const startButton = document.getElementById('start-button');
     startButton.addEventListener('click', startButtonClicked);
     const dropdown = document.getElementById('custom-dropdown');
     const selected = dropdown.querySelector('.dropdown-selected');
-    const options = dropdown.querySelector('.dropdown-options');
     const optionItems = dropdown.querySelectorAll('.dropdown-option');
     // Toggle dropdown open/closed on click
-    selected.addEventListener('click', () => {
-        dropdown.classList.toggle('open');
-    });
-    // Handle clicks on each option
-    optionItems.forEach((option) => {
-        option.addEventListener('click', () => {
-            // Update the "selected" text
-            selected.textContent = option.textContent;
-            // Close the dropdown
-            dropdown.classList.remove('open');
-        });
-    });
-    // Optional: close if clicked outside
-    document.addEventListener('click', (event) => {
+    dropdownToggleListener = () => dropdown.classList.toggle('open');
+    selected.addEventListener('click', dropdownToggleListener);
+    // Close if clicked outside
+    dropdownCloseListener = event => {
         if (!dropdown.contains(event.target)) {
             dropdown.classList.remove('open');
         }
+    };
+    document.addEventListener('click', dropdownCloseListener);
+    // Handle clicks on each option
+    optionItems.forEach(option => {
+        const difficulty = Number(option.getAttribute('data-value'));
+        optionListners[difficulty] = () => {
+            selectedDifficulty = difficulty;
+            selected.textContent = option.textContent; // Update the "selected" text            
+            dropdown.classList.remove('open'); // Close dropdown
+        };
+        option.addEventListener('click', optionListners[difficulty]);
     });
     windowResized();
 }
@@ -3840,8 +3877,12 @@ function exit() {
     volumeInput.removeEventListener('input', volumeChanged);
     const startButton = document.getElementById('start-button');
     startButton.removeEventListener('click', startButtonClicked);
-    // const difficultySelect = document.getElementById('difficulty-select') as HTMLSelectElement;
-    // store.difficulty = Number(difficultySelect.value);
+    const dropdown = document.getElementById('custom-dropdown');
+    document.removeEventListener('click', dropdownCloseListener);
+    const selected = dropdown.querySelector('.dropdown-selected');
+    selected.removeEventListener('click', dropdownToggleListener);
+    const optionItems = dropdown.querySelectorAll('.dropdown-option');
+    optionItems.forEach(option => option.removeEventListener('click', optionListners[Number(option.getAttribute('data-value'))]));
     (0,_store__WEBPACK_IMPORTED_MODULE_2__.saveStore)();
 }
 function getDifficultyName() {
@@ -3856,8 +3897,7 @@ function getDifficultyName() {
 }
 function startButtonClicked() {
     (0,_sfx__WEBPACK_IMPORTED_MODULE_0__.setVolume)(_store__WEBPACK_IMPORTED_MODULE_2__.store.volume);
-    // const difficultySelect = document.getElementById('difficulty-select') as HTMLSelectElement;
-    // store.difficulty = Number(difficultySelect.value);
+    _store__WEBPACK_IMPORTED_MODULE_2__.store.difficulty = selectedDifficulty;
     exit();
     (0,_screen__WEBPACK_IMPORTED_MODULE_1__.enter)();
 }

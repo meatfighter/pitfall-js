@@ -1,11 +1,26 @@
 import { printNumber, Colors, charSprites } from '@/graphics';
+import { store, Difficulty } from '@/store';
 
 export class Clock {
 
-    minutes = 40; // TODO 20;
+    minutes: number;
     seconds = 0;
     frames = 0;
     timeUp = false;
+
+    constructor() {                
+        switch (store.difficulty) {
+            case Difficulty.EASY:
+                this.minutes = 25;
+                break;
+            case Difficulty.NORMAL:
+                this.minutes = 24;
+                break;
+            default:
+                this.minutes = 23;
+                break;        
+        }
+    }
    
     update() {
         if (this.minutes === 0 && this.seconds === 0 && this.frames === 0) {
