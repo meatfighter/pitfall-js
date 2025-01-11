@@ -280,12 +280,13 @@ export class Harry {
 
         if (ladder) {
             if (this.y === Y_UPPER_LEVEL && ((this.x >= 68 && this.x <= 75) 
-                    || (downPressed && this.x >= 64 && this.x <= 80))) {
+                    || (((downPressed && !(leftPressed || rightPressed)) || downJustPressed) 
+                            && this.x >= 64 && this.x <= 80))) {
                 this.startClimbing(134);
                 return;
             } 
-            if (this.y === Y_LOWER_LEVEL && upPressed && !(leftPressed || rightPressed) && this.x >= 64 
-                    && this.x <= 80) {
+            if (this.y === Y_LOWER_LEVEL && ((upPressed && !(leftPressed || rightPressed)) || upJustPressed) 
+                    && this.x >= 64 && this.x <= 80) {
                 this.startClimbing(this.y);
                 return;
             }
@@ -376,7 +377,7 @@ export class Harry {
             }
         }
 
-        if (this.y >= 170 && (leftPressed || rightPressed)) {
+        if (this.y >= 170 && !upPressed && (leftPressed || rightPressed)) {
             this.endClimbing(this.x, Y_LOWER_LEVEL, this.dir);
             return;
         }
