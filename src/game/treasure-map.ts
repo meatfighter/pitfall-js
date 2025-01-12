@@ -98,23 +98,24 @@ export class TreasureCell {
 }
 
 export function updateTreasureMapIndex(gs: GameState) { 
-    // for (let i = 0; i < treasureIndices.length; ++i) {
-    //     if (gs.sceneStates[treasureIndices[i]].treasure !== TreasureType.NONE) {
-    //         gs.treasureMapIndex = i;
-    //         break;
-    //     }        
-    // }
-
-    // TODO optimal reverse route
-    for (let i = treasureIndices.length - 1, j = 0; i >= 0; --i, --j) {
-        if (j < 0) {
-            j += treasureIndices.length;
-        }
-        if (gs.sceneStates[treasureIndices[j]].treasure !== TreasureType.NONE) {
-            gs.treasureMapIndex = j;
+    // Foward route -- Not as short as the reverse route, but doable in 20 minutes.
+    for (let i = 0; i < treasureIndices.length; ++i) {
+        if (gs.sceneStates[treasureIndices[i]].treasure !== TreasureType.NONE) {
+            gs.treasureMapIndex = i;
             break;
         }        
     }
+
+    // Reverse route
+    // for (let i = treasureIndices.length - 1, j = 0; i >= 0; --i, --j) {
+    //     if (j < 0) {
+    //         j += treasureIndices.length;
+    //     }
+    //     if (gs.sceneStates[treasureIndices[j]].treasure !== TreasureType.NONE) {
+    //         gs.treasureMapIndex = j;
+    //         break;
+    //     }        
+    // }
 }
 
 export const treasureIndices = new Array<number>(32);

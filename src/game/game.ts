@@ -145,10 +145,10 @@ function renderBackground(ctx: OffscreenCanvasRenderingContext2D, scene: number,
                 lowerOffset = (lowerDirection === Direction.RIGHT || lowerDirection === Direction.LEFT) ? 52 : 53;
                 break;
             case WallType.RIGHT:
-                lowerOffset = 76;
+                lowerOffset = 68;
                 break;    
             default:
-                lowerOffset = 68;
+                lowerOffset = 60;
                 break;
         }
         ctx.drawImage(arrowSprites[Tier.LOWER][cells[Tier.LOWER].direction], lowerOffset - ox, 150);

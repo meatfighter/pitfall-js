@@ -9,7 +9,7 @@ export class Vine {
     constructor(vine: {
         sprite: number;
     } = {
-        sprite: 0,
+        sprite: Math.floor(vinePoints.length / 2),
     }) {
         this.sprite = vine.sprite;
     }

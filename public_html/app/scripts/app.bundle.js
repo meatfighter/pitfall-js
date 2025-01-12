@@ -970,10 +970,10 @@ function renderBackground(ctx, scene, ox) {
                 lowerOffset = (lowerDirection === _treasure_map__WEBPACK_IMPORTED_MODULE_5__.Direction.RIGHT || lowerDirection === _treasure_map__WEBPACK_IMPORTED_MODULE_5__.Direction.LEFT) ? 52 : 53;
                 break;
             case _map__WEBPACK_IMPORTED_MODULE_0__.WallType.RIGHT:
-                lowerOffset = 76;
+                lowerOffset = 68;
                 break;
             default:
-                lowerOffset = 68;
+                lowerOffset = 60;
                 break;
         }
         ctx.drawImage(_graphics__WEBPACK_IMPORTED_MODULE_2__.arrowSprites[_treasure_map__WEBPACK_IMPORTED_MODULE_5__.Tier.LOWER][cells[_treasure_map__WEBPACK_IMPORTED_MODULE_5__.Tier.LOWER].direction], lowerOffset - ox, 150);
@@ -2488,19 +2488,22 @@ class TreasureCell {
     }
 }
 function updateTreasureMapIndex(gs) {
-    // for (let i = 0; i < treasureIndices.length; ++i) {
-    //     if (gs.sceneStates[treasureIndices[i]].treasure !== TreasureType.NONE) {
-    //         gs.treasureMapIndex = i;
-    //         break;
-    //     }        
-    // }
-    // TODO optimal reverse route
-    for (let i = 0, j = 0; i < treasureIndices.length; ++i, --j) {
-        if (gs.sceneStates[treasureIndices[j]].treasure !== _map__WEBPACK_IMPORTED_MODULE_0__.TreasureType.NONE) {
-            gs.treasureMapIndex = j;
+    for (let i = 0; i < treasureIndices.length; ++i) {
+        if (gs.sceneStates[treasureIndices[i]].treasure !== _map__WEBPACK_IMPORTED_MODULE_0__.TreasureType.NONE) {
+            gs.treasureMapIndex = i;
             break;
         }
     }
+    // TODO optimal reverse route
+    // for (let i = treasureIndices.length - 1, j = 0; i >= 0; --i, --j) {
+    //     if (j < 0) {
+    //         j += treasureIndices.length;
+    //     }
+    //     if (gs.sceneStates[treasureIndices[j]].treasure !== TreasureType.NONE) {
+    //         gs.treasureMapIndex = j;
+    //         break;
+    //     }        
+    // }
 }
 const treasureIndices = new Array(32);
 const treasureCells = new Array(32);
@@ -2662,7 +2665,7 @@ __webpack_require__.r(__webpack_exports__);
 class Vine {
     sprite;
     constructor(vine = {
-        sprite: 0,
+        sprite: Math.floor(_graphics__WEBPACK_IMPORTED_MODULE_0__.vinePoints.length / 2),
     }) {
         this.sprite = vine.sprite;
     }
