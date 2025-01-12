@@ -1,5 +1,5 @@
 import { download } from "./download";
-import { decodeAudioData, waitForDecodes } from "./sfx";
+import { decodeAudioData, waitForDecodes } from "./audio";
 import { enter as enterStart } from "./start";
 import { loadStore } from "./store";
 import { init as initGraphics } from './graphics';

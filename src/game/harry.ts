@@ -9,6 +9,7 @@ import {
  } from '@/input';
 import { map, WallType } from './map';
 import { spritesIntersect } from '@/math';
+import { play, stop } from '@/audio';
 
 const Y_UPPER_LEVEL = 119;
 const Y_LOWER_LEVEL = 174;
@@ -284,11 +285,13 @@ export class Harry {
         if (holes && this.y === Y_UPPER_LEVEL && ((this.x >= 32 && this.x <= 44) || (this.x >= 84 && this.x <= 96))) {
             this.startFalling(gs, G);
             gs.score = Math.max(0, gs.score - 100);
+            play('sfx/fall.mp3')
             return;
         }
 
         if (jumpPressed) {
             this.startFalling(gs, VY0);
+            play('sfx/jump.mp3');
             return;
         }
 
@@ -416,6 +419,7 @@ export class Harry {
     injure() {
         this.mainState = MainState.INJURED;
         this.injuredCounter = INJURED_DELAY;
+        play('sfx/die.mp3');
     }
 
     private startTunnelSpawn(gs: GameState) {
@@ -475,6 +479,7 @@ export class Harry {
         this.mainState = MainState.SWINGING;
         this.sprite = 6;
         this.teleported = true;
+        play('sfx/swing.mp3');
     }
 
     private updateSwinging(gs: GameState) {
@@ -496,6 +501,7 @@ export class Harry {
         }
         this.mainState = MainState.SINKING;
         this.sprite = 0;
+        play('sfx/die.mp3');
         return true;
     }
 
@@ -522,6 +528,7 @@ export class Harry {
     }
 
     rolled() {
+        play('sfx/kneel.mp3', true);
         switch (this.mainState) {
             case MainState.STANDING:
             case MainState.KNEELING:    
@@ -529,11 +536,12 @@ export class Harry {
                 break;
             case MainState.CLIMBING:
                 this.climbDownward();
-                break;    
+                break;
         }
     }
 
     skidded() {
+        play('sfx/kneel.mp3', true);
         switch (this.mainState) {
             case MainState.STANDING:
             case MainState.SKIDDING:    
@@ -552,6 +560,7 @@ export class Harry {
             this.mainState = MainState.STANDING;
             this.sprite = 0;
             this.kneeling = false;
+            stop('sfx/kneel.mp3');
         }
     }
 

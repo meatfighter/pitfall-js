@@ -3,6 +3,7 @@ import { moneySprite, moneyMask, ringSprite, ringMask, goldSprites, goldMasks, s
     Sprite } from '@/graphics';
 import { TreasureType } from './map';
 import { updateTreasureMapIndex } from './treasure-map';
+import { play } from '@/audio';
 
 export class Treasure {
 
@@ -41,6 +42,7 @@ export class Treasure {
             } else {
                 updateTreasureMapIndex(gs);
             }
+            play('sfx/treasure.mp3');
         }
     }
 

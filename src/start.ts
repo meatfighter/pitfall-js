@@ -1,4 +1,4 @@
-import { setVolume } from './sfx';
+import { setVolume } from './audio';
 import { enter as enterGame } from './screen';
 import { store, saveStore, Difficulty } from './store';
 

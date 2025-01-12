@@ -1,6 +1,11 @@
 import { JSZipObject } from "jszip";
 
 const audioContext = new AudioContext();
+audioContext.onstatechange = () => {
+    if (audioContext.state === 'suspended') {
+        stopAll();
+    }
+};
 
 let docVisible = true;
 
@@ -10,8 +15,9 @@ document.addEventListener('visibilitychange', () => {
         if (audioContext.state === 'suspended') {
             audioContext.resume();
         }
-    } else if (document.visibilityState === 'hidden') {
+    } else if (document.visibilityState === 'hidden') {        
         docVisible = false;
+        stopAll();
         if (audioContext.state === 'running') {
             audioContext.suspend();
         }
@@ -25,6 +31,8 @@ masterGain.gain.value = 0.1;
 const promises: Promise<Map<string, AudioBuffer>>[] = [];
 
 const audioBuffers = new Map<string, AudioBuffer>();
+
+const activeSources = new Map<string, AudioBufferSourceNode>();
 
 export function getVolume() {
     return 100 * masterGain.gain.value;
@@ -44,16 +52,42 @@ export async function waitForDecodes() {
     return Promise.all(promises).then(() => promises.length = 0);
 }
 
-export function playSoundEffect(name: string) {
+export function play(name: string, loop = false) {
     if (audioContext.state === 'suspended') {
         if (docVisible) {
-            audioContext.resume().then(() => playSoundEffect(name));
+            audioContext.resume().then(() => play(name));
         }
         return;
+    }
+
+    if (loop) {
+        if (activeSources.has(name)) {
+            return;
+        }
+    } else {
+        stop(name);
     }
 
     const source = audioContext.createBufferSource();
     source.buffer = audioBuffers.get(name) as AudioBuffer;
     source.connect(masterGain);
+    source.loop = loop;
+
+    activeSources.set(name, source);
+    source.onended = () => activeSources.delete(name);
+
     source.start();
+}
+
+export function stop(name: string) {
+    const source = activeSources.get(name);
+    if (source) {
+        activeSources.delete(name);
+        source.stop();
+    }
+}
+
+export function stopAll() {
+    activeSources.values().forEach(source => source.stop());
+    activeSources.clear();
 }
