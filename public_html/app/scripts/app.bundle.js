@@ -98,6 +98,102 @@ function init() {
 
 /***/ }),
 
+/***/ "./src/audio.ts":
+/*!**********************!*\
+  !*** ./src/audio.ts ***!
+  \**********************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   decodeAudioData: () => (/* binding */ decodeAudioData),
+/* harmony export */   getVolume: () => (/* binding */ getVolume),
+/* harmony export */   play: () => (/* binding */ play),
+/* harmony export */   setVolume: () => (/* binding */ setVolume),
+/* harmony export */   stop: () => (/* binding */ stop),
+/* harmony export */   stopAll: () => (/* binding */ stopAll),
+/* harmony export */   waitForDecodes: () => (/* binding */ waitForDecodes)
+/* harmony export */ });
+const audioContext = new AudioContext();
+audioContext.onstatechange = () => {
+    if (audioContext.state === 'suspended') {
+        stopAll();
+    }
+};
+let docVisible = true;
+document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') {
+        docVisible = true;
+        if (audioContext.state === 'suspended') {
+            audioContext.resume();
+        }
+    }
+    else if (document.visibilityState === 'hidden') {
+        docVisible = false;
+        stopAll();
+        if (audioContext.state === 'running') {
+            audioContext.suspend();
+        }
+    }
+});
+const masterGain = audioContext.createGain();
+masterGain.connect(audioContext.destination);
+masterGain.gain.value = 0.1;
+const promises = [];
+const audioBuffers = new Map();
+const activeSources = new Map();
+function getVolume() {
+    return 100 * masterGain.gain.value;
+}
+function setVolume(volume) {
+    masterGain.gain.value = volume / 100;
+}
+function decodeAudioData(name, obj) {
+    promises.push(obj.async('arraybuffer')
+        .then(data => audioContext.decodeAudioData(data))
+        .then(buffer => audioBuffers.set(name, buffer)));
+}
+async function waitForDecodes() {
+    return Promise.all(promises).then(() => promises.length = 0);
+}
+function play(name, loop = false) {
+    if (audioContext.state === 'suspended') {
+        if (docVisible) {
+            audioContext.resume().then(() => play(name));
+        }
+        return;
+    }
+    if (loop) {
+        if (activeSources.has(name)) {
+            return;
+        }
+    }
+    else {
+        stop(name);
+    }
+    const source = audioContext.createBufferSource();
+    source.buffer = audioBuffers.get(name);
+    source.connect(masterGain);
+    source.loop = loop;
+    activeSources.set(name, source);
+    source.onended = () => activeSources.delete(name);
+    source.start();
+}
+function stop(name) {
+    const source = activeSources.get(name);
+    if (source) {
+        activeSources.delete(name);
+        source.stop();
+    }
+}
+function stopAll() {
+    activeSources.values().forEach(source => source.stop());
+    activeSources.clear();
+}
+
+
+/***/ }),
+
 /***/ "./src/death.ts":
 /*!**********************!*\
   !*** ./src/death.ts ***!
@@ -1108,6 +1204,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _input__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @/input */ "./src/input.ts");
 /* harmony import */ var _map__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./map */ "./src/game/map.ts");
 /* harmony import */ var _math__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! @/math */ "./src/math.ts");
+/* harmony import */ var _audio__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! @/audio */ "./src/audio.ts");
+
 
 
 
@@ -1153,6 +1251,7 @@ class Harry {
     kneeling;
     kneelingDelay;
     rightTouchMeansDown;
+    rollingDelay;
     constructor(harry = {
         mainState: MainState.STANDING,
         lastMainState: MainState.STANDING,
@@ -1173,6 +1272,7 @@ class Harry {
         kneeling: false,
         kneelingDelay: false,
         rightTouchMeansDown: false,
+        rollingDelay: 0,
     }) {
         this.mainState = harry.mainState;
         this.lastMainState = harry.lastMainState;
@@ -1193,6 +1293,7 @@ class Harry {
         this.kneeling = harry.kneeling;
         this.kneelingDelay = harry.kneelingDelay;
         this.rightTouchMeansDown = harry.rightTouchMeansDown;
+        this.rollingDelay = harry.rollingDelay;
     }
     intersects(mask, x, y) {
         return (0,_math__WEBPACK_IMPORTED_MODULE_3__.spritesIntersect)(mask, x, y, _graphics__WEBPACK_IMPORTED_MODULE_0__.harryMasks[this.dir][this.sprite], Math.floor(this.x) - 4, Math.floor(this.y) - 22);
@@ -1349,10 +1450,12 @@ class Harry {
         if (holes && this.y === Y_UPPER_LEVEL && ((this.x >= 32 && this.x <= 44) || (this.x >= 84 && this.x <= 96))) {
             this.startFalling(gs, G);
             gs.score = Math.max(0, gs.score - 100);
+            (0,_audio__WEBPACK_IMPORTED_MODULE_4__.play)('sfx/fall.mp3');
             return;
         }
         if (_input__WEBPACK_IMPORTED_MODULE_1__.jumpPressed) {
             this.startFalling(gs, VY0);
+            (0,_audio__WEBPACK_IMPORTED_MODULE_4__.play)('sfx/jump.mp3');
             return;
         }
         if (ladder) {
@@ -1466,6 +1569,7 @@ class Harry {
     injure() {
         this.mainState = MainState.INJURED;
         this.injuredCounter = INJURED_DELAY;
+        (0,_audio__WEBPACK_IMPORTED_MODULE_4__.play)('sfx/die.mp3');
     }
     startTunnelSpawn(gs) {
         if (gs.extraLives === 0) {
@@ -1521,6 +1625,7 @@ class Harry {
         this.mainState = MainState.SWINGING;
         this.sprite = 6;
         this.teleported = true;
+        (0,_audio__WEBPACK_IMPORTED_MODULE_4__.play)('sfx/swing.mp3');
     }
     updateSwinging(gs) {
         const p = _graphics__WEBPACK_IMPORTED_MODULE_0__.vinePoints[gs.vine.sprite];
@@ -1539,6 +1644,7 @@ class Harry {
         }
         this.mainState = MainState.SINKING;
         this.sprite = 0;
+        (0,_audio__WEBPACK_IMPORTED_MODULE_4__.play)('sfx/die.mp3');
         return true;
     }
     checkSwallow(xMin, xMax) {
@@ -1561,6 +1667,8 @@ class Harry {
         this.kneelingDelay = true;
     }
     rolled() {
+        (0,_audio__WEBPACK_IMPORTED_MODULE_4__.play)('sfx/kneel.mp3', true);
+        this.rollingDelay = 2;
         switch (this.mainState) {
             case MainState.STANDING:
             case MainState.KNEELING:
@@ -1572,6 +1680,7 @@ class Harry {
         }
     }
     skidded() {
+        (0,_audio__WEBPACK_IMPORTED_MODULE_4__.play)('sfx/kneel.mp3', true);
         switch (this.mainState) {
             case MainState.STANDING:
             case MainState.SKIDDING:
@@ -1590,6 +1699,7 @@ class Harry {
             this.mainState = MainState.STANDING;
             this.sprite = 0;
             this.kneeling = false;
+            (0,_audio__WEBPACK_IMPORTED_MODULE_4__.stop)('sfx/kneel.mp3');
         }
     }
     updateSkidding(gs) {
@@ -1625,6 +1735,9 @@ class Harry {
                 break;
         }
         this.lastMainState = state;
+        if (this.rollingDelay > 0 && --this.rollingDelay === 0) {
+            (0,_audio__WEBPACK_IMPORTED_MODULE_4__.stop)('sfx/kneel.mp3');
+        }
     }
     render(gs, ctx, ox) {
         const sprite = _graphics__WEBPACK_IMPORTED_MODULE_0__.harrySprites[this.dir][this.kneeling ? 5 : this.sprite];
@@ -2600,6 +2713,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _graphics__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @/graphics */ "./src/graphics.ts");
 /* harmony import */ var _map__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./map */ "./src/game/map.ts");
 /* harmony import */ var _treasure_map__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./treasure-map */ "./src/game/treasure-map.ts");
+/* harmony import */ var _audio__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! @/audio */ "./src/audio.ts");
+
 
 
 
@@ -2638,6 +2753,7 @@ class Treasure {
             else {
                 (0,_treasure_map__WEBPACK_IMPORTED_MODULE_2__.updateTreasureMapIndex)(gs);
             }
+            (0,_audio__WEBPACK_IMPORTED_MODULE_3__.play)('sfx/treasure.mp3');
         }
     }
     render(gs, ctx, scene, ox) {
@@ -3490,107 +3606,73 @@ function onClick(e) {
     }
 }
 function onKeyDown(e) {
-    // switch (e.code) {
-    //     case 'KeyA':
-    //     case 'ArrowLeft':
-    //         leftKeyPressed = rightKeyPressed + 1;
-    //         break;
-    //     case 'KeyD':
-    //     case 'ArrowRight':
-    //         rightKeyPressed = leftKeyPressed + 1;
-    //         break;
-    //     case 'KeyW':
-    //     case 'ArrowUp':
-    //         upKeyPressed = downKeyPressed + 1;
-    //         break;
-    //     case 'KeyS':
-    //     case 'ArrowDown':
-    //         downKeyPressed = upKeyPressed + 1;
-    //         break;            
-    //     case 'Escape':
-    //         exit();
-    //         break;    
-    //     default:
-    //         jumpKeyPressed = true;
-    //         break;            
-    // }
-    // switch (e.code) {
-    //     case 'KeyA':
-    //         if (rightKeyPressed > 0) {
-    //             jumpKeyPressed = true;
-    //             leftKeyPressed = 0;
-    //             downKeyPressed = 0;                
-    //         } else {
-    //             jumpKeyPressed = false;
-    //             leftKeyPressed = 1;
-    //             downKeyPressed = 1;
-    //         }            
-    //         break;
-    //     case 'Quote':
-    //         if (leftKeyPressed > 0) {
-    //             jumpKeyPressed = true;
-    //             rightKeyPressed = 0;
-    //             upKeyPressed = 0;
-    //         } else {
-    //             jumpKeyPressed = false;
-    //             rightKeyPressed = 1;
-    //             upKeyPressed = 1;
-    //         }
-    //         break;
-    // }
     switch (e.code) {
         case 'KeyA':
-            leftScreenTouched = rightScreenTouched + 1;
+        case 'ArrowLeft':
+            leftKeyPressed = rightKeyPressed + 1;
             break;
-        case 'Quote':
-            rightScreenTouched = leftScreenTouched + 1;
+        case 'KeyD':
+        case 'ArrowRight':
+            rightKeyPressed = leftKeyPressed + 1;
+            break;
+        case 'KeyW':
+        case 'ArrowUp':
+            upKeyPressed = downKeyPressed + 1;
+            break;
+        case 'KeyS':
+        case 'ArrowDown':
+            downKeyPressed = upKeyPressed + 1;
+            break;
+        case 'Escape':
+            (0,_screen__WEBPACK_IMPORTED_MODULE_0__.exit)();
+            break;
+        default:
+            jumpKeyPressed = true;
             break;
     }
+    // touch testing
+    // switch (e.code) {
+    //     case 'KeyA':
+    //         leftScreenTouched = rightScreenTouched + 1;
+    //         break;
+    //     case 'Quote':
+    //         rightScreenTouched = leftScreenTouched + 1;
+    //         break;
+    // }
 }
 function onKeyUp(e) {
-    // switch (e.code) {
-    //     case 'KeyA':
-    //     case 'ArrowLeft':
-    //         leftKeyPressed = 0;
-    //         break;
-    //     case 'KeyD':
-    //     case 'ArrowRight':
-    //         rightKeyPressed = 0;
-    //         break;
-    //     case 'KeyW':
-    //     case 'ArrowUp':
-    //         upKeyPressed = 0;
-    //         break;
-    //     case 'KeyS':
-    //     case 'ArrowDown':
-    //         downKeyPressed = 0;
-    //         break;                  
-    //     case 'Escape':
-    //         break;
-    //     default:
-    //         jumpKeyPressed = false;
-    //         break;            
-    // }
-    // switch (e.code) {
-    //     case 'KeyA':
-    //         leftKeyPressed = 0;
-    //         jumpKeyPressed = false;
-    //         downKeyPressed = 0;
-    //         break;
-    //     case 'Quote':
-    //         rightKeyPressed = 0;
-    //         jumpKeyPressed = false;
-    //         upKeyPressed = 0;
-    //         break;
-    // }
     switch (e.code) {
         case 'KeyA':
-            leftScreenTouched = 0;
+        case 'ArrowLeft':
+            leftKeyPressed = 0;
             break;
-        case 'Quote':
-            rightScreenTouched = 0;
+        case 'KeyD':
+        case 'ArrowRight':
+            rightKeyPressed = 0;
+            break;
+        case 'KeyW':
+        case 'ArrowUp':
+            upKeyPressed = 0;
+            break;
+        case 'KeyS':
+        case 'ArrowDown':
+            downKeyPressed = 0;
+            break;
+        case 'Escape':
+            break;
+        default:
+            jumpKeyPressed = false;
             break;
     }
+    // touch testing
+    // switch (e.code) {
+    //     case 'KeyA':
+    //         leftScreenTouched = 0;
+    //         break;
+    //     case 'Quote':
+    //         rightScreenTouched = 0;
+    //         break;
+    // }    
 }
 
 
@@ -3674,7 +3756,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   exit: () => (/* binding */ exit)
 /* harmony export */ });
 /* harmony import */ var _download__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./download */ "./src/download.ts");
-/* harmony import */ var _sfx__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./sfx */ "./src/sfx.ts");
+/* harmony import */ var _audio__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./audio */ "./src/audio.ts");
 /* harmony import */ var _start__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./start */ "./src/start.ts");
 /* harmony import */ var _store__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./store */ "./src/store.ts");
 /* harmony import */ var _graphics__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./graphics */ "./src/graphics.ts");
@@ -3749,11 +3831,11 @@ function onDownload(arrayBuffer) {
                 return;
             }
             if (filename.endsWith('.mp3')) {
-                (0,_sfx__WEBPACK_IMPORTED_MODULE_1__.decodeAudioData)(filename, fileData);
+                (0,_audio__WEBPACK_IMPORTED_MODULE_1__.decodeAudioData)(filename, fileData);
             }
         }));
     });
-    (0,_sfx__WEBPACK_IMPORTED_MODULE_1__.waitForDecodes)().then(() => {
+    (0,_audio__WEBPACK_IMPORTED_MODULE_1__.waitForDecodes)().then(() => {
         document.getElementById('loading-progress').value = 100;
         setTimeout(() => {
             (0,_store__WEBPACK_IMPORTED_MODULE_3__.loadStore)();
@@ -3820,6 +3902,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _input__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./input */ "./src/input.ts");
 /* harmony import */ var _game_game__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./game/game */ "./src/game/game.ts");
 /* harmony import */ var _store__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./store */ "./src/store.ts");
+/* harmony import */ var _audio__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./audio */ "./src/audio.ts");
+
 
 
 
@@ -3881,6 +3965,7 @@ function cleanUp() {
     exiting = true;
     (0,_animate__WEBPACK_IMPORTED_MODULE_0__.stopAnimation)();
     (0,_input__WEBPACK_IMPORTED_MODULE_4__.stopInput)();
+    (0,_audio__WEBPACK_IMPORTED_MODULE_7__.stopAll)();
     (0,_wake_lock__WEBPACK_IMPORTED_MODULE_1__.releaseWakeLock)();
     window.removeEventListener('beforeunload', onBeforeUnload);
     window.removeEventListener('resize', onWindowResized);
@@ -3980,75 +4065,11 @@ function onVisibilityChanged() {
     }
     else {
         (0,_animate__WEBPACK_IMPORTED_MODULE_0__.stopAnimation)();
+        (0,_audio__WEBPACK_IMPORTED_MODULE_7__.stopAll)();
     }
 }
 function onBeforeUnload() {
     cleanUp();
-}
-
-
-/***/ }),
-
-/***/ "./src/sfx.ts":
-/*!********************!*\
-  !*** ./src/sfx.ts ***!
-  \********************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
-
-__webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   decodeAudioData: () => (/* binding */ decodeAudioData),
-/* harmony export */   getVolume: () => (/* binding */ getVolume),
-/* harmony export */   playSoundEffect: () => (/* binding */ playSoundEffect),
-/* harmony export */   setVolume: () => (/* binding */ setVolume),
-/* harmony export */   waitForDecodes: () => (/* binding */ waitForDecodes)
-/* harmony export */ });
-const audioContext = new AudioContext();
-let docVisible = true;
-document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState === 'visible') {
-        docVisible = true;
-        if (audioContext.state === 'suspended') {
-            audioContext.resume();
-        }
-    }
-    else if (document.visibilityState === 'hidden') {
-        docVisible = false;
-        if (audioContext.state === 'running') {
-            audioContext.suspend();
-        }
-    }
-});
-const masterGain = audioContext.createGain();
-masterGain.connect(audioContext.destination);
-masterGain.gain.value = 0.1;
-const promises = [];
-const audioBuffers = new Map();
-function getVolume() {
-    return 100 * masterGain.gain.value;
-}
-function setVolume(volume) {
-    masterGain.gain.value = volume / 100;
-}
-function decodeAudioData(name, obj) {
-    promises.push(obj.async('arraybuffer')
-        .then(data => audioContext.decodeAudioData(data))
-        .then(buffer => audioBuffers.set(name, buffer)));
-}
-async function waitForDecodes() {
-    return Promise.all(promises).then(() => promises.length = 0);
-}
-function playSoundEffect(name) {
-    if (audioContext.state === 'suspended') {
-        if (docVisible) {
-            audioContext.resume().then(() => playSoundEffect(name));
-        }
-        return;
-    }
-    const source = audioContext.createBufferSource();
-    source.buffer = audioBuffers.get(name);
-    source.connect(masterGain);
-    source.start();
 }
 
 
@@ -4065,7 +4086,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   enter: () => (/* binding */ enter),
 /* harmony export */   exit: () => (/* binding */ exit)
 /* harmony export */ });
-/* harmony import */ var _sfx__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./sfx */ "./src/sfx.ts");
+/* harmony import */ var _audio__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./audio */ "./src/audio.ts");
 /* harmony import */ var _screen__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./screen */ "./src/screen.ts");
 /* harmony import */ var _store__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./store */ "./src/store.ts");
 
@@ -4110,7 +4131,7 @@ function enter() {
                 </div>
             </div>`;
     const highScore = document.getElementById('high-score-div');
-    (0,_sfx__WEBPACK_IMPORTED_MODULE_0__.setVolume)(_store__WEBPACK_IMPORTED_MODULE_2__.store.volume);
+    (0,_audio__WEBPACK_IMPORTED_MODULE_0__.setVolume)(_store__WEBPACK_IMPORTED_MODULE_2__.store.volume);
     const volumeInput = document.getElementById('volume-input');
     volumeInput.addEventListener('input', volumeChanged);
     volumeInput.value = String(_store__WEBPACK_IMPORTED_MODULE_2__.store.volume);
@@ -4177,7 +4198,7 @@ function startButtonClicked() {
     continueButtonClicked();
 }
 function continueButtonClicked() {
-    (0,_sfx__WEBPACK_IMPORTED_MODULE_0__.setVolume)(_store__WEBPACK_IMPORTED_MODULE_2__.store.volume);
+    (0,_audio__WEBPACK_IMPORTED_MODULE_0__.setVolume)(_store__WEBPACK_IMPORTED_MODULE_2__.store.volume);
     exit();
     (0,_screen__WEBPACK_IMPORTED_MODULE_1__.enter)();
 }

@@ -56,7 +56,8 @@ export class Harry {
     swallow: boolean;
     kneeling: boolean;
     kneelingDelay: boolean;
-    rightTouchMeansDown: boolean; 
+    rightTouchMeansDown: boolean;
+    rollingDelay: number;
 
     constructor(harry: {
         mainState: MainState;
@@ -77,7 +78,8 @@ export class Harry {
         swallow: boolean;
         kneeling: boolean;
         kneelingDelay: boolean;
-        rightTouchMeansDown: boolean; 
+        rightTouchMeansDown: boolean;
+        rollingDelay: number;
     } = {
         mainState: MainState.STANDING,
         lastMainState: MainState.STANDING,
@@ -98,6 +100,7 @@ export class Harry {
         kneeling: false,
         kneelingDelay: false,
         rightTouchMeansDown: false,
+        rollingDelay: 0,
     }) {
         this.mainState = harry.mainState;
         this.lastMainState = harry.lastMainState;
@@ -118,6 +121,7 @@ export class Harry {
         this.kneeling = harry.kneeling;
         this.kneelingDelay = harry.kneelingDelay;
         this.rightTouchMeansDown = harry.rightTouchMeansDown;
+        this.rollingDelay = harry.rollingDelay;
     }
 
     intersects(mask: Mask, x: number, y: number): boolean {
@@ -529,6 +533,7 @@ export class Harry {
 
     rolled() {
         play('sfx/kneel.mp3', true);
+        this.rollingDelay = 2;
         switch (this.mainState) {
             case MainState.STANDING:
             case MainState.KNEELING:    
@@ -598,6 +603,9 @@ export class Harry {
                 break;        
         }
         this.lastMainState = state;
+        if (this.rollingDelay > 0 && --this.rollingDelay === 0) {
+            stop('sfx/kneel.mp3');
+        }
     }
 
     render(gs: GameState, ctx: OffscreenCanvasRenderingContext2D, ox: number) {

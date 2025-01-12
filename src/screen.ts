@@ -6,6 +6,7 @@ import { PhysicalDimensions, Resolution } from './graphics';
 import { startInput, stopInput, resetInput } from './input';
 import { renderScreen, initGame } from './game/game';
 import { saveStore } from './store';
+import { stopAll } from './audio';
 
 export let dpr: number;
 
@@ -77,6 +78,7 @@ function cleanUp() {
     exiting = true;
     stopAnimation();
     stopInput();
+    stopAll();
     releaseWakeLock();
     
     window.removeEventListener('beforeunload', onBeforeUnload);
@@ -193,6 +195,7 @@ function onVisibilityChanged() {
         startAnimation();        
     } else {
         stopAnimation();
+        stopAll();
     }
 }
 
