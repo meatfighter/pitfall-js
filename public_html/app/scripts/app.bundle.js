@@ -230,7 +230,7 @@ class Clock {
     frames;
     timeUp;
     constructor(clock = {
-        minutes: (_store__WEBPACK_IMPORTED_MODULE_1__.store.difficulty === _store__WEBPACK_IMPORTED_MODULE_1__.Difficulty.EASY) ? 25 : (_store__WEBPACK_IMPORTED_MODULE_1__.store.difficulty === _store__WEBPACK_IMPORTED_MODULE_1__.Difficulty.NORMAL) ? 24 : 23,
+        minutes: (_store__WEBPACK_IMPORTED_MODULE_1__.store.difficulty === _store__WEBPACK_IMPORTED_MODULE_1__.Difficulty.EASY) ? 22 : (_store__WEBPACK_IMPORTED_MODULE_1__.store.difficulty === _store__WEBPACK_IMPORTED_MODULE_1__.Difficulty.NORMAL) ? 21 : 20,
         seconds: 0,
         frames: 59,
         timeUp: false,
@@ -861,7 +861,7 @@ function initGame() {
     (0,_treasure_map__WEBPACK_IMPORTED_MODULE_5__.updateTreasureMapIndex)(gs);
 }
 function update() {
-    (0,_input__WEBPACK_IMPORTED_MODULE_4__.updateInput)();
+    (0,_input__WEBPACK_IMPORTED_MODULE_4__.updateInput)(gs);
     if (gs.gameOver) {
         if (gs.newHighScore) {
             gs.scoreColor = (gs.scoreColor + 1) & 0xFF;
@@ -1152,6 +1152,7 @@ class Harry {
     swallow;
     kneeling;
     kneelingDelay;
+    rightTouchMeansDown;
     constructor(harry = {
         mainState: MainState.STANDING,
         lastMainState: MainState.STANDING,
@@ -1171,6 +1172,7 @@ class Harry {
         swallow: false,
         kneeling: false,
         kneelingDelay: false,
+        rightTouchMeansDown: false,
     }) {
         this.mainState = harry.mainState;
         this.lastMainState = harry.lastMainState;
@@ -1190,6 +1192,7 @@ class Harry {
         this.swallow = harry.swallow;
         this.kneeling = harry.kneeling;
         this.kneelingDelay = harry.kneelingDelay;
+        this.rightTouchMeansDown = harry.rightTouchMeansDown;
     }
     intersects(mask, x, y) {
         return (0,_math__WEBPACK_IMPORTED_MODULE_3__.spritesIntersect)(mask, x, y, _graphics__WEBPACK_IMPORTED_MODULE_0__.harryMasks[this.dir][this.sprite], Math.floor(this.x) - 4, Math.floor(this.y) - 22);
@@ -1197,6 +1200,9 @@ class Harry {
     canBeHitByRollingLog() {
         return this.mainState === MainState.STANDING || this.mainState === MainState.KNEELING
             || this.mainState === MainState.CLIMBING;
+    }
+    isClimbing() {
+        return this.mainState === MainState.CLIMBING;
     }
     isFalling() {
         return this.mainState === MainState.FALLING;
@@ -1271,6 +1277,7 @@ class Harry {
         this.sprite = 7;
         this.kneeling = false;
         this.climbCounter = 0;
+        this.rightTouchMeansDown = (y === 134) !== (this.dir !== 0);
     }
     endClimbing(x, y, dir) {
         this.mainState = MainState.STANDING;
@@ -1332,6 +1339,10 @@ class Harry {
             }
         }
         return shifting;
+    }
+    canStartClimbingUp() {
+        return this.mainState == MainState.STANDING && this.y === Y_LOWER_LEVEL && this.x >= 56 && this.x <= 72
+            && !(_input__WEBPACK_IMPORTED_MODULE_1__.leftPressed || _input__WEBPACK_IMPORTED_MODULE_1__.rightPressed || _input__WEBPACK_IMPORTED_MODULE_1__.upPressed || _input__WEBPACK_IMPORTED_MODULE_1__.downPressed || _input__WEBPACK_IMPORTED_MODULE_1__.jumpPressed);
     }
     updateStanding(gs) {
         const { ladder, holes } = _map__WEBPACK_IMPORTED_MODULE_2__.map[this.scene];
@@ -1420,15 +1431,20 @@ class Harry {
     }
     updateClimbing(gs) {
         if (this.y <= 142) {
-            if (_input__WEBPACK_IMPORTED_MODULE_1__.rightJustPressed
-                || (_input__WEBPACK_IMPORTED_MODULE_1__.jumpJustPressed && this.dir === 0)
-                || (this.y === 134 && _input__WEBPACK_IMPORTED_MODULE_1__.upPressed && (_input__WEBPACK_IMPORTED_MODULE_1__.rightPressed || (!_input__WEBPACK_IMPORTED_MODULE_1__.leftPressed && this.dir === 0)))) {
+            if (this.y === 134 && _input__WEBPACK_IMPORTED_MODULE_1__.upPressed) {
+                if (this.rightTouchMeansDown) {
+                    this.endClimbing(59, Y_UPPER_LEVEL, 1);
+                }
+                else {
+                    this.endClimbing(69, Y_UPPER_LEVEL, 0);
+                }
+                return;
+            }
+            if (_input__WEBPACK_IMPORTED_MODULE_1__.rightJustPressed || (_input__WEBPACK_IMPORTED_MODULE_1__.jumpJustPressed && this.dir === 0)) {
                 this.endClimbing(69, Y_UPPER_LEVEL, 0);
                 return;
             }
-            if (_input__WEBPACK_IMPORTED_MODULE_1__.leftJustPressed
-                || (_input__WEBPACK_IMPORTED_MODULE_1__.jumpJustPressed && this.dir === 1)
-                || (this.y === 134 && _input__WEBPACK_IMPORTED_MODULE_1__.upPressed && (_input__WEBPACK_IMPORTED_MODULE_1__.leftPressed || (!_input__WEBPACK_IMPORTED_MODULE_1__.rightPressed && this.dir === 1)))) {
+            if (_input__WEBPACK_IMPORTED_MODULE_1__.leftJustPressed || (_input__WEBPACK_IMPORTED_MODULE_1__.jumpJustPressed && this.dir === 1)) {
                 this.endClimbing(59, Y_UPPER_LEVEL, 1);
                 return;
             }
@@ -2488,13 +2504,14 @@ class TreasureCell {
     }
 }
 function updateTreasureMapIndex(gs) {
+    // Foward route -- Not as short as the reverse route, but doable in 20 minutes.
     for (let i = 0; i < treasureIndices.length; ++i) {
         if (gs.sceneStates[treasureIndices[i]].treasure !== _map__WEBPACK_IMPORTED_MODULE_0__.TreasureType.NONE) {
             gs.treasureMapIndex = i;
             break;
         }
     }
-    // TODO optimal reverse route
+    // Reverse route
     // for (let i = treasureIndices.length - 1, j = 0; i >= 0; --i, --j) {
     //     if (j < 0) {
     //         j += treasureIndices.length;
@@ -3145,7 +3162,6 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   downJustPressed: () => (/* binding */ downJustPressed),
 /* harmony export */   downJustReleased: () => (/* binding */ downJustReleased),
 /* harmony export */   downPressed: () => (/* binding */ downPressed),
-/* harmony export */   isTouchOnlyDevice: () => (/* binding */ isTouchOnlyDevice),
 /* harmony export */   jumpJustPressed: () => (/* binding */ jumpJustPressed),
 /* harmony export */   jumpJustReleased: () => (/* binding */ jumpJustReleased),
 /* harmony export */   jumpPressed: () => (/* binding */ jumpPressed),
@@ -3191,13 +3207,10 @@ let rightKeyPressed = 0;
 let upKeyPressed = 0;
 let downKeyPressed = 0;
 let jumpKeyPressed = false;
-// let leftScreenTouched = false;
-// let rightScreenTouched = false;
+let leftScreenTouched = 0;
+let rightScreenTouched = 0;
 let hideCursorTimeoutId = null;
 let cursorHidden = false;
-// let lastLeftGamepadDown = false;
-// let lastRightGamepadDown = false;
-// let lastFireGamepadDown = false;
 class TouchData {
     timestampDown = 0;
     xDown = 0;
@@ -3212,16 +3225,16 @@ function resetInput() {
     upKeyPressed = 0;
     downKeyPressed = 0;
     jumpKeyPressed = false;
-    // leftScreenTouched = false;
-    // rightScreenTouched = false;
+    leftScreenTouched = 0;
+    rightScreenTouched = 0;
     touchDatas.clear();
 }
-function isTouchOnlyDevice() {
-    const supportsTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
-    const supportsHover = window.matchMedia('(hover: hover)').matches;
-    const isCoarsePointer = window.matchMedia('(pointer: coarse)').matches;
-    return supportsTouch && !supportsHover && isCoarsePointer;
-}
+// export function isTouchOnlyDevice(): boolean {
+//     const supportsTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+//     const supportsHover = window.matchMedia('(hover: hover)').matches;
+//     const isCoarsePointer = window.matchMedia('(pointer: coarse)').matches;
+//     return supportsTouch && !supportsHover && isCoarsePointer;
+// }
 function startInput() {
     window.addEventListener('click', onClick);
     window.addEventListener('mousemove', resetHideCursorTimer);
@@ -3250,7 +3263,52 @@ function stopInput() {
     window.removeEventListener('touchcancel', onTouch);
     resetInput();
 }
-function updateInput() {
+function updateInput(gs) {
+    let touchLeft = false;
+    let touchRight = false;
+    let touchUp = false;
+    let touchDown = false;
+    let touchJump = false;
+    if (gs.harry.canStartClimbingUp() && ((rightScreenTouched !== 0 && gs.harry.dir === 0)
+        || (leftScreenTouched !== 0 && gs.harry.dir === 1))) {
+        touchUp = true;
+    }
+    else if (gs.harry.isClimbing()) {
+        if (leftScreenTouched > rightScreenTouched) {
+            if (gs.harry.rightTouchMeansDown) {
+                touchUp = true;
+            }
+            else {
+                touchDown = true;
+            }
+        }
+        else if (rightScreenTouched > leftScreenTouched) {
+            if (gs.harry.rightTouchMeansDown) {
+                touchDown = true;
+            }
+            else {
+                touchUp = true;
+            }
+        }
+    }
+    else if (leftScreenTouched > rightScreenTouched) {
+        if (rightScreenTouched > 0) {
+            touchRight = true;
+            touchJump = true;
+        }
+        else {
+            touchLeft = true;
+        }
+    }
+    else if (rightScreenTouched > leftScreenTouched) {
+        if (leftScreenTouched > 0) {
+            touchLeft = true;
+            touchJump = true;
+        }
+        else {
+            touchRight = true;
+        }
+    }
     let gamepadLeft = false;
     let gamepadRight = false;
     let gamepadUp = false;
@@ -3305,11 +3363,11 @@ function updateInput() {
             }
         }
     }
-    leftPressed = gamepadLeft || leftKeyPressed > rightKeyPressed;
-    rightPressed = gamepadRight || rightKeyPressed > leftKeyPressed;
-    upPressed = gamepadUp || upKeyPressed > downKeyPressed;
-    downPressed = gamepadDown || downKeyPressed > upKeyPressed;
-    jumpPressed = gamepadJump || jumpKeyPressed;
+    leftPressed = touchLeft || gamepadLeft || leftKeyPressed > rightKeyPressed;
+    rightPressed = touchRight || gamepadRight || rightKeyPressed > leftKeyPressed;
+    upPressed = touchUp || gamepadUp || upKeyPressed > downKeyPressed;
+    downPressed = touchDown || gamepadDown || downKeyPressed > upKeyPressed;
+    jumpPressed = touchJump || gamepadJump || jumpKeyPressed;
     leftJustPressed = leftPressed && !lastLeftPressed;
     leftJustReleased = !leftPressed && lastLeftPressed;
     rightJustPressed = rightPressed && !lastRightPressed;
@@ -3391,10 +3449,14 @@ function onTouch(e) {
             }
         }
     }
-    let td = null;
+    const halfInnerWidth = innerWidth / 2;
+    leftScreenTouched = rightScreenTouched = 0;
     for (const [identifier, touchData] of Array.from(touchDatas)) {
-        if (!td || touchData.timestampDown > td.timestampDown) {
-            td = touchData;
+        if (touchData.x < halfInnerWidth) {
+            leftScreenTouched = touchData.timestampDown;
+        }
+        else {
+            rightScreenTouched = touchData.timestampDown;
         }
         outer: {
             for (let i = e.touches.length - 1; i >= 0; --i) {
@@ -3406,17 +3468,6 @@ function onTouch(e) {
             touchDatas.delete(identifier);
         }
     }
-    // if (td) {
-    //     if (td.x < innerWidth / 2) {
-    //         leftScreenTouched = true;
-    //         rightScreenTouched = false;
-    //     } else {
-    //         leftScreenTouched = false;
-    //         rightScreenTouched = true;
-    //     }
-    // } else {
-    //     leftScreenTouched = rightScreenTouched = false;
-    // }
 }
 function onClick(e) {
     if (!(e.clientX && e.clientY)) {
@@ -3439,30 +3490,30 @@ function onClick(e) {
     }
 }
 function onKeyDown(e) {
-    switch (e.code) {
-        case 'KeyA':
-        case 'ArrowLeft':
-            leftKeyPressed = rightKeyPressed + 1;
-            break;
-        case 'KeyD':
-        case 'ArrowRight':
-            rightKeyPressed = leftKeyPressed + 1;
-            break;
-        case 'KeyW':
-        case 'ArrowUp':
-            upKeyPressed = downKeyPressed + 1;
-            break;
-        case 'KeyS':
-        case 'ArrowDown':
-            downKeyPressed = upKeyPressed + 1;
-            break;
-        case 'Escape':
-            (0,_screen__WEBPACK_IMPORTED_MODULE_0__.exit)();
-            break;
-        default:
-            jumpKeyPressed = true;
-            break;
-    }
+    // switch (e.code) {
+    //     case 'KeyA':
+    //     case 'ArrowLeft':
+    //         leftKeyPressed = rightKeyPressed + 1;
+    //         break;
+    //     case 'KeyD':
+    //     case 'ArrowRight':
+    //         rightKeyPressed = leftKeyPressed + 1;
+    //         break;
+    //     case 'KeyW':
+    //     case 'ArrowUp':
+    //         upKeyPressed = downKeyPressed + 1;
+    //         break;
+    //     case 'KeyS':
+    //     case 'ArrowDown':
+    //         downKeyPressed = upKeyPressed + 1;
+    //         break;            
+    //     case 'Escape':
+    //         exit();
+    //         break;    
+    //     default:
+    //         jumpKeyPressed = true;
+    //         break;            
+    // }
     // switch (e.code) {
     //     case 'KeyA':
     //         if (rightKeyPressed > 0) {
@@ -3487,31 +3538,39 @@ function onKeyDown(e) {
     //         }
     //         break;
     // }
-}
-function onKeyUp(e) {
     switch (e.code) {
         case 'KeyA':
-        case 'ArrowLeft':
-            leftKeyPressed = 0;
+            leftScreenTouched = rightScreenTouched + 1;
             break;
-        case 'KeyD':
-        case 'ArrowRight':
-            rightKeyPressed = 0;
-            break;
-        case 'KeyW':
-        case 'ArrowUp':
-            upKeyPressed = 0;
-            break;
-        case 'KeyS':
-        case 'ArrowDown':
-            downKeyPressed = 0;
-            break;
-        case 'Escape':
-            break;
-        default:
-            jumpKeyPressed = false;
+        case 'Quote':
+            rightScreenTouched = leftScreenTouched + 1;
             break;
     }
+}
+function onKeyUp(e) {
+    // switch (e.code) {
+    //     case 'KeyA':
+    //     case 'ArrowLeft':
+    //         leftKeyPressed = 0;
+    //         break;
+    //     case 'KeyD':
+    //     case 'ArrowRight':
+    //         rightKeyPressed = 0;
+    //         break;
+    //     case 'KeyW':
+    //     case 'ArrowUp':
+    //         upKeyPressed = 0;
+    //         break;
+    //     case 'KeyS':
+    //     case 'ArrowDown':
+    //         downKeyPressed = 0;
+    //         break;                  
+    //     case 'Escape':
+    //         break;
+    //     default:
+    //         jumpKeyPressed = false;
+    //         break;            
+    // }
     // switch (e.code) {
     //     case 'KeyA':
     //         leftKeyPressed = 0;
@@ -3524,6 +3583,14 @@ function onKeyUp(e) {
     //         upKeyPressed = 0;
     //         break;
     // }
+    switch (e.code) {
+        case 'KeyA':
+            leftScreenTouched = 0;
+            break;
+        case 'Quote':
+            rightScreenTouched = 0;
+            break;
+    }
 }
 
 

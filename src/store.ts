@@ -1,4 +1,3 @@
-import { isTouchOnlyDevice } from './input';
 import { GameState } from './game/game-state';
 
 export const LOCAL_STORAGE_KEY = 'pitfall-store';

@@ -28,7 +28,7 @@ export function initGame() {
 }
 
 export function update() {
-    updateInput();
+    updateInput(gs);
 
     if (gs.gameOver) {
         if (gs.newHighScore) {

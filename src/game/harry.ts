@@ -54,7 +54,8 @@ export class Harry {
     releasedVine: boolean;
     swallow: boolean;
     kneeling: boolean;
-    kneelingDelay: boolean; 
+    kneelingDelay: boolean;
+    rightTouchMeansDown: boolean; 
 
     constructor(harry: {
         mainState: MainState;
@@ -74,7 +75,8 @@ export class Harry {
         releasedVine: boolean;
         swallow: boolean;
         kneeling: boolean;
-        kneelingDelay: boolean;   
+        kneelingDelay: boolean;
+        rightTouchMeansDown: boolean; 
     } = {
         mainState: MainState.STANDING,
         lastMainState: MainState.STANDING,
@@ -94,6 +96,7 @@ export class Harry {
         swallow: false,
         kneeling: false,
         kneelingDelay: false,
+        rightTouchMeansDown: false,
     }) {
         this.mainState = harry.mainState;
         this.lastMainState = harry.lastMainState;
@@ -113,6 +116,7 @@ export class Harry {
         this.swallow = harry.swallow;
         this.kneeling = harry.kneeling;
         this.kneelingDelay = harry.kneelingDelay;
+        this.rightTouchMeansDown = harry.rightTouchMeansDown;
     }
 
     intersects(mask: Mask, x: number, y: number): boolean {
@@ -123,6 +127,10 @@ export class Harry {
     canBeHitByRollingLog() {
         return this.mainState === MainState.STANDING || this.mainState === MainState.KNEELING 
                 || this.mainState === MainState.CLIMBING;
+    }
+
+    isClimbing() {
+        return this.mainState === MainState.CLIMBING;
     }
 
     isFalling() {
@@ -202,7 +210,8 @@ export class Harry {
         this.y = y;
         this.sprite = 7;
         this.kneeling = false;
-        this.climbCounter = 0;        
+        this.climbCounter = 0;
+        this.rightTouchMeansDown = (y === 134) !== (this.dir !== 0);
     }
 
     private endClimbing(x: number, y: number, dir: number) {
@@ -262,6 +271,11 @@ export class Harry {
             }
         }
         return shifting;
+    }
+
+    canStartClimbingUp(): boolean {
+        return this.mainState == MainState.STANDING && this.y === Y_LOWER_LEVEL && this.x >= 56 && this.x <= 72 
+                && !(leftPressed || rightPressed || upPressed || downPressed || jumpPressed);
     }
 
     private updateStanding(gs: GameState) {
@@ -363,15 +377,21 @@ export class Harry {
 
     private updateClimbing(gs: GameState) {
         if (this.y <= 142) {
-            if (rightJustPressed
-                    || (jumpJustPressed && this.dir === 0)
-                    || (this.y === 134 && upPressed && (rightPressed || (!leftPressed && this.dir === 0)))) {
+            if (this.y === 134 && upPressed) {
+                if (this.rightTouchMeansDown) {
+                    this.endClimbing(59, Y_UPPER_LEVEL, 1);
+                } else {
+                    this.endClimbing(69, Y_UPPER_LEVEL, 0);
+                }
+                return;
+            }
+
+            if (rightJustPressed || (jumpJustPressed && this.dir === 0)) {
                 this.endClimbing(69, Y_UPPER_LEVEL, 0);
                 return;
             } 
-            if (leftJustPressed 
-                    || (jumpJustPressed && this.dir === 1)
-                    || (this.y === 134 && upPressed && (leftPressed || (!rightPressed && this.dir === 1)))) {
+
+            if (leftJustPressed || (jumpJustPressed && this.dir === 1)) {
                 this.endClimbing(59, Y_UPPER_LEVEL, 1);
                 return;
             }

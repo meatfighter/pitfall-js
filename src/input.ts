@@ -1,4 +1,5 @@
 import { exit } from '@/screen';
+import { GameState } from './game/game-state';
 
 const ANALOG_STICK_THRESHOLD = 0.5;
 
@@ -32,15 +33,11 @@ let upKeyPressed = 0;
 let downKeyPressed = 0;
 let jumpKeyPressed = false;
 
-// let leftScreenTouched = false;
-// let rightScreenTouched = false;
+let leftScreenTouched = 0;
+let rightScreenTouched = 0;
 
 let hideCursorTimeoutId: number | null = null;
 let cursorHidden = false;
-
-// let lastLeftGamepadDown = false;
-// let lastRightGamepadDown = false;
-// let lastFireGamepadDown = false;
 
 class TouchData {
     timestampDown = 0;
@@ -57,20 +54,18 @@ export function resetInput() {
     rightKeyPressed = 0;
     upKeyPressed = 0;
     downKeyPressed = 0;
-    jumpKeyPressed = false; 
-    
-    // leftScreenTouched = false;
-    // rightScreenTouched = false;
-
+    jumpKeyPressed = false;   
+    leftScreenTouched = 0;
+    rightScreenTouched = 0;
     touchDatas.clear();
 }
 
-export function isTouchOnlyDevice(): boolean {
-    const supportsTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
-    const supportsHover = window.matchMedia('(hover: hover)').matches;
-    const isCoarsePointer = window.matchMedia('(pointer: coarse)').matches;
-    return supportsTouch && !supportsHover && isCoarsePointer;
-}
+// export function isTouchOnlyDevice(): boolean {
+//     const supportsTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+//     const supportsHover = window.matchMedia('(hover: hover)').matches;
+//     const isCoarsePointer = window.matchMedia('(pointer: coarse)').matches;
+//     return supportsTouch && !supportsHover && isCoarsePointer;
+// }
 
 export function startInput() {
     window.addEventListener('click', onClick);
@@ -108,7 +103,45 @@ export function stopInput() {
     resetInput();
 }
 
-export function updateInput() {
+export function updateInput(gs: GameState) {
+
+    let touchLeft = false;
+    let touchRight = false;
+    let touchUp = false;
+    let touchDown = false;
+    let touchJump = false;
+    if (gs.harry.canStartClimbingUp() && ((rightScreenTouched !== 0 && gs.harry.dir === 0)
+            || (leftScreenTouched !== 0 && gs.harry.dir === 1))) {
+        touchUp = true;
+    } else if (gs.harry.isClimbing()) {
+        if (leftScreenTouched > rightScreenTouched) {
+            if (gs.harry.rightTouchMeansDown) {
+                touchUp = true;
+            } else {
+                touchDown = true;
+            }
+        } else if (rightScreenTouched > leftScreenTouched) {
+            if (gs.harry.rightTouchMeansDown) {
+                touchDown = true;
+            } else {
+                touchUp = true;
+            }
+        }
+    } else if (leftScreenTouched > rightScreenTouched) {
+        if (rightScreenTouched > 0) {
+            touchRight = true;
+            touchJump = true;
+        } else {
+            touchLeft = true;
+        }
+    } else if (rightScreenTouched > leftScreenTouched) {
+        if (leftScreenTouched > 0) {
+            touchLeft = true;
+            touchJump = true;
+        } else {
+            touchRight = true;
+        }
+    }
 
     let gamepadLeft = false;
     let gamepadRight = false;
@@ -170,11 +203,11 @@ export function updateInput() {
         }
     }
 
-    leftPressed = gamepadLeft || leftKeyPressed > rightKeyPressed;
-    rightPressed = gamepadRight || rightKeyPressed > leftKeyPressed;
-    upPressed = gamepadUp || upKeyPressed > downKeyPressed;
-    downPressed = gamepadDown || downKeyPressed > upKeyPressed;
-    jumpPressed = gamepadJump || jumpKeyPressed;    
+    leftPressed = touchLeft || gamepadLeft || leftKeyPressed > rightKeyPressed;
+    rightPressed = touchRight || gamepadRight || rightKeyPressed > leftKeyPressed;
+    upPressed = touchUp || gamepadUp || upKeyPressed > downKeyPressed;
+    downPressed = touchDown || gamepadDown || downKeyPressed > upKeyPressed;
+    jumpPressed = touchJump || gamepadJump || jumpKeyPressed;    
 
     leftJustPressed = leftPressed && !lastLeftPressed;
     leftJustReleased = !leftPressed && lastLeftPressed;
@@ -269,10 +302,13 @@ function onTouch(e: TouchEvent) {
         }
     }
     
-    let td: TouchData | null = null;
+    const halfInnerWidth = innerWidth / 2;
+    leftScreenTouched = rightScreenTouched = 0;
     for (const [ identifier, touchData ] of Array.from(touchDatas)) {
-        if (!td || touchData.timestampDown > td.timestampDown) {
-            td = touchData;
+        if (touchData.x < halfInnerWidth) {
+            leftScreenTouched = touchData.timestampDown;
+        } else {
+            rightScreenTouched = touchData.timestampDown;
         }
         outer: {
             for (let i = e.touches.length - 1; i >= 0; --i) {
@@ -284,17 +320,6 @@ function onTouch(e: TouchEvent) {
             touchDatas.delete(identifier);
         }
     }
-    // if (td) {
-    //     if (td.x < innerWidth / 2) {
-    //         leftScreenTouched = true;
-    //         rightScreenTouched = false;
-    //     } else {
-    //         leftScreenTouched = false;
-    //         rightScreenTouched = true;
-    //     }
-    // } else {
-    //     leftScreenTouched = rightScreenTouched = false;
-    // }
 }
 
 function onClick(e: MouseEvent) {
@@ -320,30 +345,30 @@ function onClick(e: MouseEvent) {
 }
 
 function onKeyDown(e: KeyboardEvent) {
-    switch (e.code) {
-        case 'KeyA':
-        case 'ArrowLeft':
-            leftKeyPressed = rightKeyPressed + 1;
-            break;
-        case 'KeyD':
-        case 'ArrowRight':
-            rightKeyPressed = leftKeyPressed + 1;
-            break;
-        case 'KeyW':
-        case 'ArrowUp':
-            upKeyPressed = downKeyPressed + 1;
-            break;
-        case 'KeyS':
-        case 'ArrowDown':
-            downKeyPressed = upKeyPressed + 1;
-            break;            
-        case 'Escape':
-            exit();
-            break;    
-        default:
-            jumpKeyPressed = true;
-            break;            
-    }
+    // switch (e.code) {
+    //     case 'KeyA':
+    //     case 'ArrowLeft':
+    //         leftKeyPressed = rightKeyPressed + 1;
+    //         break;
+    //     case 'KeyD':
+    //     case 'ArrowRight':
+    //         rightKeyPressed = leftKeyPressed + 1;
+    //         break;
+    //     case 'KeyW':
+    //     case 'ArrowUp':
+    //         upKeyPressed = downKeyPressed + 1;
+    //         break;
+    //     case 'KeyS':
+    //     case 'ArrowDown':
+    //         downKeyPressed = upKeyPressed + 1;
+    //         break;            
+    //     case 'Escape':
+    //         exit();
+    //         break;    
+    //     default:
+    //         jumpKeyPressed = true;
+    //         break;            
+    // }
 
     // switch (e.code) {
     //     case 'KeyA':
@@ -369,32 +394,41 @@ function onKeyDown(e: KeyboardEvent) {
     //         }
     //         break;
     // }
+
+    switch (e.code) {
+        case 'KeyA':
+            leftScreenTouched = rightScreenTouched + 1;
+            break;
+        case 'Quote':
+            rightScreenTouched = leftScreenTouched + 1;
+            break;
+    }
 }
 
 function onKeyUp(e: KeyboardEvent) {
-    switch (e.code) {
-        case 'KeyA':
-        case 'ArrowLeft':
-            leftKeyPressed = 0;
-            break;
-        case 'KeyD':
-        case 'ArrowRight':
-            rightKeyPressed = 0;
-            break;
-        case 'KeyW':
-        case 'ArrowUp':
-            upKeyPressed = 0;
-            break;
-        case 'KeyS':
-        case 'ArrowDown':
-            downKeyPressed = 0;
-            break;                  
-        case 'Escape':
-            break;
-        default:
-            jumpKeyPressed = false;
-            break;            
-    }
+    // switch (e.code) {
+    //     case 'KeyA':
+    //     case 'ArrowLeft':
+    //         leftKeyPressed = 0;
+    //         break;
+    //     case 'KeyD':
+    //     case 'ArrowRight':
+    //         rightKeyPressed = 0;
+    //         break;
+    //     case 'KeyW':
+    //     case 'ArrowUp':
+    //         upKeyPressed = 0;
+    //         break;
+    //     case 'KeyS':
+    //     case 'ArrowDown':
+    //         downKeyPressed = 0;
+    //         break;                  
+    //     case 'Escape':
+    //         break;
+    //     default:
+    //         jumpKeyPressed = false;
+    //         break;            
+    // }
 
     // switch (e.code) {
     //     case 'KeyA':
@@ -408,4 +442,13 @@ function onKeyUp(e: KeyboardEvent) {
     //         upKeyPressed = 0;
     //         break;
     // }
+
+    switch (e.code) {
+        case 'KeyA':
+            leftScreenTouched = 0;
+            break;
+        case 'Quote':
+            rightScreenTouched = 0;
+            break;
+    }    
 }
