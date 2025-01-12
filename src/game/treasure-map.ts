@@ -106,7 +106,10 @@ export function updateTreasureMapIndex(gs: GameState) {
     // }
 
     // TODO optimal reverse route
-    for (let i = 0, j = 0; i < treasureIndices.length; ++i, --j) {
+    for (let i = treasureIndices.length - 1, j = 0; i >= 0; --i, --j) {
+        if (j < 0) {
+            j += treasureIndices.length;
+        }
         if (gs.sceneStates[treasureIndices[j]].treasure !== TreasureType.NONE) {
             gs.treasureMapIndex = j;
             break;
