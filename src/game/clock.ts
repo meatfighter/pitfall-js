@@ -14,7 +14,7 @@ export class Clock {
         frames: number;
         timeUp: boolean;
     } = {
-        minutes: (store.difficulty === Difficulty.EASY) ? 25 : (store.difficulty === Difficulty.NORMAL) ? 24 : 23,
+        minutes: (store.difficulty === Difficulty.EASY) ? 22 : (store.difficulty === Difficulty.NORMAL) ? 21 : 20,
         seconds: 0,
         frames: 59,
         timeUp: false,

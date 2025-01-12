@@ -33,7 +33,7 @@ export class Treasure {
                 return;    
         }
 
-        if (gs.harry.intersects(mask, 116, 111)) {
+        if (gs.harry.intersects(mask, 108, 111)) {
             gs.sceneStates[gs.harry.scene].treasure = TreasureType.NONE;            
             gs.score += points;
             if (++gs.treasureCount === 32) {
@@ -63,6 +63,6 @@ export class Treasure {
                 return;    
         }
 
-        ctx.drawImage(sprite, 116 - ox, 111);
+        ctx.drawImage(sprite, 108 - ox, 111);
     }
 }

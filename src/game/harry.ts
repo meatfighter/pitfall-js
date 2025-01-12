@@ -23,7 +23,7 @@ const VY0 = -G * T;
 
 const INJURED_DELAY = 20 // 134;
 
-const X_SPAWN_MARGIN = Resolution.WIDTH / 4;
+const X_SPAWN_MARGIN = 38;
 
 enum MainState {
     STANDING,
@@ -79,8 +79,8 @@ export class Harry {
         mainState: MainState.STANDING,
         lastMainState: MainState.STANDING,
         scene: 0,
-        absoluteX: 12,
-        x: 12,
+        absoluteX: 4,
+        x: 4,
         y: Y_UPPER_LEVEL,
         vy: 0,
         dir: 0,
@@ -198,7 +198,7 @@ export class Harry {
 
     private startClimbing(y: number) {
         this.mainState = MainState.CLIMBING;
-        this.teleport(72);
+        this.teleport(64);
         this.y = y;
         this.sprite = 7;
         this.kneeling = false;
@@ -220,16 +220,16 @@ export class Harry {
         let shifting = false;
         if (rightPressed) {
             let moveRight = true;
-            if (this.y >= 120 && ((wall === WallType.RIGHT && this.x === 127) 
-                    || (wall === WallType.LEFT && this.x === 9))) {
+            if (this.y >= 120 && ((wall === WallType.RIGHT && this.x === 119) 
+                    || (wall === WallType.LEFT && this.x === 1))) {
                 moveRight = false;
             } else if (this.y > Y_UPPER_LEVEL && this.y <= Y_HOLE_BOTTOM) {
-                if (this.x >= 40 && this.x <= 52) {
-                    if (this.x > 51.5) {
+                if (this.x >= 32 && this.x <= 44) {
+                    if (this.x > 43.5) {
                         moveRight = false;
                     }
-                } else if (this.x >= 92 && this.x <= 104) {
-                    if (this.x > 103.5) {
+                } else if (this.x >= 84 && this.x <= 96) {
+                    if (this.x > 95.5) {
                         moveRight = false;
                     }
                 }                
@@ -241,16 +241,16 @@ export class Harry {
             }
         } else if (leftPressed) {
             let moveLeft = true;
-            if (this.y >= 120 && ((wall === WallType.LEFT && this.x === 18) 
-                    || (wall === WallType.RIGHT && this.x === 136))) {
+            if (this.y >= 120 && ((wall === WallType.LEFT && this.x === 10) 
+                    || (wall === WallType.RIGHT && this.x === 128))) {
                 moveLeft = false;
             } else if (this.y > Y_UPPER_LEVEL && this.y <= Y_HOLE_BOTTOM) {
-                if (this.x >= 40 && this.x <= 51) {
-                    if (this.x < 40.5) {
+                if (this.x >= 32 && this.x <= 43) {
+                    if (this.x < 32.5) {
                         moveLeft = false;
                     }
-                } else if (this.x >= 92 && this.x <= 103) {
-                    if (this.x < 92.5) {
+                } else if (this.x >= 84 && this.x <= 95) {
+                    if (this.x < 84.5) {
                         moveLeft = false;
                     }
                 }                
@@ -267,7 +267,7 @@ export class Harry {
     private updateStanding(gs: GameState) {
         const { ladder, holes } = map[this.scene];
 
-        if (holes && this.y === Y_UPPER_LEVEL && ((this.x >= 40 && this.x <= 52) || (this.x >= 92 && this.x <= 104))) {
+        if (holes && this.y === Y_UPPER_LEVEL && ((this.x >= 32 && this.x <= 44) || (this.x >= 84 && this.x <= 96))) {
             this.startFalling(gs, G);
             gs.score = Math.max(0, gs.score - 100);
             return;
@@ -279,14 +279,14 @@ export class Harry {
         }
 
         if (ladder) {
-            if (this.y === Y_UPPER_LEVEL && ((this.x >= 68 && this.x <= 75) 
+            if (this.y === Y_UPPER_LEVEL && ((this.x >= 60 && this.x <= 67) 
                     || (((downPressed && !(leftPressed || rightPressed)) || downJustPressed) 
-                            && this.x >= 64 && this.x <= 80))) {
+                            && this.x >= 56 && this.x <= 72))) {
                 this.startClimbing(134);
                 return;
             } 
             if (this.y === Y_LOWER_LEVEL && ((upPressed && !(leftPressed || rightPressed)) || upJustPressed) 
-                    && this.x >= 64 && this.x <= 80) {
+                    && this.x >= 56 && this.x <= 72) {
                 this.startClimbing(this.y);
                 return;
             }
@@ -306,7 +306,7 @@ export class Harry {
     private updateFalling(gs: GameState) {
         const { ladder, holes, wall } = map[this.scene];
 
-        if (ladder && this.y >= 134 && this.y < Y_LOWER_LEVEL && this.x >= 68 && this.x <= 75) {
+        if (ladder && this.y >= 134 && this.y < Y_LOWER_LEVEL && this.x >= 60 && this.x <= 67) {
             const stepsToTop = Math.floor((this.y - 134) / 4);
             this.startClimbing(134 + 4 * stepsToTop);
             this.dir ^= stepsToTop & 1;
@@ -316,11 +316,11 @@ export class Harry {
         const nextY = this.y + this.vy;
 
         if (this.y <= Y_UPPER_LEVEL && nextY >= Y_UPPER_LEVEL) {
-            if (ladder && this.x >= 68 && this.x <= 75) {
+            if (ladder && this.x >= 60 && this.x <= 67) {
                 this.startClimbing(134);
                 return;
             }
-            if (!holes || this.x < 40 || this.x > 103 || (this.x > 51 && this.x < 92)) {
+            if (!holes || this.x < 32 || this.x > 95 || (this.x > 43 && this.x < 84)) {
                 this.endFalling(gs, Y_UPPER_LEVEL);
                 return;        
             }
@@ -366,13 +366,13 @@ export class Harry {
             if (rightJustPressed
                     || (jumpJustPressed && this.dir === 0)
                     || (this.y === 134 && upPressed && (rightPressed || (!leftPressed && this.dir === 0)))) {
-                this.endClimbing(77, Y_UPPER_LEVEL, 0);
+                this.endClimbing(69, Y_UPPER_LEVEL, 0);
                 return;
             } 
             if (leftJustPressed 
                     || (jumpJustPressed && this.dir === 1)
                     || (this.y === 134 && upPressed && (leftPressed || (!rightPressed && this.dir === 1)))) {
-                this.endClimbing(67, Y_UPPER_LEVEL, 1);
+                this.endClimbing(59, Y_UPPER_LEVEL, 1);
                 return;
             }
         }
@@ -415,7 +415,7 @@ export class Harry {
             }    
         } else {
             spawnX = this.x + X_SPAWN_MARGIN;
-            if (spawnX >= 148) {
+            if (spawnX >= 140) {
                 spawnX = this.x - X_SPAWN_MARGIN;
             }
         }
@@ -433,7 +433,7 @@ export class Harry {
         --gs.extraLives;
 
         this.mainState = MainState.FALLING;
-        this.teleport((this.dir === 0) ? 16 : 135);
+        this.teleport((this.dir === 0) ? 8 : 127);
         this.y = 51;
         this.vy = 0;
         this.sprite = 2;
@@ -580,9 +580,9 @@ export class Harry {
                 if (Y < 121) {
                     ctx.drawImage(sprite, 0, 0, 8, 121 - Y, X, Y, 8, 121 - Y);
                     const crocImages = crocSprites[gs.sceneStates[this.scene].enteredLeft ? 0 : 1];                  
-                    ctx.drawImage(crocImages[0], 0, 9, 8, 2, 52 - ox, 120, 8, 2);
-                    ctx.drawImage(crocImages[0], 0, 9, 8, 2, 68 - ox, 120, 8, 2);
-                    ctx.drawImage(crocImages[0], 0, 9, 8, 2, 84 - ox, 120, 8, 2);
+                    ctx.drawImage(crocImages[0], 0, 9, 8, 2, 44 - ox, 120, 8, 2);
+                    ctx.drawImage(crocImages[0], 0, 9, 8, 2, 60 - ox, 120, 8, 2);
+                    ctx.drawImage(crocImages[0], 0, 9, 8, 2, 76 - ox, 120, 8, 2);
                 }
             } else if (Y < 119) {
                 ctx.drawImage(sprite, 0, 0, 8, 119 - Y, X, Y, 8, 119 - Y);
