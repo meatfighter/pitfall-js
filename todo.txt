@@ -1,10 +1,8 @@
 touch
 
-gamepad
-
 sfx
-
-store/load game state
 
 web page
 web page icons
+
+narrow width
