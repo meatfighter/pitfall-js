@@ -294,7 +294,7 @@ class CobraAndFire {
             default:
                 return;
         }
-        if (gs.harry.intersects(mask, 116, 111)) {
+        if (gs.harry.intersects(mask, 108, 111)) {
             gs.harry.injure();
         }
     }
@@ -310,7 +310,7 @@ class CobraAndFire {
             default:
                 return;
         }
-        ctx.drawImage(sprite, 116 - ox, 111);
+        ctx.drawImage(sprite, 108 - ox, 111);
     }
 }
 
@@ -748,8 +748,8 @@ class GameState {
         cobraAndFire: undefined,
         treasure: undefined,
         clock: undefined,
-        scrollX: 12,
-        lastScrollX: 12,
+        scrollX: 4,
+        lastScrollX: 4,
         ox: 0,
         lastOx: 0,
         nextOx: 0,
@@ -850,10 +850,10 @@ const SCENE_ALPHA_DELTA = 1 / 30;
 const MIN_SCROLL_DELTA = .5;
 const SCROLL_MARGIN = 4;
 const TRUNKS = [
-    [8, 40, 100, 132],
-    [16, 48, 92, 124],
-    [24, 56, 84, 116],
-    [28, 60, 80, 112],
+    [0, 32, 92, 124],
+    [8, 40, 84, 116],
+    [16, 48, 76, 108],
+    [20, 52, 72, 104],
 ];
 let gs;
 function initGame() {
@@ -920,7 +920,7 @@ function update() {
         }
     }
     gs.lastScrollX = targetScrollX;
-    gs.ox = Math.floor(gs.harry.x) - 76 + Math.floor(gs.scrollX) - targetScrollX;
+    gs.ox = Math.floor(gs.harry.x) - 68 + Math.floor(gs.scrollX) - targetScrollX;
     if (gs.lastOx !== gs.ox) {
         gs.rollingLog.sync();
         gs.lastOx = gs.ox;
@@ -962,12 +962,12 @@ function renderBackground(ctx, scene, ox) {
     const trunks = TRUNKS[trees];
     if (_store__WEBPACK_IMPORTED_MODULE_6__.store.difficulty === _store__WEBPACK_IMPORTED_MODULE_6__.Difficulty.EASY) {
         const cells = _treasure_map__WEBPACK_IMPORTED_MODULE_5__.treasureCells[gs.treasureMapIndex][scene];
-        ctx.drawImage(_graphics__WEBPACK_IMPORTED_MODULE_2__.arrowSprites[_treasure_map__WEBPACK_IMPORTED_MODULE_5__.Tier.UPPER][cells[_treasure_map__WEBPACK_IMPORTED_MODULE_5__.Tier.UPPER].direction], 68 - ox, 75);
+        ctx.drawImage(_graphics__WEBPACK_IMPORTED_MODULE_2__.arrowSprites[_treasure_map__WEBPACK_IMPORTED_MODULE_5__.Tier.UPPER][cells[_treasure_map__WEBPACK_IMPORTED_MODULE_5__.Tier.UPPER].direction], 60 - ox, 75);
         const lowerDirection = cells[_treasure_map__WEBPACK_IMPORTED_MODULE_5__.Tier.LOWER].direction;
         let lowerOffset;
         switch (wall) {
             case _map__WEBPACK_IMPORTED_MODULE_0__.WallType.LEFT:
-                lowerOffset = (lowerDirection === _treasure_map__WEBPACK_IMPORTED_MODULE_5__.Direction.RIGHT || lowerDirection === _treasure_map__WEBPACK_IMPORTED_MODULE_5__.Direction.LEFT) ? 60 : 61;
+                lowerOffset = (lowerDirection === _treasure_map__WEBPACK_IMPORTED_MODULE_5__.Direction.RIGHT || lowerDirection === _treasure_map__WEBPACK_IMPORTED_MODULE_5__.Direction.LEFT) ? 52 : 53;
                 break;
             case _map__WEBPACK_IMPORTED_MODULE_0__.WallType.RIGHT:
                 lowerOffset = 76;
@@ -985,28 +985,28 @@ function renderBackground(ctx, scene, ox) {
     }
     if (ladder) {
         ctx.fillStyle = _graphics__WEBPACK_IMPORTED_MODULE_2__.colors[_graphics__WEBPACK_IMPORTED_MODULE_2__.Colors.BLACK];
-        ctx.fillRect(68 - ox, 116, 8, 6);
-        ctx.fillRect(68 - ox, 127, 8, 15);
+        ctx.fillRect(60 - ox, 116, 8, 6);
+        ctx.fillRect(60 - ox, 127, 8, 15);
         ctx.fillStyle = _graphics__WEBPACK_IMPORTED_MODULE_2__.colors[_graphics__WEBPACK_IMPORTED_MODULE_2__.Colors.DARK_YELLOW];
         for (let i = 10, y = 130; i >= 0; --i, y += 4) {
-            ctx.fillRect(70 - ox, y, 4, 2);
+            ctx.fillRect(62 - ox, y, 4, 2);
         }
     }
     if (holes) {
         ctx.fillStyle = _graphics__WEBPACK_IMPORTED_MODULE_2__.colors[_graphics__WEBPACK_IMPORTED_MODULE_2__.Colors.BLACK];
-        ctx.fillRect(40 - ox, 116, 12, 6);
-        ctx.fillRect(40 - ox, 127, 12, 15);
-        ctx.fillRect(92 - ox, 116, 12, 6);
-        ctx.fillRect(92 - ox, 127, 12, 15);
+        ctx.fillRect(32 - ox, 116, 12, 6);
+        ctx.fillRect(32 - ox, 127, 12, 15);
+        ctx.fillRect(84 - ox, 116, 12, 6);
+        ctx.fillRect(84 - ox, 127, 12, 15);
     }
     switch (wall) {
         case _map__WEBPACK_IMPORTED_MODULE_0__.WallType.LEFT:
-            ctx.drawImage(_graphics__WEBPACK_IMPORTED_MODULE_2__.wallSprite, 10 - ox, 142);
-            ctx.drawImage(_graphics__WEBPACK_IMPORTED_MODULE_2__.wallSprite, 10 - ox, 158);
+            ctx.drawImage(_graphics__WEBPACK_IMPORTED_MODULE_2__.wallSprite, 2 - ox, 142);
+            ctx.drawImage(_graphics__WEBPACK_IMPORTED_MODULE_2__.wallSprite, 2 - ox, 158);
             break;
         case _map__WEBPACK_IMPORTED_MODULE_0__.WallType.RIGHT:
-            ctx.drawImage(_graphics__WEBPACK_IMPORTED_MODULE_2__.wallSprite, 128 - ox, 142);
-            ctx.drawImage(_graphics__WEBPACK_IMPORTED_MODULE_2__.wallSprite, 128 - ox, 158);
+            ctx.drawImage(_graphics__WEBPACK_IMPORTED_MODULE_2__.wallSprite, 120 - ox, 142);
+            ctx.drawImage(_graphics__WEBPACK_IMPORTED_MODULE_2__.wallSprite, 120 - ox, 158);
             break;
     }
     if (scorpion) {
@@ -1042,26 +1042,25 @@ function renderLeaves(ctx, scene, ox) {
     const { trees } = _map__WEBPACK_IMPORTED_MODULE_0__.map[scene];
     ctx.fillStyle = _graphics__WEBPACK_IMPORTED_MODULE_2__.colors[_graphics__WEBPACK_IMPORTED_MODULE_2__.Colors.DARK_GREEN];
     ctx.fillRect(0, 0, _graphics__WEBPACK_IMPORTED_MODULE_2__.Resolution.WIDTH, 51);
-    ctx.drawImage(_graphics__WEBPACK_IMPORTED_MODULE_2__.leavesSprites[1][trees], 6, 0, 2, 4, -ox, 51, 8, 8);
     for (let i = 1; i < 5; ++i) {
-        ctx.drawImage(_graphics__WEBPACK_IMPORTED_MODULE_2__.leavesSprites[(i & 1) ^ 1][trees], (i << 5) - ox - 24, 51, 32, 8);
+        ctx.drawImage(_graphics__WEBPACK_IMPORTED_MODULE_2__.leavesSprites[(i & 1) ^ 1][trees], ((i - 1) << 5) - ox, 51, 32, 8);
     }
-    ctx.drawImage(_graphics__WEBPACK_IMPORTED_MODULE_2__.leavesSprites[0][trees], 0, 0, 4, 4, 136 - ox, 51, 16, 8);
+    ctx.drawImage(_graphics__WEBPACK_IMPORTED_MODULE_2__.leavesSprites[0][trees], 0, 0, 2, 4, 128 - ox, 51, 8, 8);
 }
 function renderHUD(ctx) {
-    (0,_graphics__WEBPACK_IMPORTED_MODULE_2__.printNumber)(ctx, gs.score, 53, 3, gs.scoreColor);
+    (0,_graphics__WEBPACK_IMPORTED_MODULE_2__.printNumber)(ctx, gs.score, 45, 3, gs.scoreColor);
     gs.clock.render(ctx);
     ctx.fillStyle = _graphics__WEBPACK_IMPORTED_MODULE_2__.colors[_graphics__WEBPACK_IMPORTED_MODULE_2__.Colors.OFF_WHITE];
-    for (let i = gs.extraLives - 1, x = 13; i >= 0; --i, x += 2) {
+    for (let i = gs.extraLives - 1, x = 5; i >= 0; --i, x += 2) {
         ctx.fillRect(x, 16, 1, 8);
     }
     if (_store__WEBPACK_IMPORTED_MODULE_6__.store.difficulty !== _store__WEBPACK_IMPORTED_MODULE_6__.Difficulty.HARD) {
-        (0,_graphics__WEBPACK_IMPORTED_MODULE_2__.printNumber)(ctx, gs.harry.scene + 1, 124, 3, _graphics__WEBPACK_IMPORTED_MODULE_2__.Colors.OFF_WHITE);
-        (0,_graphics__WEBPACK_IMPORTED_MODULE_2__.printNumber)(ctx, gs.treasureCount, 100, 16, _graphics__WEBPACK_IMPORTED_MODULE_2__.Colors.OFF_WHITE);
+        (0,_graphics__WEBPACK_IMPORTED_MODULE_2__.printNumber)(ctx, gs.harry.scene + 1, 116, 3, _graphics__WEBPACK_IMPORTED_MODULE_2__.Colors.OFF_WHITE);
+        (0,_graphics__WEBPACK_IMPORTED_MODULE_2__.printNumber)(ctx, gs.treasureCount, 92, 16, _graphics__WEBPACK_IMPORTED_MODULE_2__.Colors.OFF_WHITE);
         const sprites = _graphics__WEBPACK_IMPORTED_MODULE_2__.charSprites[_graphics__WEBPACK_IMPORTED_MODULE_2__.Colors.OFF_WHITE];
-        ctx.drawImage(sprites[10], 108, 16);
-        ctx.drawImage(sprites[3], 116, 16);
-        ctx.drawImage(sprites[2], 124, 16);
+        ctx.drawImage(sprites[10], 100, 16);
+        ctx.drawImage(sprites[3], 108, 16);
+        ctx.drawImage(sprites[2], 116, 16);
     }
 }
 function renderScreen(ctx) {
@@ -1122,7 +1121,7 @@ const T = JUMP_ARC_BASE;
 const G = 2 * JUMP_ARC_HEIGHT / (T * T);
 const VY0 = -G * T;
 const INJURED_DELAY = 20; // 134;
-const X_SPAWN_MARGIN = _graphics__WEBPACK_IMPORTED_MODULE_0__.Resolution.WIDTH / 4;
+const X_SPAWN_MARGIN = 38;
 var MainState;
 (function (MainState) {
     MainState[MainState["STANDING"] = 0] = "STANDING";
@@ -1157,8 +1156,8 @@ class Harry {
         mainState: MainState.STANDING,
         lastMainState: MainState.STANDING,
         scene: 0,
-        absoluteX: 12,
-        x: 12,
+        absoluteX: 4,
+        x: 4,
         y: Y_UPPER_LEVEL,
         vy: 0,
         dir: 0,
@@ -1267,7 +1266,7 @@ class Harry {
     }
     startClimbing(y) {
         this.mainState = MainState.CLIMBING;
-        this.teleport(72);
+        this.teleport(64);
         this.y = y;
         this.sprite = 7;
         this.kneeling = false;
@@ -1286,18 +1285,18 @@ class Harry {
         let shifting = false;
         if (_input__WEBPACK_IMPORTED_MODULE_1__.rightPressed) {
             let moveRight = true;
-            if (this.y >= 120 && ((wall === _map__WEBPACK_IMPORTED_MODULE_2__.WallType.RIGHT && this.x === 127)
-                || (wall === _map__WEBPACK_IMPORTED_MODULE_2__.WallType.LEFT && this.x === 9))) {
+            if (this.y >= 120 && ((wall === _map__WEBPACK_IMPORTED_MODULE_2__.WallType.RIGHT && this.x === 119)
+                || (wall === _map__WEBPACK_IMPORTED_MODULE_2__.WallType.LEFT && this.x === 1))) {
                 moveRight = false;
             }
             else if (this.y > Y_UPPER_LEVEL && this.y <= Y_HOLE_BOTTOM) {
-                if (this.x >= 40 && this.x <= 52) {
-                    if (this.x > 51.5) {
+                if (this.x >= 32 && this.x <= 44) {
+                    if (this.x > 43.5) {
                         moveRight = false;
                     }
                 }
-                else if (this.x >= 92 && this.x <= 104) {
-                    if (this.x > 103.5) {
+                else if (this.x >= 84 && this.x <= 96) {
+                    if (this.x > 95.5) {
                         moveRight = false;
                     }
                 }
@@ -1310,18 +1309,18 @@ class Harry {
         }
         else if (_input__WEBPACK_IMPORTED_MODULE_1__.leftPressed) {
             let moveLeft = true;
-            if (this.y >= 120 && ((wall === _map__WEBPACK_IMPORTED_MODULE_2__.WallType.LEFT && this.x === 18)
-                || (wall === _map__WEBPACK_IMPORTED_MODULE_2__.WallType.RIGHT && this.x === 136))) {
+            if (this.y >= 120 && ((wall === _map__WEBPACK_IMPORTED_MODULE_2__.WallType.LEFT && this.x === 10)
+                || (wall === _map__WEBPACK_IMPORTED_MODULE_2__.WallType.RIGHT && this.x === 128))) {
                 moveLeft = false;
             }
             else if (this.y > Y_UPPER_LEVEL && this.y <= Y_HOLE_BOTTOM) {
-                if (this.x >= 40 && this.x <= 51) {
-                    if (this.x < 40.5) {
+                if (this.x >= 32 && this.x <= 43) {
+                    if (this.x < 32.5) {
                         moveLeft = false;
                     }
                 }
-                else if (this.x >= 92 && this.x <= 103) {
-                    if (this.x < 92.5) {
+                else if (this.x >= 84 && this.x <= 95) {
+                    if (this.x < 84.5) {
                         moveLeft = false;
                     }
                 }
@@ -1336,7 +1335,7 @@ class Harry {
     }
     updateStanding(gs) {
         const { ladder, holes } = _map__WEBPACK_IMPORTED_MODULE_2__.map[this.scene];
-        if (holes && this.y === Y_UPPER_LEVEL && ((this.x >= 40 && this.x <= 52) || (this.x >= 92 && this.x <= 104))) {
+        if (holes && this.y === Y_UPPER_LEVEL && ((this.x >= 32 && this.x <= 44) || (this.x >= 84 && this.x <= 96))) {
             this.startFalling(gs, G);
             gs.score = Math.max(0, gs.score - 100);
             return;
@@ -1346,14 +1345,14 @@ class Harry {
             return;
         }
         if (ladder) {
-            if (this.y === Y_UPPER_LEVEL && ((this.x >= 68 && this.x <= 75)
+            if (this.y === Y_UPPER_LEVEL && ((this.x >= 60 && this.x <= 67)
                 || (((_input__WEBPACK_IMPORTED_MODULE_1__.downPressed && !(_input__WEBPACK_IMPORTED_MODULE_1__.leftPressed || _input__WEBPACK_IMPORTED_MODULE_1__.rightPressed)) || _input__WEBPACK_IMPORTED_MODULE_1__.downJustPressed)
-                    && this.x >= 64 && this.x <= 80))) {
+                    && this.x >= 56 && this.x <= 72))) {
                 this.startClimbing(134);
                 return;
             }
             if (this.y === Y_LOWER_LEVEL && ((_input__WEBPACK_IMPORTED_MODULE_1__.upPressed && !(_input__WEBPACK_IMPORTED_MODULE_1__.leftPressed || _input__WEBPACK_IMPORTED_MODULE_1__.rightPressed)) || _input__WEBPACK_IMPORTED_MODULE_1__.upJustPressed)
-                && this.x >= 64 && this.x <= 80) {
+                && this.x >= 56 && this.x <= 72) {
                 this.startClimbing(this.y);
                 return;
             }
@@ -1371,7 +1370,7 @@ class Harry {
     }
     updateFalling(gs) {
         const { ladder, holes, wall } = _map__WEBPACK_IMPORTED_MODULE_2__.map[this.scene];
-        if (ladder && this.y >= 134 && this.y < Y_LOWER_LEVEL && this.x >= 68 && this.x <= 75) {
+        if (ladder && this.y >= 134 && this.y < Y_LOWER_LEVEL && this.x >= 60 && this.x <= 67) {
             const stepsToTop = Math.floor((this.y - 134) / 4);
             this.startClimbing(134 + 4 * stepsToTop);
             this.dir ^= stepsToTop & 1;
@@ -1379,11 +1378,11 @@ class Harry {
         }
         const nextY = this.y + this.vy;
         if (this.y <= Y_UPPER_LEVEL && nextY >= Y_UPPER_LEVEL) {
-            if (ladder && this.x >= 68 && this.x <= 75) {
+            if (ladder && this.x >= 60 && this.x <= 67) {
                 this.startClimbing(134);
                 return;
             }
-            if (!holes || this.x < 40 || this.x > 103 || (this.x > 51 && this.x < 92)) {
+            if (!holes || this.x < 32 || this.x > 95 || (this.x > 43 && this.x < 84)) {
                 this.endFalling(gs, Y_UPPER_LEVEL);
                 return;
             }
@@ -1424,13 +1423,13 @@ class Harry {
             if (_input__WEBPACK_IMPORTED_MODULE_1__.rightJustPressed
                 || (_input__WEBPACK_IMPORTED_MODULE_1__.jumpJustPressed && this.dir === 0)
                 || (this.y === 134 && _input__WEBPACK_IMPORTED_MODULE_1__.upPressed && (_input__WEBPACK_IMPORTED_MODULE_1__.rightPressed || (!_input__WEBPACK_IMPORTED_MODULE_1__.leftPressed && this.dir === 0)))) {
-                this.endClimbing(77, Y_UPPER_LEVEL, 0);
+                this.endClimbing(69, Y_UPPER_LEVEL, 0);
                 return;
             }
             if (_input__WEBPACK_IMPORTED_MODULE_1__.leftJustPressed
                 || (_input__WEBPACK_IMPORTED_MODULE_1__.jumpJustPressed && this.dir === 1)
                 || (this.y === 134 && _input__WEBPACK_IMPORTED_MODULE_1__.upPressed && (_input__WEBPACK_IMPORTED_MODULE_1__.leftPressed || (!_input__WEBPACK_IMPORTED_MODULE_1__.rightPressed && this.dir === 1)))) {
-                this.endClimbing(67, Y_UPPER_LEVEL, 1);
+                this.endClimbing(59, Y_UPPER_LEVEL, 1);
                 return;
             }
         }
@@ -1469,7 +1468,7 @@ class Harry {
         }
         else {
             spawnX = this.x + X_SPAWN_MARGIN;
-            if (spawnX >= 148) {
+            if (spawnX >= 140) {
                 spawnX = this.x - X_SPAWN_MARGIN;
             }
         }
@@ -1485,7 +1484,7 @@ class Harry {
         }
         --gs.extraLives;
         this.mainState = MainState.FALLING;
-        this.teleport((this.dir === 0) ? 16 : 135);
+        this.teleport((this.dir === 0) ? 8 : 127);
         this.y = 51;
         this.vy = 0;
         this.sprite = 2;
@@ -1620,9 +1619,9 @@ class Harry {
                 if (Y < 121) {
                     ctx.drawImage(sprite, 0, 0, 8, 121 - Y, X, Y, 8, 121 - Y);
                     const crocImages = _graphics__WEBPACK_IMPORTED_MODULE_0__.crocSprites[gs.sceneStates[this.scene].enteredLeft ? 0 : 1];
-                    ctx.drawImage(crocImages[0], 0, 9, 8, 2, 52 - ox, 120, 8, 2);
-                    ctx.drawImage(crocImages[0], 0, 9, 8, 2, 68 - ox, 120, 8, 2);
-                    ctx.drawImage(crocImages[0], 0, 9, 8, 2, 84 - ox, 120, 8, 2);
+                    ctx.drawImage(crocImages[0], 0, 9, 8, 2, 44 - ox, 120, 8, 2);
+                    ctx.drawImage(crocImages[0], 0, 9, 8, 2, 60 - ox, 120, 8, 2);
+                    ctx.drawImage(crocImages[0], 0, 9, 8, 2, 76 - ox, 120, 8, 2);
                 }
             }
             else if (Y < 119) {
@@ -1830,34 +1829,34 @@ const PIT_SHIFT_FRAMES = 4;
 const CROC_CLOSED_FRAMES = 192; // 128
 const CROC_OPENED_FRAMES = 128; // 128
 const X_SHIFTS = [
-    [41, 103],
-    [45, 99],
-    [49, 95],
-    [57, 87],
-    [69, 75],
+    [33, 95],
+    [37, 91],
+    [41, 87],
+    [49, 79],
+    [61, 67],
 ];
 const X_CLOSED_CROCS = [
-    [41, 51],
-    [61, 67],
-    [77, 83],
-    [93, 103],
-];
-const X_OPENED_CROCS_LEFT = [
-    [41, 56],
-    [61, 72],
-    [77, 88],
-    [93, 103],
-];
-const X_OPENED_CROCS_RIGHT = [
-    [41, 51],
-    [56, 67],
-    [72, 83],
-    [88, 103],
-];
-const X_CROCS = [
+    [33, 43],
     [53, 59],
     [69, 75],
-    [85, 91],
+    [85, 95],
+];
+const X_OPENED_CROCS_LEFT = [
+    [33, 48],
+    [53, 64],
+    [69, 80],
+    [85, 95],
+];
+const X_OPENED_CROCS_RIGHT = [
+    [33, 43],
+    [48, 59],
+    [64, 75],
+    [80, 95],
+];
+const X_CROCS = [
+    [45, 51],
+    [61, 67],
+    [77, 83],
 ];
 var PitState;
 (function (PitState) {
@@ -2011,23 +2010,23 @@ class Pit {
         const sprites = _graphics__WEBPACK_IMPORTED_MODULE_1__.pitSprites[(pit === _map__WEBPACK_IMPORTED_MODULE_0__.PitType.TAR || pit == _map__WEBPACK_IMPORTED_MODULE_0__.PitType.SHIFTING_TAR) ? 0 : 1];
         if (pit === _map__WEBPACK_IMPORTED_MODULE_0__.PitType.SHIFTING_TAR || pit === _map__WEBPACK_IMPORTED_MODULE_0__.PitType.SHIFTING_QUICKSAND) {
             if (_store__WEBPACK_IMPORTED_MODULE_2__.store.difficulty !== _store__WEBPACK_IMPORTED_MODULE_2__.Difficulty.HARD && this.pitState !== PitState.OPENED) {
-                ctx.drawImage(_graphics__WEBPACK_IMPORTED_MODULE_1__.pitSprites[2][0], 40 - ox, 114);
-                ctx.drawImage(_graphics__WEBPACK_IMPORTED_MODULE_1__.pitSprites[2][1], 40 - ox, 119);
+                ctx.drawImage(_graphics__WEBPACK_IMPORTED_MODULE_1__.pitSprites[2][0], 32 - ox, 114);
+                ctx.drawImage(_graphics__WEBPACK_IMPORTED_MODULE_1__.pitSprites[2][1], 32 - ox, 119);
             }
             if (this.pitState !== PitState.CLOSED) {
-                ctx.drawImage(sprites[0], 0, 0, 64, 5 - this.pitOffset, 40 - ox, 114 + this.pitOffset, 64, 5 - this.pitOffset);
-                ctx.drawImage(sprites[1], 0, this.pitOffset, 64, 5 - this.pitOffset, 40 - ox, 119, 64, 5 - this.pitOffset);
+                ctx.drawImage(sprites[0], 0, 0, 64, 5 - this.pitOffset, 32 - ox, 114 + this.pitOffset, 64, 5 - this.pitOffset);
+                ctx.drawImage(sprites[1], 0, this.pitOffset, 64, 5 - this.pitOffset, 32 - ox, 119, 64, 5 - this.pitOffset);
             }
         }
         else {
-            ctx.drawImage(sprites[0], 40 - ox, 114);
-            ctx.drawImage(sprites[1], 40 - ox, 119);
+            ctx.drawImage(sprites[0], 32 - ox, 114);
+            ctx.drawImage(sprites[1], 32 - ox, 119);
             if (pit === _map__WEBPACK_IMPORTED_MODULE_0__.PitType.CROCS) {
                 const crocImages = _graphics__WEBPACK_IMPORTED_MODULE_1__.crocSprites[gs.sceneStates[scene].enteredLeft ? 0 : 1];
                 const sprite = this.crocState === CrocState.OPENED ? 1 : 0;
-                ctx.drawImage(crocImages[sprite], 52 - ox, 111);
-                ctx.drawImage(crocImages[sprite], 68 - ox, 111);
-                ctx.drawImage(crocImages[sprite], 84 - ox, 111);
+                ctx.drawImage(crocImages[sprite], 44 - ox, 111);
+                ctx.drawImage(crocImages[sprite], 60 - ox, 111);
+                ctx.drawImage(crocImages[sprite], 76 - ox, 111);
             }
         }
     }
@@ -2350,22 +2349,22 @@ class StationaryLog {
     update(gs) {
         switch (_map__WEBPACK_IMPORTED_MODULE_1__.map[gs.harry.scene].obsticles) {
             case _map__WEBPACK_IMPORTED_MODULE_1__.ObsticleType.THREE_STATIONARY_LOGS:
-                this.checkSkid(gs, 20, 111);
-                this.checkSkid(gs, 148, 111);
+                this.checkSkid(gs, 12, 111);
+                this.checkSkid(gs, 127, 111);
             // fall through to test to the final log
             case _map__WEBPACK_IMPORTED_MODULE_1__.ObsticleType.ONE_STATIONARY_LOG:
-                this.checkSkid(gs, 116, 111);
+                this.checkSkid(gs, 108, 111);
                 break;
         }
     }
     render(gs, ctx, scene, ox) {
         switch (_map__WEBPACK_IMPORTED_MODULE_1__.map[scene].obsticles) {
             case _map__WEBPACK_IMPORTED_MODULE_1__.ObsticleType.THREE_STATIONARY_LOGS:
-                ctx.drawImage(_graphics__WEBPACK_IMPORTED_MODULE_0__.logSprites[1], 20 - ox, 111);
-                ctx.drawImage(_graphics__WEBPACK_IMPORTED_MODULE_0__.logSprites[1], 148 - ox, 111);
+                ctx.drawImage(_graphics__WEBPACK_IMPORTED_MODULE_0__.logSprites[1], 12 - ox, 111);
+                ctx.drawImage(_graphics__WEBPACK_IMPORTED_MODULE_0__.logSprites[1], 127 - ox, 111);
             // fall through to render to the final log
             case _map__WEBPACK_IMPORTED_MODULE_1__.ObsticleType.ONE_STATIONARY_LOG:
-                ctx.drawImage(_graphics__WEBPACK_IMPORTED_MODULE_0__.logSprites[1], 116 - ox, 111);
+                ctx.drawImage(_graphics__WEBPACK_IMPORTED_MODULE_0__.logSprites[1], 108 - ox, 111);
                 break;
         }
     }
@@ -2489,9 +2488,16 @@ class TreasureCell {
     }
 }
 function updateTreasureMapIndex(gs) {
-    for (let i = 0; i < treasureIndices.length; ++i) {
-        if (gs.sceneStates[treasureIndices[i]].treasure !== _map__WEBPACK_IMPORTED_MODULE_0__.TreasureType.NONE) {
-            gs.treasureMapIndex = i;
+    // for (let i = 0; i < treasureIndices.length; ++i) {
+    //     if (gs.sceneStates[treasureIndices[i]].treasure !== TreasureType.NONE) {
+    //         gs.treasureMapIndex = i;
+    //         break;
+    //     }        
+    // }
+    // TODO optimal reverse route
+    for (let i = 0, j = 0; i < treasureIndices.length; ++i, --j) {
+        if (gs.sceneStates[treasureIndices[j]].treasure !== _map__WEBPACK_IMPORTED_MODULE_0__.TreasureType.NONE) {
+            gs.treasureMapIndex = j;
             break;
         }
     }
@@ -2603,7 +2609,7 @@ class Treasure {
             default:
                 return;
         }
-        if (gs.harry.intersects(mask, 116, 111)) {
+        if (gs.harry.intersects(mask, 108, 111)) {
             gs.sceneStates[gs.harry.scene].treasure = _map__WEBPACK_IMPORTED_MODULE_1__.TreasureType.NONE;
             gs.score += points;
             if (++gs.treasureCount === 32) {
@@ -2632,7 +2638,7 @@ class Treasure {
             default:
                 return;
         }
-        ctx.drawImage(sprite, 116 - ox, 111);
+        ctx.drawImage(sprite, 108 - ox, 111);
     }
 }
 
@@ -2666,12 +2672,12 @@ class Vine {
         }
         const { harry } = gs;
         if (_map__WEBPACK_IMPORTED_MODULE_1__.map[harry.scene].vine && !harry.releasedVine && harry.isFalling()
-            && harry.intersects(_graphics__WEBPACK_IMPORTED_MODULE_0__.vineMasks[this.sprite], 39, 28)) {
+            && harry.intersects(_graphics__WEBPACK_IMPORTED_MODULE_0__.vineMasks[this.sprite], 31, 28)) {
             harry.swing();
         }
     }
     render(gs, ctx, ox) {
-        ctx.drawImage(_graphics__WEBPACK_IMPORTED_MODULE_0__.vineSprites[this.sprite], 39 - ox, 28);
+        ctx.drawImage(_graphics__WEBPACK_IMPORTED_MODULE_0__.vineSprites[this.sprite], 31 - ox, 28);
     }
 }
 
@@ -2740,12 +2746,12 @@ class RGBColor {
 }
 var Resolution;
 (function (Resolution) {
-    Resolution[Resolution["WIDTH"] = 152] = "WIDTH";
+    Resolution[Resolution["WIDTH"] = 136] = "WIDTH";
     Resolution[Resolution["HEIGHT"] = 180] = "HEIGHT";
 })(Resolution || (Resolution = {}));
 var PhysicalDimensions;
 (function (PhysicalDimensions) {
-    PhysicalDimensions[PhysicalDimensions["WIDTH"] = 3.8] = "WIDTH";
+    PhysicalDimensions[PhysicalDimensions["WIDTH"] = 3.4] = "WIDTH";
     PhysicalDimensions[PhysicalDimensions["HEIGHT"] = 2.3684210526315788] = "HEIGHT";
 })(PhysicalDimensions || (PhysicalDimensions = {}));
 var Colors;
@@ -2797,7 +2803,7 @@ let branchesSprite;
 const charSprites = new Array(256); // color, character
 const pitSprites = new Array(3); // color(0=black,1=blue,2=yellow),sprite(0=bottom,1=top)
 const VINE_PERIOD = 285;
-const VINE_CX = 70;
+const VINE_CX = 62;
 const VINE_CY = 28;
 const vinePoints = new Array(VINE_PERIOD);
 const vineSprites = new Array(VINE_PERIOD);

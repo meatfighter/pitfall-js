@@ -98,9 +98,17 @@ export class TreasureCell {
 }
 
 export function updateTreasureMapIndex(gs: GameState) { 
-    for (let i = 0; i < treasureIndices.length; ++i) {
-        if (gs.sceneStates[treasureIndices[i]].treasure !== TreasureType.NONE) {
-            gs.treasureMapIndex = i;
+    // for (let i = 0; i < treasureIndices.length; ++i) {
+    //     if (gs.sceneStates[treasureIndices[i]].treasure !== TreasureType.NONE) {
+    //         gs.treasureMapIndex = i;
+    //         break;
+    //     }        
+    // }
+
+    // TODO optimal reverse route
+    for (let i = 0, j = 0; i < treasureIndices.length; ++i, --j) {
+        if (gs.sceneStates[treasureIndices[j]].treasure !== TreasureType.NONE) {
+            gs.treasureMapIndex = j;
             break;
         }        
     }

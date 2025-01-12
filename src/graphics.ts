@@ -10,12 +10,12 @@ export type Sprite = ImageBitmap;
 export type Mask = boolean[][];
 
 export enum Resolution {
-    WIDTH = 152,
+    WIDTH = 136,
     HEIGHT = 180,
 }
 
 export enum PhysicalDimensions {
-    WIDTH = 4 * 152 / 160,
+    WIDTH = 4 * 136 / 160,
     HEIGHT = 3 * 180 / 228,
 }
 
@@ -84,7 +84,7 @@ export const charSprites: Sprite[][] = new Array<Sprite[]>(256); // color, chara
 export const pitSprites: Sprite[][] = new Array<Sprite[]>(3); // color(0=black,1=blue,2=yellow),sprite(0=bottom,1=top)
 
 export const VINE_PERIOD = 285;
-export const VINE_CX = 70;
+export const VINE_CX = 62;
 export const VINE_CY = 28;
 export const vinePoints = new Array<Point>(VINE_PERIOD);
 export const vineSprites = new Array<Sprite>(VINE_PERIOD);

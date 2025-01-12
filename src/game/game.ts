@@ -14,10 +14,10 @@ const MIN_SCROLL_DELTA = .5;
 const SCROLL_MARGIN = 4;
 
 const TRUNKS = [
-    [ 8, 40, 100, 132 ],
-    [ 16, 48, 92, 124 ],
-    [ 24, 56, 84, 116 ],
-    [ 28, 60, 80, 112 ],
+    [ 0, 32, 92, 124 ],
+    [ 8, 40, 84, 116 ],
+    [ 16, 48, 76, 108 ],
+    [ 20, 52, 72, 104 ],
 ];
 
 let gs: GameState;
@@ -91,7 +91,7 @@ export function update() {
         }
     }    
     gs.lastScrollX = targetScrollX;
-    gs.ox = Math.floor(gs.harry.x) - 76 + Math.floor(gs.scrollX) - targetScrollX;
+    gs.ox = Math.floor(gs.harry.x) - 68 + Math.floor(gs.scrollX) - targetScrollX;
 
     if (gs.lastOx !== gs.ox) {
         gs.rollingLog.sync();
@@ -137,12 +137,12 @@ function renderBackground(ctx: OffscreenCanvasRenderingContext2D, scene: number,
 
     if (store.difficulty === Difficulty.EASY) {
         const cells = treasureCells[gs.treasureMapIndex][scene];
-        ctx.drawImage(arrowSprites[Tier.UPPER][cells[Tier.UPPER].direction], 68 - ox, 75);
+        ctx.drawImage(arrowSprites[Tier.UPPER][cells[Tier.UPPER].direction], 60 - ox, 75);
         const lowerDirection = cells[Tier.LOWER].direction;
         let lowerOffset: number;
         switch (wall) {
             case WallType.LEFT:
-                lowerOffset = (lowerDirection === Direction.RIGHT || lowerDirection === Direction.LEFT) ? 60 : 61;
+                lowerOffset = (lowerDirection === Direction.RIGHT || lowerDirection === Direction.LEFT) ? 52 : 53;
                 break;
             case WallType.RIGHT:
                 lowerOffset = 76;
@@ -162,30 +162,30 @@ function renderBackground(ctx: OffscreenCanvasRenderingContext2D, scene: number,
 
     if (ladder) {
         ctx.fillStyle = colors[Colors.BLACK];
-        ctx.fillRect(68 - ox, 116, 8, 6);
-        ctx.fillRect(68 - ox, 127, 8, 15);
+        ctx.fillRect(60 - ox, 116, 8, 6);
+        ctx.fillRect(60 - ox, 127, 8, 15);
         ctx.fillStyle = colors[Colors.DARK_YELLOW];
         for (let i = 10, y = 130; i >= 0; --i, y += 4) {
-            ctx.fillRect(70 - ox, y, 4, 2);
+            ctx.fillRect(62 - ox, y, 4, 2);
         }
     }
 
     if (holes) {
         ctx.fillStyle = colors[Colors.BLACK];
-        ctx.fillRect(40 - ox, 116, 12, 6);
-        ctx.fillRect(40 - ox, 127, 12, 15);
-        ctx.fillRect(92 - ox, 116, 12, 6);
-        ctx.fillRect(92 - ox, 127, 12, 15);
+        ctx.fillRect(32 - ox, 116, 12, 6);
+        ctx.fillRect(32 - ox, 127, 12, 15);
+        ctx.fillRect(84 - ox, 116, 12, 6);
+        ctx.fillRect(84 - ox, 127, 12, 15);
     }
 
     switch(wall) {
         case WallType.LEFT:
-            ctx.drawImage(wallSprite, 10 - ox, 142);
-            ctx.drawImage(wallSprite, 10 - ox, 158);
+            ctx.drawImage(wallSprite, 2 - ox, 142);
+            ctx.drawImage(wallSprite, 2 - ox, 158);
             break;
         case WallType.RIGHT:
-            ctx.drawImage(wallSprite, 128 - ox, 142);
-            ctx.drawImage(wallSprite, 128 - ox, 158);
+            ctx.drawImage(wallSprite, 120 - ox, 142);
+            ctx.drawImage(wallSprite, 120 - ox, 158);
             break;
     }
 
@@ -229,28 +229,27 @@ function renderLeaves(ctx: OffscreenCanvasRenderingContext2D, scene: number, ox:
     const { trees } = map[scene];
     ctx.fillStyle = colors[Colors.DARK_GREEN];
     ctx.fillRect(0, 0, Resolution.WIDTH, 51);
-    ctx.drawImage(leavesSprites[1][trees], 6, 0, 2, 4, -ox, 51, 8, 8);
     for (let i = 1; i < 5; ++i) {
-        ctx.drawImage(leavesSprites[(i & 1) ^ 1][trees], (i << 5) - ox - 24, 51, 32, 8);
+        ctx.drawImage(leavesSprites[(i & 1) ^ 1][trees], ((i - 1) << 5) - ox, 51, 32, 8);
     }
-    ctx.drawImage(leavesSprites[0][trees], 0, 0, 4, 4, 136 - ox, 51, 16, 8);
+    ctx.drawImage(leavesSprites[0][trees], 0, 0, 2, 4, 128 - ox, 51, 8, 8);
 }
 
 function renderHUD(ctx: OffscreenCanvasRenderingContext2D) {
-    printNumber(ctx, gs.score, 53, 3, gs.scoreColor);
+    printNumber(ctx, gs.score, 45, 3, gs.scoreColor);
     gs.clock.render(ctx);
     ctx.fillStyle = colors[Colors.OFF_WHITE];
-    for (let i = gs.extraLives - 1, x = 13; i >= 0; --i, x += 2) {
+    for (let i = gs.extraLives - 1, x = 5; i >= 0; --i, x += 2) {
         ctx.fillRect(x, 16, 1, 8);
     }
 
     if (store.difficulty !== Difficulty.HARD) {
-        printNumber(ctx, gs.harry.scene + 1, 124, 3, Colors.OFF_WHITE);
-        printNumber(ctx, gs.treasureCount, 100, 16, Colors.OFF_WHITE);
+        printNumber(ctx, gs.harry.scene + 1, 116, 3, Colors.OFF_WHITE);
+        printNumber(ctx, gs.treasureCount, 92, 16, Colors.OFF_WHITE);
         const sprites = charSprites[Colors.OFF_WHITE];
-        ctx.drawImage(sprites[10], 108, 16);
-        ctx.drawImage(sprites[3], 116, 16);
-        ctx.drawImage(sprites[2], 124, 16);
+        ctx.drawImage(sprites[10], 100, 16);
+        ctx.drawImage(sprites[3], 108, 16);
+        ctx.drawImage(sprites[2], 116, 16);
     }
 }
 

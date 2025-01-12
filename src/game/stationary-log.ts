@@ -20,11 +20,11 @@ export class StationaryLog {
     update(gs: GameState) {
         switch (map[gs.harry.scene].obsticles) {
             case ObsticleType.THREE_STATIONARY_LOGS:
-                this.checkSkid(gs, 20, 111);
-                this.checkSkid(gs, 148, 111);
+                this.checkSkid(gs, 12, 111);
+                this.checkSkid(gs, 127, 111);
                 // fall through to test to the final log
             case ObsticleType.ONE_STATIONARY_LOG:
-                this.checkSkid(gs, 116, 111);
+                this.checkSkid(gs, 108, 111);
                 break;
         }        
     }
@@ -32,11 +32,11 @@ export class StationaryLog {
     render(gs: GameState, ctx: OffscreenCanvasRenderingContext2D, scene: number, ox: number) {
         switch (map[scene].obsticles) {
             case ObsticleType.THREE_STATIONARY_LOGS:
-                ctx.drawImage(logSprites[1], 20 - ox, 111);
-                ctx.drawImage(logSprites[1], 148 - ox, 111);
+                ctx.drawImage(logSprites[1], 12 - ox, 111);
+                ctx.drawImage(logSprites[1], 127 - ox, 111);
                 // fall through to render to the final log
             case ObsticleType.ONE_STATIONARY_LOG:
-                ctx.drawImage(logSprites[1], 116 - ox, 111);
+                ctx.drawImage(logSprites[1], 108 - ox, 111);
                 break;
         }
     }

@@ -11,39 +11,39 @@ const CROC_CLOSED_FRAMES = 192; // 128
 const CROC_OPENED_FRAMES = 128; // 128
 
 const X_SHIFTS = [
-    [ 41, 103 ],
-    [ 45, 99 ],
-    [ 49, 95 ],
-    [ 57, 87 ],
-    [ 69, 75 ],
+    [ 33, 95 ],
+    [ 37, 91 ],
+    [ 41, 87 ],
+    [ 49, 79 ],
+    [ 61, 67 ],
 ];
 
 const X_CLOSED_CROCS = [
-    [ 41, 51 ],
-    [ 61, 67 ],
-    [ 77, 83 ],
-    [ 93, 103 ],
+    [ 33, 43 ],
+    [ 53, 59 ],
+    [ 69, 75 ],
+    [ 85, 95 ],
 ];
 
 const X_OPENED_CROCS_LEFT = [
-    [ 41, 56 ],
-    [ 61, 72 ],
-    [ 77, 88 ],
-    [ 93, 103 ],
+    [ 33, 48 ],
+    [ 53, 64 ],
+    [ 69, 80 ],
+    [ 85, 95 ],
 ];
 
 const X_OPENED_CROCS_RIGHT = [
-    [ 41, 51 ],
-    [ 56, 67 ],
-    [ 72, 83 ],
-    [ 88, 103 ],
+    [ 33, 43 ],
+    [ 48, 59 ],
+    [ 64, 75 ],
+    [ 80, 95 ],
 ];
 
 const X_CROCS = [
-    [ 53, 59 ],
-    [ 69, 75 ],
-    [ 85, 91 ],
-]
+    [ 45, 51 ],
+    [ 61, 67 ],
+    [ 77, 83 ],
+];
 
 enum PitState {
     OPENED,
@@ -220,24 +220,24 @@ export class Pit {
         const sprites = pitSprites[(pit === PitType.TAR || pit == PitType.SHIFTING_TAR) ? 0 : 1];
         if (pit === PitType.SHIFTING_TAR || pit === PitType.SHIFTING_QUICKSAND) {
             if (store.difficulty !== Difficulty.HARD && this.pitState !== PitState.OPENED) {
-                ctx.drawImage(pitSprites[2][0], 40 - ox, 114);
-                ctx.drawImage(pitSprites[2][1], 40 - ox, 119);
+                ctx.drawImage(pitSprites[2][0], 32 - ox, 114);
+                ctx.drawImage(pitSprites[2][1], 32 - ox, 119);
             }
             if (this.pitState !== PitState.CLOSED) {
-                ctx.drawImage(sprites[0], 0, 0, 64, 5 - this.pitOffset, 40 - ox, 114 + this.pitOffset, 64, 
+                ctx.drawImage(sprites[0], 0, 0, 64, 5 - this.pitOffset, 32 - ox, 114 + this.pitOffset, 64, 
                         5 - this.pitOffset);
-                ctx.drawImage(sprites[1], 0, this.pitOffset, 64, 5 - this.pitOffset, 40 - ox, 119, 64, 
+                ctx.drawImage(sprites[1], 0, this.pitOffset, 64, 5 - this.pitOffset, 32 - ox, 119, 64, 
                         5 - this.pitOffset);
             }
         } else {
-            ctx.drawImage(sprites[0], 40 - ox, 114);
-            ctx.drawImage(sprites[1], 40 - ox, 119);
+            ctx.drawImage(sprites[0], 32 - ox, 114);
+            ctx.drawImage(sprites[1], 32 - ox, 119);
             if (pit === PitType.CROCS) {
                 const crocImages = crocSprites[gs.sceneStates[scene].enteredLeft ? 0 : 1];
                 const sprite = this.crocState === CrocState.OPENED ? 1 : 0;
-                ctx.drawImage(crocImages[sprite], 52 - ox, 111);
-                ctx.drawImage(crocImages[sprite], 68 - ox, 111);
-                ctx.drawImage(crocImages[sprite], 84 - ox, 111);
+                ctx.drawImage(crocImages[sprite], 44 - ox, 111);
+                ctx.drawImage(crocImages[sprite], 60 - ox, 111);
+                ctx.drawImage(crocImages[sprite], 76 - ox, 111);
             }
         }
     }
