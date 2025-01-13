@@ -88,6 +88,8 @@ export function stop(name: string) {
 }
 
 export function stopAll() {
-    activeSources.values().forEach(source => source.stop());
+    for (const source of activeSources.values()) {
+        source.stop();
+    }
     activeSources.clear();
 }
