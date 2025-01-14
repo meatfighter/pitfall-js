@@ -3693,23 +3693,10 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   TAU: () => (/* binding */ TAU),
 /* harmony export */   clamp: () => (/* binding */ clamp),
-/* harmony export */   gaussianRandom: () => (/* binding */ gaussianRandom),
 /* harmony export */   mod: () => (/* binding */ mod),
 /* harmony export */   spritesIntersect: () => (/* binding */ spritesIntersect)
 /* harmony export */ });
 const TAU = 2 * Math.PI;
-// TODO REMOVE
-function gaussianRandom(mean, stdDev) {
-    let u;
-    let v;
-    do {
-        u = Math.random();
-    } while (u === 0);
-    do {
-        v = Math.random();
-    } while (v === 0);
-    return (Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v)) * stdDev + mean;
-}
 function clamp(value, min, max) {
     return (value < min) ? min : (value > max) ? max : value;
 }

@@ -60,13 +60,6 @@ export function resetInput() {
     touchDatas.clear();
 }
 
-// export function isTouchOnlyDevice(): boolean {
-//     const supportsTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
-//     const supportsHover = window.matchMedia('(hover: hover)').matches;
-//     const isCoarsePointer = window.matchMedia('(pointer: coarse)').matches;
-//     return supportsTouch && !supportsHover && isCoarsePointer;
-// }
-
 export function startInput() {
     window.addEventListener('click', onClick);
     window.addEventListener('mousemove', resetHideCursorTimer);
@@ -306,7 +299,9 @@ function onTouch(e: TouchEvent) {
     leftScreenTouched = rightScreenTouched = 0;
     for (const [ identifier, touchData ] of Array.from(touchDatas)) {
         if (touchData.x < halfInnerWidth) {
-            leftScreenTouched = touchData.timestampDown;
+            if (touchData.x >= 64 || touchData.y >= 64) { // excluding the hamburger
+                leftScreenTouched = touchData.timestampDown;
+            }
         } else {
             rightScreenTouched = touchData.timestampDown;
         }
@@ -339,7 +334,7 @@ function onClick(e: MouseEvent) {
         y = e.clientX;
     }
 
-    if (x < 64 && y < 64) {
+    if (x < 64 && y < 64) { // hamburger
         exit();
     }
 }
