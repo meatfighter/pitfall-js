@@ -1,4 +1,4 @@
-import { harryMasks, harrySprites, Resolution, Mask, vinePoints, crocSprites } from '@/graphics';
+import { harryMasks, harrySprites, Resolution, Mask, vineStates, crocSprites } from '@/graphics';
 import { GameState } from './game-state';
 import { 
     leftPressed, leftJustPressed, leftJustReleased,
@@ -487,12 +487,12 @@ export class Harry {
     }
 
     private updateSwinging(gs: GameState) {
-        const p = vinePoints[gs.vine.sprite];
-        this.setX(this.dir === 0 ? p.x + 1 : p.x);
-        this.y = p.y + 17;
+        const v = vineStates[gs.vine.sprite];
+        this.setX(this.dir === 0 ? v.x + 1 : v.x);
+        this.y = v.y + 17;
 
         if ((this.dir === 0 && rightJustPressed) || (this.dir === 1 && leftJustPressed)) {
-            this.startFalling(gs, VY0);
+            this.startFalling(gs, v.vy);
             this.releasedVine = true;
             return;
         }

@@ -1,4 +1,4 @@
-import { vinePoints, vineSprites, vineMasks } from '@/graphics';
+import { vineStates, vineSprites, vineMasks } from '@/graphics';
 import { GameState } from './game-state';
 import { map } from './map';
 
@@ -9,13 +9,13 @@ export class Vine {
     constructor(vine: {
         sprite: number;
     } = {
-        sprite: Math.floor(vinePoints.length / 2),
+        sprite: Math.floor(vineStates.length / 2),
     }) {
         this.sprite = vine.sprite;
     }
 
     update(gs: GameState) {
-        if (++this.sprite === vinePoints.length) {
+        if (++this.sprite === vineStates.length) {
             this.sprite = 0;
         }
 

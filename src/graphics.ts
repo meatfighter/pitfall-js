@@ -1,5 +1,5 @@
 import { TAU } from '@/math';
-import { Point } from '@/game/point';
+import { VineState } from '@/game/vine-state';
 
 class RGBColor {
     constructor(public readonly r: number, public readonly g: number, public readonly b: number) {        
@@ -86,7 +86,7 @@ export const pitSprites: Sprite[][] = new Array<Sprite[]>(3); // color(0=black,1
 export const VINE_PERIOD = 285;
 export const VINE_CX = 62;
 export const VINE_CY = 28;
-export const vinePoints = new Array<Point>(VINE_PERIOD);
+export const vineStates = new Array<VineState>(VINE_PERIOD);
 export const vineSprites = new Array<Sprite>(VINE_PERIOD);
 export const vineMasks = new Array<Mask>(VINE_PERIOD);
 
@@ -102,22 +102,24 @@ function createVineSprites(palette: RGBColor[], promises: Promise<any>[]) {
     let maxX = VINE_CX;
     let maxY = VINE_CY;        
     for (let i = 0; i < VINE_PERIOD; ++i) {
-        const a = MAX_ANGLE * Math.sin(TAU * i / VINE_PERIOD);
-        const p = new Point(Math.round(VINE_CX + LENGTH * DISTORTION * Math.sin(a) / 2), 
-                Math.round(VINE_CY + LENGTH * Math.cos(a)));
-        vinePoints[i] = p;
+        const t = TAU * i / VINE_PERIOD;
+        const a = MAX_ANGLE * Math.sin(t);
+        const p = new VineState(Math.round(VINE_CX + LENGTH * DISTORTION * Math.sin(a) / 2), 
+                Math.round(VINE_CY + LENGTH * Math.cos(a)), 
+                -LENGTH * MAX_ANGLE * TAU * Math.sin(a) * Math.cos(t) / VINE_PERIOD);
+        vineStates[i] = p;
         minX = Math.min(minX, p.x);
         minY = Math.min(minY, p.y);
         maxX = Math.max(maxX, p.x);
-        maxY = Math.max(maxY, p.y); 
+        maxY = Math.max(maxY, p.y);
     }
 
     const color = palette[Colors.DARK_BROWN];
     const width = maxX - minX + 1;
     const height = maxY - minY + 1;
     const imageData = new ImageData(width, height);    
-    for (let i = 0; i < vinePoints.length; ++i) {
-        const p = vinePoints[i];
+    for (let i = 0; i < vineStates.length; ++i) {
+        const p = vineStates[i];
         imageData.data.fill(0);
         plotLine(imageData, VINE_CX - minX, VINE_CY - minY, p.x - minX, p.y - minY, color);
         vineMasks[i] = createMask(imageData);
