@@ -21,12 +21,12 @@ export class Vine {
 
         const { harry } = gs;
         if (map[harry.scene].vine && !harry.releasedVine && harry.isFalling() 
-                && harry.intersects(vineMasks[this.sprite], 31, 28)) {
+                && harry.intersects(vineMasks[this.sprite], 33 /* 31 */, 28)) {
             harry.swing();
         }
     }
 
     render(gs: GameState, ctx: OffscreenCanvasRenderingContext2D, ox: number) {
-        ctx.drawImage(vineSprites[this.sprite], 31 - ox, 28);
+        ctx.drawImage(vineSprites[this.sprite], 33 /* 31 */ - ox, 28);
     }
 }

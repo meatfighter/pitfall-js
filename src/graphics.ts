@@ -84,7 +84,7 @@ export const charSprites: Sprite[][] = new Array<Sprite[]>(256); // color, chara
 export const pitSprites: Sprite[][] = new Array<Sprite[]>(3); // color(0=black,1=blue,2=yellow),sprite(0=bottom,1=top)
 
 export const VINE_PERIOD = 285;
-export const VINE_CX = 62;
+export const VINE_CX = 64; // 62 -- shifted vine 2 pixels right to better center it
 export const VINE_CY = 28;
 export const vineStates = new Array<VineState>(VINE_PERIOD);
 export const vineSprites = new Array<Sprite>(VINE_PERIOD);

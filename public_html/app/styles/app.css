@@ -231,7 +231,6 @@ label {
     width: 120px;
     padding: 6px 8px;
     user-select: none;
-    border-radius: 2px;
 }
 
 /* Pseudo-element to create a triangle. */

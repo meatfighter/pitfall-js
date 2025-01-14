@@ -11,7 +11,7 @@ export class RollingLog {
         xCounter: number;
         spriteCounter: number;
     } = {
-        xCounter: 0,
+        xCounter: 72,
         spriteCounter: 0,
     }) {
         this.xCounter = rollingLog.xCounter;
@@ -28,13 +28,13 @@ export class RollingLog {
         const { harry } = gs;
         const X = (x + offset) % Resolution.WIDTH;
         if (this.computeFade(gs, X, offset, gs.harry.scene, rollingRight) === 1
-                && harry.x >= X + 1 && harry.x <= X + 6
-                && harry.intersects(logMasks[sprite], X, y)) {
+                && harry.x >= X - 3 && harry.x <= X + 2
+                && harry.intersects(logMasks[sprite], X - 4, y)) {
             gs.harry.rolled();
             if (gs.score > 0) {
                 --gs.score;
             }
-        }
+        }     
     }
 
     update(gs: GameState) {

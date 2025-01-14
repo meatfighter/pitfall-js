@@ -2216,7 +2216,7 @@ class RollingLog {
     xCounter;
     spriteCounter;
     constructor(rollingLog = {
-        xCounter: 0,
+        xCounter: 72,
         spriteCounter: 0,
     }) {
         this.xCounter = rollingLog.xCounter;
@@ -2231,8 +2231,8 @@ class RollingLog {
         const { harry } = gs;
         const X = (x + offset) % _graphics__WEBPACK_IMPORTED_MODULE_0__.Resolution.WIDTH;
         if (this.computeFade(gs, X, offset, gs.harry.scene, rollingRight) === 1
-            && harry.x >= X + 1 && harry.x <= X + 6
-            && harry.intersects(_graphics__WEBPACK_IMPORTED_MODULE_0__.logMasks[sprite], X, y)) {
+            && harry.x >= X - 3 && harry.x <= X + 2
+            && harry.intersects(_graphics__WEBPACK_IMPORTED_MODULE_0__.logMasks[sprite], X - 4, y)) {
             gs.harry.rolled();
             if (gs.score > 0) {
                 --gs.score;
@@ -2812,12 +2812,12 @@ class Vine {
         }
         const { harry } = gs;
         if (_map__WEBPACK_IMPORTED_MODULE_1__.map[harry.scene].vine && !harry.releasedVine && harry.isFalling()
-            && harry.intersects(_graphics__WEBPACK_IMPORTED_MODULE_0__.vineMasks[this.sprite], 31, 28)) {
+            && harry.intersects(_graphics__WEBPACK_IMPORTED_MODULE_0__.vineMasks[this.sprite], 33 /* 31 */, 28)) {
             harry.swing();
         }
     }
     render(gs, ctx, ox) {
-        ctx.drawImage(_graphics__WEBPACK_IMPORTED_MODULE_0__.vineSprites[this.sprite], 31 - ox, 28);
+        ctx.drawImage(_graphics__WEBPACK_IMPORTED_MODULE_0__.vineSprites[this.sprite], 33 /* 31 */ - ox, 28);
     }
 }
 
@@ -2943,7 +2943,7 @@ let branchesSprite;
 const charSprites = new Array(256); // color, character
 const pitSprites = new Array(3); // color(0=black,1=blue,2=yellow),sprite(0=bottom,1=top)
 const VINE_PERIOD = 285;
-const VINE_CX = 62;
+const VINE_CX = 64; // 62 -- shifted vine 2 pixels right to better center it
 const VINE_CY = 28;
 const vineStates = new Array(VINE_PERIOD);
 const vineSprites = new Array(VINE_PERIOD);
@@ -2953,7 +2953,6 @@ function createVineSprites(palette, promises) {
     const LENGTH = 73;
     const DISTORTION = 245 / 145;
     const MAX_ANGLE = Math.atan(1 / DISTORTION);
-    const VY_SCALE = 1;
     let minX = VINE_CX;
     let minY = VINE_CY;
     let maxX = VINE_CX;
@@ -2961,7 +2960,7 @@ function createVineSprites(palette, promises) {
     for (let i = 0; i < VINE_PERIOD; ++i) {
         const t = _math__WEBPACK_IMPORTED_MODULE_0__.TAU * i / VINE_PERIOD;
         const a = MAX_ANGLE * Math.sin(t);
-        const p = new _game_vine_state__WEBPACK_IMPORTED_MODULE_1__.VineState(Math.round(VINE_CX + LENGTH * DISTORTION * Math.sin(a) / 2), Math.round(VINE_CY + LENGTH * Math.cos(a)), -LENGTH * MAX_ANGLE * _math__WEBPACK_IMPORTED_MODULE_0__.TAU * VY_SCALE * Math.sin(a) * Math.cos(t) / VINE_PERIOD);
+        const p = new _game_vine_state__WEBPACK_IMPORTED_MODULE_1__.VineState(Math.round(VINE_CX + LENGTH * DISTORTION * Math.sin(a) / 2), Math.round(VINE_CY + LENGTH * Math.cos(a)), -LENGTH * MAX_ANGLE * _math__WEBPACK_IMPORTED_MODULE_0__.TAU * Math.sin(a) * Math.cos(t) / VINE_PERIOD);
         vineStates[i] = p;
         minX = Math.min(minX, p.x);
         minY = Math.min(minY, p.y);
