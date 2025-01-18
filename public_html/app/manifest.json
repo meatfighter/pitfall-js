@@ -1,7 +1,7 @@
 {
-  "short_name": "Demon",
-  "name": "Demon Attack",
-  "description": "A game that challenges the player to maneuver a spacecraft through a cave bristling with sharp rocks by tapping just one button.",
+  "short_name": "Pitfall!",
+  "name": "Pitfall!",
+  "description": "A platformer where the player searches for 32 treasures hidden in a perilous jungle maze within a strict time limit.",
   "icons": [
     {
       "src": "icons/google-touch-icon-192.png",

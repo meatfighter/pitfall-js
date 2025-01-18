@@ -120,14 +120,14 @@ export function updateInput(gs: GameState) {
                 touchUp = true;
             }
         }
-    } else if (leftScreenTouched > rightScreenTouched) { // TODO MID-AIR CHANGE DIRECTION
+    } else if (leftScreenTouched > rightScreenTouched) {
         if (rightScreenTouched > 0) {
             touchRight = true;
             touchJump = true;
         } else {
             touchLeft = true;
         }
-    } else if (rightScreenTouched > leftScreenTouched) { // TODO MID-AIR CHANGE DIRECTION
+    } else if (rightScreenTouched > leftScreenTouched) {
         if (leftScreenTouched > 0) {
             touchLeft = true;
             touchJump = true;
@@ -340,74 +340,74 @@ function onClick(e: MouseEvent) {
 }
 
 function onKeyDown(e: KeyboardEvent) {
-    switch (e.code) {
-        case 'KeyA':
-        case 'ArrowLeft':
-            leftKeyPressed = rightKeyPressed + 1;
-            break;
-        case 'KeyD':
-        case 'ArrowRight':
-            rightKeyPressed = leftKeyPressed + 1;
-            break;
-        case 'KeyW':
-        case 'ArrowUp':
-            upKeyPressed = downKeyPressed + 1;
-            break;
-        case 'KeyS':
-        case 'ArrowDown':
-            downKeyPressed = upKeyPressed + 1;
-            break;            
-        case 'Escape':
-            exit();
-            break;    
-        default:
-            jumpKeyPressed = true;
-            break;            
-    }
-
-    // touch testing
     // switch (e.code) {
     //     case 'KeyA':
-    //         leftScreenTouched = rightScreenTouched + 1;
+    //     case 'ArrowLeft':
+    //         leftKeyPressed = rightKeyPressed + 1;
     //         break;
-    //     case 'Quote':
-    //         rightScreenTouched = leftScreenTouched + 1;
+    //     case 'KeyD':
+    //     case 'ArrowRight':
+    //         rightKeyPressed = leftKeyPressed + 1;
     //         break;
+    //     case 'KeyW':
+    //     case 'ArrowUp':
+    //         upKeyPressed = downKeyPressed + 1;
+    //         break;
+    //     case 'KeyS':
+    //     case 'ArrowDown':
+    //         downKeyPressed = upKeyPressed + 1;
+    //         break;            
+    //     case 'Escape':
+    //         exit();
+    //         break;    
+    //     default:
+    //         jumpKeyPressed = true;
+    //         break;            
     // }
+
+    // touch testing
+    switch (e.code) {
+        case 'KeyA':
+            leftScreenTouched = rightScreenTouched + 1;
+            break;
+        case 'Quote':
+            rightScreenTouched = leftScreenTouched + 1;
+            break;
+    }
 }
 
 function onKeyUp(e: KeyboardEvent) {
-    switch (e.code) {
-        case 'KeyA':
-        case 'ArrowLeft':
-            leftKeyPressed = 0;
-            break;
-        case 'KeyD':
-        case 'ArrowRight':
-            rightKeyPressed = 0;
-            break;
-        case 'KeyW':
-        case 'ArrowUp':
-            upKeyPressed = 0;
-            break;
-        case 'KeyS':
-        case 'ArrowDown':
-            downKeyPressed = 0;
-            break;                  
-        case 'Escape':
-            break;
-        default:
-            jumpKeyPressed = false;
-            break;            
-    }
-
-    // touch testing
     // switch (e.code) {
     //     case 'KeyA':
-    //         leftScreenTouched = 0;
+    //     case 'ArrowLeft':
+    //         leftKeyPressed = 0;
     //         break;
-    //     case 'Quote':
-    //         rightScreenTouched = 0;
+    //     case 'KeyD':
+    //     case 'ArrowRight':
+    //         rightKeyPressed = 0;
     //         break;
-    // }    
+    //     case 'KeyW':
+    //     case 'ArrowUp':
+    //         upKeyPressed = 0;
+    //         break;
+    //     case 'KeyS':
+    //     case 'ArrowDown':
+    //         downKeyPressed = 0;
+    //         break;                  
+    //     case 'Escape':
+    //         break;
+    //     default:
+    //         jumpKeyPressed = false;
+    //         break;            
+    // }
+
+    // touch testing
+    switch (e.code) {
+        case 'KeyA':
+            leftScreenTouched = 0;
+            break;
+        case 'Quote':
+            rightScreenTouched = 0;
+            break;
+    }    
 }

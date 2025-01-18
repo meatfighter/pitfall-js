@@ -1,1 +1,1 @@
-Project page: https://meatfighter.com/demon-attack/
+Project page: https://meatfighter.com/pitfall-web/
