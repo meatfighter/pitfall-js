@@ -170,8 +170,8 @@ export function updateInput(gs: GameState) {
             }
 
             // Analog stick left and right
-            const leftStickX  = gamepad.axes[0];
-            const rightStickX  = gamepad.axes[2];
+            const leftStickX = gamepad.axes[0];
+            const rightStickX = gamepad.axes[2];
             if (leftStickX < -ANALOG_STICK_THRESHOLD || rightStickX  < -ANALOG_STICK_THRESHOLD) {
                 gamepadLeft = true;
             } else if (leftStickX > ANALOG_STICK_THRESHOLD || rightStickX > ANALOG_STICK_THRESHOLD) {
@@ -179,8 +179,8 @@ export function updateInput(gs: GameState) {
             }
 
             // Analog stick up and down
-            const leftStickY  = gamepad.axes[1];
-            const rightStickY  = gamepad.axes[3];
+            const leftStickY = gamepad.axes[1];
+            const rightStickY = gamepad.axes[3];
             if (leftStickY  < -ANALOG_STICK_THRESHOLD || rightStickY < -ANALOG_STICK_THRESHOLD) {
                 gamepadUp = true;
             } else if (leftStickY > ANALOG_STICK_THRESHOLD || rightStickY > ANALOG_STICK_THRESHOLD) {
