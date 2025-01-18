@@ -48,7 +48,6 @@ export function enter() {
 
     const highScore = document.getElementById('high-score-div') as HTMLDivElement;
 
-    setVolume(store.volume);
     const volumeInput = document.getElementById('volume-input') as HTMLInputElement;
     volumeInput.addEventListener('input', volumeChanged);
     volumeInput.value = String(store.volume);
