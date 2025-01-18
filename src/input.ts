@@ -120,14 +120,14 @@ export function updateInput(gs: GameState) {
                 touchUp = true;
             }
         }
-    } else if (leftScreenTouched > rightScreenTouched) {
+    } else if (leftScreenTouched > rightScreenTouched) { // TODO MID-AIR CHANGE DIRECTION
         if (rightScreenTouched > 0) {
             touchRight = true;
             touchJump = true;
         } else {
             touchLeft = true;
         }
-    } else if (rightScreenTouched > leftScreenTouched) {
+    } else if (rightScreenTouched > leftScreenTouched) { // TODO MID-AIR CHANGE DIRECTION
         if (leftScreenTouched > 0) {
             touchLeft = true;
             touchJump = true;
