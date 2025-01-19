@@ -13,8 +13,7 @@ export class Clock {
         seconds: number;
         frames: number;
     } = {
-        // minutes: (store.difficulty === Difficulty.EASY) ? 22 : (store.difficulty === Difficulty.NORMAL) ? 21 : 20,
-        minutes: 1, // TODO TESTING
+        minutes: (store.difficulty === Difficulty.EASY) ? 22 : (store.difficulty === Difficulty.NORMAL) ? 21 : 20,
         seconds: 0,
         frames: 59,
     }) {                
