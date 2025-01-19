@@ -1,33 +1,31 @@
 import { printNumber, Colors, charSprites } from '@/graphics';
 import { store, Difficulty } from '@/store';
+import { GameState } from './game-state';
 
 export class Clock {
 
     minutes: number;
     seconds: number;
     frames: number;
-    timeUp: boolean;
 
     constructor(clock: {
         minutes: number;
         seconds: number;
         frames: number;
-        timeUp: boolean;
     } = {
-        minutes: (store.difficulty === Difficulty.EASY) ? 22 : (store.difficulty === Difficulty.NORMAL) ? 21 : 20,
+        // minutes: (store.difficulty === Difficulty.EASY) ? 22 : (store.difficulty === Difficulty.NORMAL) ? 21 : 20,
+        minutes: 1, // TODO TESTING
         seconds: 0,
         frames: 59,
-        timeUp: false,
     }) {                
         this.minutes = clock.minutes;
         this.seconds = clock.seconds;
         this.frames = clock.frames;
-        this.timeUp = clock.timeUp;
     }
    
-    update() {
+    update(gs: GameState) {
         if (this.minutes === 0 && this.seconds === 0 && this.frames === 0) {
-            this.timeUp = true;
+            gs.endGame();
             return;
         }
 

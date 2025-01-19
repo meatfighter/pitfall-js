@@ -50,7 +50,7 @@ export function update() {
     const scene1 = gs.nextScene;
 
     if (!gs.harry.isInjured()) {
-        gs.clock.update();
+        gs.clock.update(gs);
         gs.rattle.update();
         gs.cobraAndFire.update(gs);
         gs.treasure.update(gs);

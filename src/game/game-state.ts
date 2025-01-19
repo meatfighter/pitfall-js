@@ -160,12 +160,14 @@ export class GameState {
     }
 
     endGame() {
-        this.gameOver = true;
-        this.gameOverDelay = (this.treasureCount === 32) ? 600 : 180;
-        store.gameState = undefined;
-        if (this.score > store.highScores[store.difficulty]) {
-            this.newHighScore = true;
-            store.highScores[store.difficulty] = this.score;                        
-        }        
+        if (!this.gameOver) {
+            this.gameOver = true;
+            this.gameOverDelay = (this.treasureCount === 32) ? 600 : 180;
+            store.gameState = undefined;
+            if (this.score > store.highScores[store.difficulty]) {
+                this.newHighScore = true;
+                store.highScores[store.difficulty] = this.score;
+            }
+        }
     }
 }
