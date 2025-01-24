@@ -9,7 +9,7 @@ export class StationaryLog {
 
     checkSkid(gs: GameState, x: number, y: number) {
         const { harry } = gs;
-        if (harry.x >= x + 1 && harry.x <= x + 6 && harry.intersects(logMasks[1], x, y)) {
+        if (harry.x >= x + 1 && harry.x <= x + 7 && harry.intersects(logMasks[1], x, y)) {
             harry.skidded();
             if (gs.score > 0) {
                 --gs.score;

@@ -547,6 +547,7 @@ export class Harry {
 
     skidded() {
         play('sfx/kneel.mp3', true);
+        this.rollingDelay = 2;
         switch (this.mainState) {
             case MainState.STANDING:
             case MainState.SKIDDING:    

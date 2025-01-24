@@ -1,6 +1,6 @@
 declare const self: ServiceWorkerGlobalScope;
 
-export const CACHE_NAME = 'pitfall-cache-2025-01-19';
+export const CACHE_NAME = 'pitfall-cache-2025-01-24';
 
 const MAX_FETCH_RETRIES = 5;
 
@@ -94,5 +94,4 @@ self.addEventListener('fetch', e => {
     );
 });
 
-
-
+self.addEventListener('install', () => self.skipWaiting());

@@ -28,7 +28,7 @@ export class RollingLog {
         const { harry } = gs;
         const X = (x + offset) % Resolution.WIDTH;
         if (this.computeFade(gs, X, offset, gs.harry.scene, rollingRight) === 1
-                && harry.x >= X - 3 && harry.x <= X + 2
+                && harry.x >= X - 3 && harry.x <= X + 3
                 && harry.intersects(logMasks[sprite], X - 4, y)) {
             gs.harry.rolled();
             if (gs.score > 0) {

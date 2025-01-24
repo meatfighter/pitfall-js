@@ -1,6 +1,6 @@
 {
   "name": "pitfall-js",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "A browser port of a platformer originally released in 1982 for the Atari 2600.",
   "repository": {
     "type": "git",
