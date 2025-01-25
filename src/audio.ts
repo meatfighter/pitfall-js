@@ -7,19 +7,39 @@ audioContext.onstatechange = () => {
     }
 };
 
+let resumePromise: Promise<void> | null = null;
+
+function resume(): Promise<void> {
+    if (!resumePromise) {
+        resumePromise = audioContext.resume();
+        resumePromise.then(() => resumePromise = null).catch(() => resumePromise = null);
+    }
+    return resumePromise;
+}
+
+let suspendPromise: Promise<void> | null = null;
+
+function suspend(): Promise<void> {
+    if (!suspendPromise) {
+        suspendPromise = audioContext.suspend();
+        suspendPromise.then(() => suspendPromise = null).catch(() => suspendPromise = null);
+    }
+    return suspendPromise;
+}
+
 let docVisible = true;
 
 document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'visible') {
         docVisible = true;
         if (audioContext.state === 'suspended') {
-            audioContext.resume();
+            resume();
         }
-    } else if (document.visibilityState === 'hidden') {        
+    } else if (document.visibilityState === 'hidden') {
         docVisible = false;
         stopAll();
         if (audioContext.state === 'running') {
-            audioContext.suspend();
+            suspend();
         }
     }
 });
@@ -37,7 +57,7 @@ const activeSources = new Map<string, AudioBufferSourceNode>();
 export function setVolume(volume: number) {
     if (audioContext.state === 'suspended') {
         if (docVisible) {
-            audioContext.resume().then(() => setVolume(volume));
+            resume().then(() => setVolume(volume));
         }
         return;
     }
@@ -57,7 +77,7 @@ export async function waitForDecodes() {
 export function play(name: string, loop = false) {
     if (audioContext.state === 'suspended') {
         if (docVisible) {
-            audioContext.resume().then(() => play(name));
+            resume().then(() => play(name));
         }
         return;
     }

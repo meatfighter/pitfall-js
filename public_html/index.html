@@ -4,7 +4,7 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#0C0C0C">
-    <meta name="date" content="2025-01-24">
+    <meta name="date" content="2025-01-25">
 
     <link rel="manifest" href="manifest.json">
     <link rel="icon" href="app/icons/favicon.svg" type="image/svg+xml">
@@ -15,13 +15,13 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Code+Pro&family=Open+Sans&display=swap">
-    <link rel="stylesheet" href="styles/index.css?v=2025-01-24" type="text/css">
+    <link rel="stylesheet" href="styles/index.css?v=2025-01-25" type="text/css">
 
     <!-- Preload app resources -->    
     <link rel="preload" href="https://fonts.gstatic.com/s/opensans/v40/memSYaGs126MiZpBA-UvWbX2vVnXBbObj2OVZyOOSr4dVJWUgsjZ0B4gaVIUx6EQ.woff2" as="font" type="font/woff2" crossorigin="anonymous">
     <link rel="preload" href="https://fonts.gstatic.com/s/materialicons/v142/flUhRq6tzZclQEJ-Vdg-IuiaDsNcIhQ8tQ.woff2" as="font" type="font/woff2" crossorigin="anonymous">
-    <link rel="preload" href="app/styles/app.css?v=2025-01-24" as="style">
-    <link rel="preload" href="app/scripts/app.bundle.js?v=2025-01-24" as="script">
+    <link rel="preload" href="app/styles/app.css?v=2025-01-25" as="style">
+    <link rel="preload" href="app/scripts/app.bundle.js?v=2025-01-25" as="script">
 
     <title>Pitfall!</title>
 
@@ -109,8 +109,10 @@
     <li><div class="indented"><strong>Scorpion Behavior</strong>: Instead of targeting the player&rsquo;s position, the scorpion moves toward a spot beyond the player. When the player is above ground, the scorpion wanders without tracking the player.</div></li>
     <li><div class="indented"><strong>Respawning Location</strong>: Respawn position now depends on the direction the player was facing and proximity to scene boundaries when killed, rather than always placing the player on the left side of the screen.</div></li>
     <li><div class="indented"><strong>Ladder Behavior</strong>: Stepping onto a ladder shaft now causes the player to cling to the ladder rather than falling into the tunnel. From below, players can jump onto a ladder, and the controls for getting on and off ladders are smoother.</div></li>
+    <li><div class="indented"><strong>Wall Behavior</strong>: Bumping into a wall no longer triggers a sound effect.</div></li>
     <li><div class="indented"><strong>Vine Adjustment</strong>: The vine pivot point was shifted two pixels right to better center it over a pit.</div></li>
     <li><div class="indented"><strong>Difficulty Modes</strong>: The port introduces Easy, Normal, and Hard modes to accommodate a range of player skill levels. Easy and Normal modes provide features unavailable in the original, such as arrows that guide the player through the maze, a visible perimeter around shifting pits, and additional HUD metrics.</div></li>
+    <li><div class="indented"><strong>High Scores</strong>: The port records a separate high score for each difficulty mode. Upon achieving a high score, the value displayed in the HUD color cycles.</div></li>
     <li><div class="indented"><strong>Animation Enhancements</strong>: The port refines animations that were originally limited by Atari 2600 hardware, such as respawning from behind tree leaves and sliding into a croc&rsquo;s mouth.</div></li>
 </ul>
 
@@ -137,6 +139,6 @@
 
 </main>
 
-<script type="module" src="scripts/index.bundle.js?v=2025-01-24"></script>
+<script type="module" src="scripts/index.bundle.js?v=2025-01-25"></script>
 </body>
 </html>

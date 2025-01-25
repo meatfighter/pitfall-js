@@ -1,6 +1,6 @@
 declare const self: ServiceWorkerGlobalScope;
 
-export const CACHE_NAME = 'pitfall-cache-2025-01-24';
+export const CACHE_NAME = 'pitfall-cache-2025-01-25';
 
 const MAX_FETCH_RETRIES = 5;
 

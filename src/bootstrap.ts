@@ -12,7 +12,7 @@ function init() {
 
 function registerServiceWorker(intervalId: number) {
     if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('sw.bundle.js?v=2025.01.24').then(() => importApp(intervalId));
+        navigator.serviceWorker.register('sw.bundle.js?v=2025-01-25').then(() => importApp(intervalId));
     } else {
         importApp(intervalId);
     }
